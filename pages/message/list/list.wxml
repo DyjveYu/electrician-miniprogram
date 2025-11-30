@@ -1,0 +1,50 @@
+<!--pages/message/list/list.wxml-->
+<view class="container">
+  <!-- Tab切换 -->
+  <view class="tab-container">
+    <view class="tab-item {{currentTab === 'order' ? 'active' : ''}}" bindtap="switchTab" data-tab="order">
+      <text>订单通知</text>
+      <view wx:if="{{unreadCount.order > 0}}" class="badge">{{unreadCount.order}}</view>
+    </view>
+    <view class="tab-item {{currentTab === 'system' ? 'active' : ''}}" bindtap="switchTab" data-tab="system">
+      <text>系统通知</text>
+      <view wx:if="{{unreadCount.system > 0}}" class="badge">{{unreadCount.system}}</view>
+    </view>
+  </view>
+
+  <!-- 消息列表 -->
+  <view wx:if="{{!loading && messages.length > 0}}" class="message-list">
+    <view wx:for="{{messages}}" wx:key="id" class="message-item" bindtap="viewMessageDetail" data-id="{{item.id}}">
+      <view class="message-icon">
+        <view class="icon {{currentTab === 'order' ? 'order-icon' : 'system-icon'}}"></view>
+      </view>
+      <view class="message-content">
+        <view class="message-header">
+          <view class="message-title">{{item.title}}</view>
+          <view wx:if="{{!item.is_read}}" class="new-badge">新</view>
+        </view>
+        <view class="message-desc">{{item.content}}</view>
+        <view class="message-time">{{formatTime(item.created_at)}}</view>
+      </view>
+      <view class="message-arrow">
+        <text class="iconfont icon-arrow-right"></text>
+      </view>
+    </view>
+  </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!loading && messages.length === 0}}">
+      <text class="empty-icon">💬</text>
+      <text class="empty-text">暂无消息</text>
+    </view>
+
+    <!-- 加载状态 -->
+    <view class="loading-state" wx:if="{{loading}}">
+      <text>加载中...</text>
+    </view>
+
+    <!-- 没有更多 -->
+    <view class="no-more" wx:if="{{!hasMore && messages.length > 0}}">
+      <text>没有更多消息了</text>
+    </view>
+  </view>

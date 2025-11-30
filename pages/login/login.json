@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "登录",
+  "navigationStyle": "custom",
+  "backgroundColor": "#667eea",
+  "usingComponents": {  
+      "wxc-button": "../../components/wxc-button/wxc-button"
+  }
+}

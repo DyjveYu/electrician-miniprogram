@@ -1,0 +1,72 @@
+<!--pages/electrician/list/list.wxml-->
+<view class="container">
+  <!-- 电工列表 -->
+  <view class="electrician-list">
+    <view 
+      class="electrician-item"
+      wx:for="{{electricians}}"
+      wx:key="id"
+      bindtap="viewElectricianDetail"
+      data-id="{{item.id}}"
+    >
+      <view class="electrician-avatar">
+        <image src="{{item.avatar || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+      </view>
+      
+      <view class="electrician-info">
+        <view class="electrician-header">
+          <text class="electrician-name">{{item.name}}</text>
+          <view class="electrician-rating" wx:if="{{item.rating}}">
+            <text class="rating-text">{{item.rating}}分</text>
+          </view>
+        </view>
+        
+        <view class="electrician-details">
+          <text class="detail-item">经验：{{item.experience || '暂无'}}年</text>
+          <text class="detail-item">服务次数：{{item.serviceCount || 0}}次</text>
+        </view>
+        
+        <view class="electrician-skills" wx:if="{{item.skills && item.skills.length > 0}}">
+          <text 
+            class="skill-tag"
+            wx:for="{{item.skills}}"
+            wx:key="*this"
+            wx:for-item="skill"
+          >
+            {{skill}}
+          </text>
+        </view>
+        
+        <view class="electrician-location" wx:if="{{item.location}}">
+          <text class="location-text">📍 {{item.location}}</text>
+        </view>
+      </view>
+      
+      <view class="electrician-actions" catchtap="">
+        <button 
+          class="action-btn contact-btn"
+          data-phone="{{item.phone}}"
+          catchtap="contactElectrician"
+        >
+          联系
+        </button>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!loading && electricians.length === 0}}">
+      <text class="empty-icon">🔧</text>
+      <text class="empty-text">暂无电工信息</text>
+    </view>
+
+    <!-- 加载状态 -->
+    <view class="loading-state" wx:if="{{loading}}">
+      <text>加载中...</text>
+    </view>
+
+    <!-- 没有更多 -->
+    <view class="no-more" wx:if="{{!hasMore && electricians.length > 0}}">
+      <text>没有更多电工了</text>
+    </view>
+  </view>
+</view>

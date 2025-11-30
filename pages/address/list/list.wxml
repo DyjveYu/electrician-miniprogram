@@ -1,0 +1,52 @@
+<!--pages/address/list/list.wxml-->
+<view class="container">
+  <!-- 地址列表 -->
+  <view class="address-list">
+    <view 
+      class="address-item"
+      wx:for="{{addresses}}"
+      wx:key="id"
+      bindtap="selectAddress"
+      data-address="{{item}}"
+    >
+      <view class="address-content">
+        <view class="address-header">
+          <text class="contact-name">{{item.contactName}}</text>
+          
+          <text class="contact-phone">{{item.city}}</text>
+          <text class="contact-phone">{{item.district}}</text>
+          <text class="contact-phone">{{item.detail}}</text>
+          <view class="default-badge" wx:if="{{item.isDefault}}">
+            <text>默认</text>
+          </view>
+        </view>
+        <view class="address-detail">{{item.fullAddress}}</view>
+      </view>
+      
+      <view class="address-actions" catchtap="">
+        <view class="action-btn edit" data-id="{{item.id}}" catchtap="editAddress">
+          <text>编辑</text>
+        </view>
+        <view class="action-btn delete" data-id="{{item.id}}" catchtap="deleteAddress">
+          <text>删除</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{!loading && addresses.length === 0}}">
+      <text class="empty-icon">📍</text>
+      <text class="empty-text">暂无地址信息</text>
+      <button class="add-first-btn" bindtap="addAddress">
+        添加第一个地址
+      </button>
+    </view>
+  </view>
+
+  <!-- 添加地址按钮 -->
+  <view class="add-section" wx:if="{{addresses.length > 0}}">
+    <button class="add-btn" bindtap="addAddress">
+      + 添加新地址
+    </button>
+  </view>
+</view>

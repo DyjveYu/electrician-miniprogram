@@ -1,0 +1,179 @@
+<!-- pages/profile/certification/certification.wxml -->
+<view class="container">
+  <view class="header">
+    <view class="title">电工认证</view>
+    <view class="subtitle" wx:if="{{mode === 'apply'}}">请填写真实信息，审核通过后可接单</view>
+    <view class="subtitle" wx:if="{{mode === 'view'}}">
+      <text class="status-tag {{certificationStatus === 'approved' ? 'approved' : certificationStatus === 'rejected' ? 'rejected' : 'pending'}}">
+        {{certificationStatus === 'approved' ? '已通过' : certificationStatus === 'rejected' ? '已拒绝' : '审核中'}}
+      </text>
+    </view>
+  </view>
+
+  <!-- 查看模式下的拒绝原因 -->
+  <view class="reject-reason" wx:if="{{mode === 'view' && certificationStatus === 'rejected'}}">
+    <view class="reason-title">拒绝原因：</view>
+    <view class="reason-content">{{rejectReason || '未提供拒绝原因'}}</view>
+    <button class="reapply-btn" bindtap="reapplyCertification">重新申请</button>
+  </view>
+
+  <!-- 申请表单 -->
+  <view class="form-container" wx:if="{{mode === 'apply' || (mode === 'view' && certificationStatus === 'approved')}}">
+    <view class="form-group">
+      <view class="form-label">姓名</view>
+      <input 
+        class="form-input" 
+        placeholder="请输入真实姓名" 
+        value="{{formData.realName}}"
+        data-field="realName"
+        bindinput="onInputChange"
+        disabled="{{mode === 'view'}}"
+      />
+    </view>
+
+    <view class="form-group">
+      <view class="form-label">身份证号</view>
+      <input 
+        class="form-input" 
+        placeholder="请输入身份证号码" 
+        value="{{formData.idCard}}"
+        data-field="idCard"
+        bindinput="onInputChange"
+        disabled="{{mode === 'view'}}"
+      />
+    </view>
+
+    <view class="form-group">
+      <view class="form-label">电工证号</view>
+      <input 
+        class="form-input" 
+        placeholder="请输入电工证编号" 
+        value="{{formData.certificateNumber}}"
+        data-field="certificateNumber"
+        bindinput="onInputChange"
+        disabled="{{mode === 'view'}}"
+      />
+    </view>
+
+    <view class="form-group">
+      <view class="form-label">证书开始日期</view>
+      <picker 
+        mode="date" 
+        value="{{formData.certificateStartDate}}" 
+        start="2000-01-01" 
+        end="2050-12-31" 
+        bindchange="bindDateChange" 
+        data-field="certificateStartDate"
+        disabled="{{mode === 'view'}}">
+        <view class="form-input {{formData.certificateStartDate ? '' : 'placeholder'}}">
+          {{formData.certificateStartDate || '请选择开始日期'}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <view class="form-label">证书截止日期</view>
+      <picker 
+        mode="date" 
+        value="{{formData.certificateEndDate}}" 
+        start="2000-01-01" 
+        end="2050-12-31" 
+        bindchange="bindDateChange" 
+        data-field="certificateEndDate"
+        disabled="{{mode === 'view'}}">
+        <view class="form-input {{formData.certificateEndDate ? '' : 'placeholder'}}">
+          {{formData.certificateEndDate || '请选择截止日期'}}
+        </view>
+      </picker>
+    </view>
+
+    <view class="form-group">
+      <view class="form-label">服务区域</view>
+      <view class="location-wrapper">
+        <picker 
+          mode="region" 
+          value="{{region}}" 
+          custom-item="{{customItem}}"
+          bindchange="bindRegionChange"
+          disabled="{{mode === 'view'}}">
+          <view class="form-input region-input {{region[0] ? '' : 'placeholder'}}">
+            {{region[0] ? region[0] + region[1] + region[2] : '请选择服务区域'}}
+          </view>
+        </picker>
+        <view class="location-btn" bindtap="getLocation" wx:if="{{mode === 'apply'}}">
+          <text class="location-icon">📍</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="upload-section">
+      <view class="upload-title">证件照片</view>
+      
+      <view class="upload-item">
+        <view class="upload-label">身份证正面</view>
+        <view class="upload-content" wx:if="{{!idCardFrontPath && mode === 'apply'}}" bindtap="uploadImage" data-type="idCardFront">
+          <view class="upload-icon">+</view>
+          <view class="upload-text">上传照片</view>
+        </view>
+        <view class="upload-preview" wx:if="{{idCardFrontPath}}" bindtap="previewImage" data-type="idCardFront">
+          <image class="preview-image" src="{{idCardFrontPath}}" mode="aspectFit"></image>
+          <view class="preview-mask" wx:if="{{mode === 'apply'}}">
+            <view class="preview-text">点击预览</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="upload-item">
+        <view class="upload-label">身份证反面</view>
+        <view class="upload-content" wx:if="{{!idCardBackPath && mode === 'apply'}}" bindtap="uploadImage" data-type="idCardBack">
+          <view class="upload-icon">+</view>
+          <view class="upload-text">上传照片</view>
+        </view>
+        <view class="upload-preview" wx:if="{{idCardBackPath}}" bindtap="previewImage" data-type="idCardBack">
+          <image class="preview-image" src="{{idCardBackPath}}" mode="aspectFit"></image>
+          <view class="preview-mask" wx:if="{{mode === 'apply'}}">
+            <view class="preview-text">点击预览</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="upload-item">
+        <view class="upload-label">电工证照片</view>
+        <view class="upload-content" wx:if="{{!certificatePath && mode === 'apply'}}" bindtap="uploadImage" data-type="certificate">
+          <view class="upload-icon">+</view>
+          <view class="upload-text">上传照片</view>
+        </view>
+        <view class="upload-preview" wx:if="{{certificatePath}}" bindtap="previewImage" data-type="certificate">
+          <image class="preview-image" src="{{certificatePath}}" mode="aspectFit"></image>
+          <view class="preview-mask" wx:if="{{mode === 'apply'}}">
+            <view class="preview-text">点击预览</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="tips">
+      <view class="tips-title">温馨提示</view>
+      <view class="tips-content">
+        <text>1. 请确保填写的信息真实有效</text>
+        <text>2. 电工证必须在有效期内</text>
+        <text>3. 审核通过后即可接单</text>
+      </view>
+    </view>
+
+    <button 
+      class="submit-btn {{submitDisabled ? 'disabled' : ''}}" 
+      bindtap="submitCertification"
+      disabled="{{submitDisabled}}"
+      wx:if="{{mode === 'apply'}}"
+    >提交认证</button>
+  </view>
+
+  <!-- 审核中状态 -->
+  <view class="pending-container" wx:if="{{mode === 'view' && certificationStatus === 'pending'}}">
+    <view class="pending-icon">⏳</view>
+    <view class="pending-title">认证审核中</view>
+    <view class="pending-desc">您的电工认证申请已提交，正在审核中，请耐心等待</view>
+    <view class="pending-tips">审核通常需要1-3个工作日，审核结果将通过消息通知您</view>
+  </view>
+</view>

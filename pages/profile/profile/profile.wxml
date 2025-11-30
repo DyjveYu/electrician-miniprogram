@@ -1,0 +1,160 @@
+<!--pages/profile/profile/profile.wxml-->
+<view class="container">
+  <!-- 用户信息卡片 -->
+  <view class="user-card">
+    <view class="user-header">
+      <view class="avatar-section" bindtap="previewAvatar">
+        <image class="avatar" src="{{userInfo.avatar || '/assets/default-avatar.png'}}" />
+       
+        <view class="role-badge {{currentRole}}">
+          {{currentRole === 'electrician' ? '电工' : '用户'}}
+        </view>
+      </view>
+      
+      <view class="user-info">
+     
+         <text class="nickname">{{userInfo.nickname || userInfo.phone}}</text>
+          
+       <!-- 电工认证状态：对所有用户可见，用 certificationStatusText 显示当前状态 -->
+ 
+      </view>
+    </view>
+    
+    <!-- 统计数据 -->
+    <view class="stats-section">
+      <view class="stat-item">
+        <text class="stat-number">{{stats.totalOrders}}</text>
+        <text class="stat-label">{{currentRole === 'electrician' ? '接单数' : '下单数'}}</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">{{stats.completedOrders}}</text>
+        <text class="stat-label">已完成</text>
+      </view>
+      <view class="stat-item" wx:if="{{currentRole === 'electrician'}}">
+        <text class="stat-number">{{stats.rating || '0.0'}}</text>
+        <text class="stat-label">评分</text>
+      </view>
+      <view class="stat-item" wx:if="{{currentRole === 'user'}}">
+        <text class="stat-number">¥{{stats.totalAmount || '0'}}</text>
+        <text class="stat-label">总消费</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 电工信息卡片 
+  <view class="electrician-card" wx:if="{{currentRole === 'electrician' && electricianInfo}}">
+    <view class="card-title">电工信息</view>
+    <view class="electrician-info">
+      <view class="info-row">
+        <text class="label">真实姓名：</text>
+        <text class="value">{{electricianInfo.realName}}</text>
+      </view>
+      <view class="info-row">
+        <text class="label">电工证号：</text>
+        <text class="value">{{electricianInfo.certificateNumber}}</text>
+      </view>
+      <view class="info-row">
+        <text class="label">证书有效期：</text>
+        <text class="value">{{electricianInfo.certificateExpiry}}</text>
+      </view>
+      <view class="info-row">
+        <text class="label">服务区域：</text>
+        <text class="value">{{electricianInfo.serviceArea}}</text>
+      </view>
+    </view>
+  </view>
+-->
+  <!-- 菜单列表 -->
+  <view class="menu-section">
+    <!-- 地址管理 -->
+    <view 
+      class="menu-item"
+      wx:if="{{currentRole === 'user'}}"
+      data-item="{{menuItems[0]}}"
+      bindtap="onMenuItemTap"
+    >
+      <view class="menu-icon">📍</view>
+      <view class="menu-content">
+        <text class="menu-title">地址管理</text>
+        <text class="menu-desc">管理常用地址</text>
+      </view>
+      <text class="menu-arrow">></text>
+    </view>
+
+    <!-- 电工认证 -->
+    <view 
+      class="menu-item"
+      bindtap="handleCertification"
+    >
+      <view class="menu-icon">🔧</view>
+      <view class="menu-content">
+        <text class="menu-title">电工认证</text>
+        <text class="menu-desc">{{userInfo.isElectrician ? '查看认证信息' : '申请成为电工'}}</text>
+      </view>
+      <view class="certification-badge">
+       <text class="badge-text {{userInfo.certificationStatus === 'approved' ? 'certified' : (userInfo.certificationStatus === 'pending' ? 'pending' : 'uncertified')}}">{{certificationStatusText}}</text>
+      </view>
+      <text class="menu-arrow">></text>
+    </view>
+
+    <!-- 编辑资料 -->
+    <view 
+      class="menu-item"
+      bindtap="navigateToEdit"
+    >
+      <view class="menu-icon">✏️</view>
+      <view class="menu-content">
+        <text class="menu-title">编辑资料</text>
+        <text class="menu-desc">修改个人信息</text>
+      </view>
+      <text class="menu-arrow">></text>
+    </view>
+
+    <!-- 角色切换 -->
+    <view 
+      class="menu-item"
+      bindtap="navigateToSwitchRole"
+    >
+      <view class="menu-icon">🔄</view>
+      <view class="menu-content">
+        <text class="menu-title">角色切换</text>
+        <text class="menu-desc">切换用户/电工身份</text>
+      </view>
+      <text class="menu-arrow">></text>
+    </view>
+  </view>
+
+  <!-- 其他功能 -->
+  <view class="menu-section">
+    <view 
+      class="menu-item"
+      bindtap="navigateToSettings"
+    >
+      <view class="menu-icon">⚙️</view>
+      <view class="menu-content">
+        <text class="menu-title">设置</text>
+        <text class="menu-desc">通知、隐私等设置</text>
+      </view>
+      <text class="menu-arrow">></text>
+    </view>
+
+    <view 
+      class="menu-item"
+      bindtap="navigateToAbout"
+    >
+      <view class="menu-icon">ℹ️</view>
+      <view class="menu-content">
+        <text class="menu-title">关于我们</text>
+        <text class="menu-desc">版本信息、联系方式</text>
+      </view>
+      <text class="menu-arrow">></text>
+    </view>
+  </view>
+
+  <!-- 退出登录 -->
+  <view class="logout-section">
+    <button class="logout-btn" bindtap="logout">
+      退出登录
+    </button>
+  </view>
+</view>

@@ -1,0 +1,79 @@
+{
+
+  "pages": [
+    "pages/index/index",
+    "pages/login/login",
+    "pages/order/create/create",
+    "pages/order/list/list",
+    "pages/order/detail/detail",
+    "pages/electrician/list/list",
+    "pages/electrician/detail/detail",
+    "pages/profile/profile/profile",
+    "pages/profile/edit/edit",
+    "pages/profile/switch-role/switch-role",
+    "pages/profile/certification/certification",
+    "pages/payment/payment/payment",
+    "pages/payment/result/result",
+    "pages/address/list/list",
+    "pages/address/edit/edit",
+    "pages/message/list/list",
+    "pages/message/detail/detail",
+    "pages/service-types/service-types"
+  ],
+  "requiredPrivateInfos": [
+    "getLocation",
+    "chooseLocation"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#0F9D58",
+    "navigationBarTitleText": "电工维修平台",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f5f5f5"
+  },
+  "tabBar": {
+    "color": "#7A7E83",
+    "selectedColor": "#0F9D58",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "iconPath": "images/tab/home.png",
+        "selectedIconPath": "images/tab/home-active.png",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/order/list/list",
+        "iconPath": "images/tab/order.png",
+        "selectedIconPath": "images/tab/order-active.png",
+        "text": "工单"
+      },
+      {
+        "pagePath": "pages/message/list/list",
+        "iconPath": "images/tab/message.png",
+        "selectedIconPath": "images/tab/message-active.png",
+        "text": "消息"
+      },
+      {
+        "pagePath": "pages/profile/profile/profile",
+        "iconPath": "images/tab/profile.png",
+        "selectedIconPath": "images/tab/profile-active.png",
+        "text": "我的"
+      }
+    ]
+  },
+  "networkTimeout": {
+    "request": 10000,
+    "downloadFile": 10000
+  },
+  "debug": true,
+  "permission": {
+    "scope.userLocation": {
+      "desc": "您的位置信息将用于为您推荐附近的电工服务"
+    }
+  },
+  "requiredBackgroundModes": ["location"],
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

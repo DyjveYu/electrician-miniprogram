@@ -1,0 +1,98 @@
+<!--pages/electrician/detail/detail.wxml-->
+<view class="container">
+  <view wx:if="{{!loading && electrician}}">
+    <!-- 电工基本信息 -->
+    <view class="electrician-card">
+      <view class="electrician-header">
+        <view class="avatar-section" bindtap="previewAvatar">
+          <image 
+            class="avatar"
+            src="{{electrician.avatar || '/images/default-avatar.png'}}"
+            mode="aspectFill"
+          ></image>
+        </view>
+        
+        <view class="electrician-info">
+          <view class="electrician-name">{{electrician.name}}</view>
+          <view class="electrician-phone">{{electrician.phone}}</view>
+          <view class="electrician-rating" wx:if="{{electrician.rating}}">
+            <text class="rating-text">评分：{{electrician.rating}}分</text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 统计信息 -->
+      <view class="stats-section">
+        <view class="stats-item">
+          <text class="stats-value">{{electrician.experience || 0}}年</text>
+          <text class="stats-label">工作年限</text>
+        </view>
+        <view class="stats-item">
+          <text class="stats-value">{{electrician.serviceCount || 0}}</text>
+          <text class="stats-label">服务次数</text>
+        </view>
+        <view class="stats-item">
+          <text class="stats-value">{{electrician.completionRate || 0}}%</text>
+          <text class="stats-label">完成率</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 专业技能 -->
+    <view class="section" wx:if="{{electrician.skills && electrician.skills.length > 0}}">
+      <view class="section-title">专业技能</view>
+      <view class="skills-list">
+        <text 
+          class="skill-tag"
+          wx:for="{{electrician.skills}}"
+          wx:key="*this"
+        >
+          {{item}}
+        </text>
+      </view>
+    </view>
+
+    <!-- 服务介绍 -->
+    <view class="section" wx:if="{{electrician.description}}">
+      <view class="section-title">服务介绍</view>
+      <view class="description-text">{{electrician.description}}</view>
+    </view>
+
+    <!-- 认证信息 -->
+    <view class="section">
+      <view class="section-title">认证信息</view>
+      <view class="cert-info">
+        <view class="cert-item">
+          <text class="cert-label">电工证号：</text>
+          <text class="cert-value">{{electrician.certificateNumber || '暂无'}}</text>
+        </view>
+        <view class="cert-item">
+          <text class="cert-label">证书有效期：</text>
+          <text class="cert-value">{{electrician.certificateExpiry || '暂无'}}</text>
+        </view>
+        <view class="cert-item">
+          <text class="cert-label">服务区域：</text>
+          <text class="cert-value">{{electrician.serviceArea || '暂无'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 联系按钮 -->
+    <view class="contact-section">
+      <button class="contact-btn" bindtap="contactElectrician">
+        联系电工
+      </button>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 电工不存在 -->
+  <view class="empty-state" wx:if="{{!loading && !electrician}}">
+    <text class="empty-icon">🔧</text>
+    <text class="empty-text">电工信息不存在</text>
+  </view>
+</view>

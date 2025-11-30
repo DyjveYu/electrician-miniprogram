@@ -1,0 +1,89 @@
+<!--pages/profile/switch-role/switch-role.wxml-->
+<view class="container">
+  <!-- 当前角色提示 -->
+  <view class="current-role">
+    <text class="current-text">当前身份：</text>
+    <text class="role-name">{{currentRole === 'electrician' ? '电工' : '用户'}}</text>
+  </view>
+
+  <!-- 角色选择 -->
+  <view class="roles-section">
+    <view class="section-title">选择身份</view>
+    
+    <view 
+      class="role-card {{currentRole === item.id ? 'active' : ''}}"
+      wx:for="{{roles}}"
+      wx:key="id"
+      data-role="{{item.id}}"
+      bindtap="selectRole"
+    >
+      <view class="role-header">
+        <view class="role-icon">{{item.icon}}</view>
+        <view class="role-info">
+          <view class="role-title">
+            <text class="role-name">{{item.name}}</text>
+            <view class="current-badge" wx:if="{{currentRole === item.id}}">
+              <text>当前</text>
+            </view>
+          </view>
+          <view class="role-desc">{{item.desc}}</view>
+        </view>
+      </view>
+      
+      <!-- 功能特性 -->
+      <view class="role-features">
+        <view 
+          class="feature-item"
+          wx:for="{{item.features}}"
+          wx:key="*this"
+          wx:for-item="feature"
+        >
+          <text class="feature-text">• {{feature}}</text>
+        </view>
+      </view>
+      
+      <!-- 认证要求 -->
+      <view class="certification-requirement" wx:if="{{item.requireCertification}}">
+        <view class="requirement-text">
+          <text class="requirement-icon">🔒</text>
+          <text>需要电工认证</text>
+        </view>
+        
+        <!-- 认证状态 -->
+        <view class="certification-status">
+          <view wx:if="{{userInfo && userInfo.isElectrician}}" class="status certified">
+            <text class="status-icon">✓</text>
+            <text class="status-text">已认证</text>
+          </view>
+          <view wx:else class="status uncertified">
+            <text class="status-icon">⚠</text>
+            <text class="status-text">未认证</text>
+            <text class="go-certification" bindtap="goToCertification" catchtap="goToCertification">
+              去认证 >
+            </text>
+          </view>
+        </view>
+      </view>
+      
+      <!-- 选择按钮 -->
+      <view class="role-action">
+        <view wx:if="{{currentRole === item.id}}" class="current-role-btn">
+          <text>当前身份</text>
+        </view>
+        <view wx:else class="switch-btn">
+          <text>切换到{{item.name}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 说明文字 -->
+  <view class="tips-section">
+    <view class="tips-title">温馨提示</view>
+    <view class="tips-content">
+      <text class="tip-item">• 用户身份：可以发布维修需求，寻找专业电工服务</text>
+      <text class="tip-item">• 电工身份：可以接单赚钱，需要先完成电工认证</text>
+      <text class="tip-item">• 可以随时切换身份，数据会自动同步</text>
+    </view>
+  </view>
+</view>

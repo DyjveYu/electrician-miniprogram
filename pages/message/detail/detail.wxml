@@ -1,0 +1,45 @@
+<!--pages/message/detail/detail.wxml-->
+<view class="container">
+  <view wx:if="{{!loading && message}}" class="message-detail">
+    <!-- 消息头部 -->
+    <view class="message-header">
+      <view class="message-icon">
+        <text wx:if="{{message.type === 'order'}}">📋</text>
+        <text wx:elif="{{message.type === 'system'}}">📢</text>
+        <text wx:else>💬</text>
+      </view>
+      <view class="message-info">
+        <view class="message-title">{{message.title}}</view>
+        <view class="message-time">{{message.createTime}}</view>
+      </view>
+    </view>
+
+    <!-- 消息内容 -->
+    <view class="message-content">
+      <text class="content-text">{{message.content}}</text>
+    </view>
+
+    <!-- 相关订单 -->
+    <view class="related-order" wx:if="{{message.orderId}}">
+      <view class="section-title">相关订单</view>
+      <view class="order-card" bindtap="viewOrder" data-id="{{message.orderId}}">
+        <view class="order-info">
+          <text class="order-number">订单号：{{message.orderNumber}}</text>
+          <text class="order-status">{{message.orderStatus}}</text>
+        </view>
+        <text class="view-order">查看订单 ></text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+
+  <!-- 消息不存在 -->
+  <view class="empty-state" wx:if="{{!loading && !message}}">
+    <text class="empty-icon">💬</text>
+    <text class="empty-text">消息不存在</text>
+  </view>
+</view>

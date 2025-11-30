@@ -1,0 +1,131 @@
+<!--pages/index/index.wxml-->
+<view class="container">
+  <!-- 顶部位置栏 - 固定在页面最顶部最左侧 2025.11.3
+  <view class="location-bar" bindtap="onLocationTap">
+    <view class="location-content">
+      <text class="location-icon">📍</text>
+      <text class="location-text">{{locationText}}</text>
+    </view>
+    <text class="location-arrow"></text>
+  </view>-->
+
+  <!-- 用户角色界面 -->
+  <view wx:if="{{currentRole === 'user'}}" class="user-content">
+    <!-- 主要服务卡片 -->
+    <view class="service-card" bindtap="createOrder">
+      <view class="service-icon">⚡</view>
+      <view class="service-info">
+        <text class="service-title">立即下单</text>
+        <text class="service-desc">专业电工上门服务</text>
+      </view>
+      <view class="service-arrow">></view>
+    </view>
+
+    <!-- 最近订单 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">已完成订单</text>
+        <text class="section-more" bindtap="viewAllOrders">查看全部</text>
+      </view>
+      
+      <view wx:if="{{loading}}" class="loading">
+        <text>加载中...</text>
+      </view>
+      
+      <view wx:elif="{{recentOrders.length > 0}}" class="order-list">
+        <view wx:for="{{recentOrders}}" wx:key="id" class="order-item">
+          <view class="order-header">
+            <text class="order-title">{{item.title}}</text>
+            <text class="order-status status-{{item.status}}">{{item.statusText}}</text>
+          </view>
+          <view class="order-info">
+            <text class="order-electrician">电工：{{item.electrician_name}}</text>
+            <text class="order-time">{{item.createdTime}}</text>
+          </view>
+          <view wx:if="{{item.rating}}" class="order-rating">
+            <text class="rating-text">评分：{{item.rating}}分</text>
+            <text class="price-text">￥{{item.final_price}}</text>
+          </view>
+        </view>
+      </view>
+      
+      <view wx:else class="empty-state">
+        <text class="empty-text">暂无订单记录</text>
+        <text class="empty-desc">点击上方"立即下单"创建您的第一个订单</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 电工角色界面 -->
+  <view wx:elif="{{currentRole === 'electrician'}}" class="electrician-content">
+    <!-- 电工工作台 -->
+    <view class="electrician-dashboard">
+      <view class="dashboard-item" bindtap="viewAllOrders">
+        <text class="dashboard-icon">📋</text>
+        <text class="dashboard-title">我的订单</text>
+      </view>
+      <view class="dashboard-item" bindtap="refreshOrders">
+        <text class="dashboard-icon">🔄</text>
+        <text class="dashboard-title">刷新订单</text>
+      </view>
+    </view>
+
+    <!-- 附近订单 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">附近订单</text>
+        <text class="section-subtitle">可接单的订单</text>
+      </view>
+      
+      <view wx:if="{{loading}}" class="loading">
+        <text>加载中...</text>
+      </view>
+      
+      <view wx:elif="{{nearbyOrders.length > 0}}" class="nearby-order-list">
+        <view wx:for="{{nearbyOrders}}" wx:key="id" class="nearby-order-item">
+          <view class="order-card">
+            <view class="order-header">
+              <text class="order-title">{{item.title}}</text>
+              <text class="order-status status-{{item.status}}">{{item.statusText}}</text>
+            </view>
+            
+            <view class="order-details">
+              <view class="detail-row">
+                <text class="detail-label">服务类型：</text>
+                <text class="detail-value">{{item.service_type || '电工服务'}}</text>
+              </view>
+              <view class="detail-row">
+                <text class="detail-label">发布时间：</text>
+                <text class="detail-value">{{item.createdTime}}</text>
+              </view>
+              <view wx:if="{{item.distance}}" class="detail-row">
+                <text class="detail-label">距离：</text>
+                <text class="detail-value">{{item.distance}}</text>
+              </view>
+              <view wx:if="{{item.expected_price}}" class="detail-row">
+                <text class="detail-label">预期价格：</text>
+                <text class="detail-value price">￥{{item.expected_price}}</text>
+              </view>
+            </view>
+            
+            <view wx:if="{{item.description}}" class="order-description">
+              <text class="description-text">{{item.description}}</text>
+            </view>
+            
+            <view class="order-actions">
+              <button class="detail-btn" bindtap="viewOrderDetail" data-id="{{item.id}}">查看详情</button>
+              <button class="take-order-btn" bindtap="takeOrder" data-id="{{item.id}}">接单</button>
+            </view>
+          </view>
+        </view>
+      </view>
+      
+      <view wx:else class="empty-state">
+        <text class="empty-text">暂无附近订单</text>
+        <text class="empty-desc">请稍后刷新或扩大搜索范围</text>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 已移除报价弹窗：接单改为直接调用接口 -->

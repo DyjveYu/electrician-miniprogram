@@ -1,0 +1,133 @@
+/* pages/message/detail/detail.wxss */
+.container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding: 20rpx;
+}
+
+/* 消息详情 */
+.message-detail {
+  background-color: #fff;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+
+/* 消息头部 */
+.message-header {
+  display: flex;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.message-icon {
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36rpx;
+  background-color: #f0f0f0;
+  border-radius: 50%;
+  margin-right: 20rpx;
+}
+
+.message-info {
+  flex: 1;
+}
+
+.message-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.message-time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 消息内容 */
+.message-content {
+  padding: 30rpx;
+}
+
+.content-text {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* 相关订单 */
+.related-order {
+  padding: 30rpx;
+  border-top: 2rpx solid #f0f0f0;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.order-card {
+  background-color: #f8f9fa;
+  padding: 20rpx;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.order-info {
+  flex: 1;
+}
+
+.order-number {
+  display: block;
+  font-size: 26rpx;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.order-status {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.view-order {
+  font-size: 24rpx;
+  color: #1976d2;
+}
+
+/* 加载状态 */
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+}

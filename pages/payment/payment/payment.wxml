@@ -1,0 +1,44 @@
+<!--pages/payment/payment/payment.wxml-->
+<view class="container">
+  <!-- 订单信息 -->
+  <view class="order-section" wx:if="{{order}}">
+    <view class="section-title">订单信息</view>
+    <view class="order-info">
+      <view class="order-row">
+        <text class="label">订单号：</text>
+        <text class="value">{{order.orderNumber || order.order_no}}</text>
+      </view>
+      <view class="order-row">
+        <text class="label">服务类型：</text>
+        <text class="value">{{order.serviceTypeName || order.service_type_name || order.title}}</text>
+      </view>
+      <view class="order-row">
+        <text class="label">服务地址：</text>
+        <text class="value">{{order.address || (order.address_detail || '')}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 支付金额 -->
+  <view class="amount-section">
+    <view class="amount-label">支付金额</view>
+    <view class="amount-value">¥{{payAmount || 0}}</view>
+  </view>
+
+  <!-- 自动拉起提示 -->
+  <view class="payment-section">
+    <view class="section-title">微信支付</view>
+    <view class="auto-tip">系统正在为您自动拉起微信支付，请在弹出的支付框中完成操作。如支付失败，您可在订单详情页重新支付或取消订单。</view>
+  </view>
+
+  <!-- 支付按钮 -->
+  <view class="pay-section">
+    <button 
+      class="pay-btn {{paying ? 'disabled' : ''}}"
+      bindtap="startPayment"
+      disabled="{{paying}}"
+    >
+      {{paying ? '自动拉起微信支付中...' : '重试支付'}}
+    </button>
+  </view>
+</view>

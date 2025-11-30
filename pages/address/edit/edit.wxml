@@ -1,0 +1,79 @@
+<!--pages/address/edit/edit.wxml-->
+<view class="container">
+  <view class="form-section">
+    <!-- 联系人信息 -->
+    <view class="form-group">
+      <view class="form-item">
+        <text class="label">联系人</text>
+        <input 
+          class="input"
+          placeholder="请输入联系人姓名"
+          value="{{formData.contactName}}"
+          bindinput="onContactNameInput"
+        />
+      </view>
+      
+      <view class="form-item">
+        <text class="label">联系电话</text>
+        <input 
+          class="input"
+          placeholder="请输入联系电话"
+          value="{{formData.contactPhone}}"
+          bindinput="onContactPhoneInput"
+          type="number"
+        />
+      </view>
+    </view>
+
+    <!-- 地址信息 -->
+    <view class="form-group">
+       <picker mode="region" value="{{regionValue}}" bindchange="onRegionChange">
+          <view class="form-item">
+            <text class="label">所在地区</text>
+            <view class="region-selector">
+              <text class="region-text" wx:if="{{formData.province}}">
+                {{formData.province}} {{formData.city}} {{formData.district}}
+              </text>
+              <text class="placeholder" wx:else>请选择省市区</text>
+              <text class="arrow">></text>
+            </view>
+          </view>
+        </picker>
+     
+      
+      <view class="form-item">
+        <text class="label">详细地址</text>
+        <textarea 
+          class="textarea"
+          placeholder="请输入详细地址（街道、门牌号等）"
+          value="{{formData.detail}}"
+          bindinput="onDetailInput"
+          maxlength="100"
+        ></textarea>
+      </view>
+    </view>
+
+    <!-- 默认地址 -->
+    <view class="form-group">
+      <view class="form-item switch-item" bindtap="toggleDefault">
+        <text class="label">设为默认地址</text>
+        <switch 
+          checked="{{formData.isDefault}}"
+          color="#1976d2"
+          catchtap="toggleDefault"
+        />
+      </view>
+    </view>
+  </view>
+
+  <!-- 保存按钮 -->
+  <view class="save-section">
+    <button 
+      class="save-btn {{saving ? 'disabled' : ''}}"
+      bindtap="saveAddress"
+      disabled="{{saving}}"
+    >
+      {{saving ? '保存中...' : '保存'}}
+    </button>
+  </view>
+</view>

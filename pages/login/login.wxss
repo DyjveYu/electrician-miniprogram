@@ -1,0 +1,327 @@
+/* pages/login/login.wxss */
+
+.page-container {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 头部区域 */
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 200rpx 30rpx 80rpx; /* 增加各方向间距 */
+  color: white;
+}
+
+.logo {
+  width: 300rpx;
+  height: 254rpx;
+  background: white;
+  border-radius: 24rpx;
+  margin-bottom: 1rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.logo-icon {
+  width: 60rpx;
+  height: 60rpx;
+  color: #6366f1;
+}
+
+.title {
+  font-size: 48rpx;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0rpx;
+}
+
+.subtitle {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* 登录表单 */
+.login-form {
+  flex: 1;
+  margin: 0 40rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  padding: 48rpx 40rpx 40rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+}
+
+.form-title {
+  font-size: 36rpx;
+  font-weight: 500;
+  color: #1f2937;
+  text-align: center;
+  margin-bottom: 16rpx;
+}
+
+.form-subtitle {
+  font-size: 28rpx;
+  color: #6b7280;
+  text-align: center;
+  margin-bottom: 60rpx;
+}
+
+.form-group {
+  margin-bottom: 32rpx;
+}
+
+.form-label {
+  font-size: 28rpx;
+  color: #374151;
+  margin-bottom: 16rpx;
+  font-weight: 500;
+}
+
+.input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #f7f8fa;
+  border-radius: 16rpx;
+  padding: 0 24rpx;
+  height: 96rpx;
+}
+
+.form-input {
+  flex: 1;
+  font-size: 30rpx;
+  color: #1f2937;
+  background: transparent;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  /* 小程序特有 */
+  border-radius: 0;          /* 如果有圆角也去掉 */
+  border-width: 0;           /* 明确设置边框宽度为0 */
+}
+
+.code-input {
+  margin-right: 16rpx;
+}
+
+.send-code-btn {
+  padding: 16rpx 24rpx;
+  background-color: transparent;
+  color: #0F9D58;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  white-space: nowrap;
+  
+
+  
+  /* 小程序按钮特有样式 */
+  line-height: 1.5; /* 避免默认行高影响 */
+
+  
+}
+
+.send-code-btn.disabled {
+  background-color: #ccc;
+  color: #999;
+}
+
+.error-text {
+  color: #ff4444;
+  font-size: 24rpx;
+  margin-top: 12rpx;
+  margin-left: 24rpx;
+}
+
+.login-btn {
+  width: 100%;
+  height: 96rpx;
+  background: linear-gradient(90deg, #0F9D58 0%, #81C784 100%);
+  color: #fff;
+  border-radius: 16rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 60rpx;
+  box-shadow: 0 4rpx 16rpx rgba(15, 157, 88, 0.25);
+}
+
+.login-btn.disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  box-shadow: none;
+}
+
+/* 测试提示 */
+.test-tip {
+  background-color: rgba(255, 193, 7, 0.1);
+  border: 1rpx solid rgba(255, 193, 7, 0.3);
+  border-radius: 8rpx;
+  padding: 20rpx;
+  margin-top: 32rpx;
+}
+
+.tip-title {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #ff8f00;
+  margin-bottom: 8rpx;
+}
+
+.tip-content {
+  font-size: 24rpx;
+  color: #ff8f00;
+}
+
+/* 协议条款 */
+.agreement {
+  padding: 40rpx 40rpx 60rpx;
+  background: white;
+}
+
+.agreement-text {
+  font-size: 24rpx;
+  color: #9ca3af;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.link {
+  color: #0F9D58;
+  text-decoration: none;
+}
+
+/* 其他登录方式 */
+.other-login {
+  padding: 40rpx 0;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  margin-bottom: 40rpx;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1rpx;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.divider-text {
+  padding: 0 24rpx;
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.login-methods {
+  display: flex;
+  justify-content: center;
+}
+
+.login-method {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24rpx;
+}
+
+.method-icon {
+  width: 64rpx;
+  height: 64rpx;
+  margin-bottom: 12rpx;
+}
+
+.method-text {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* 底部信息 */
+.footer {
+  padding: 40rpx 0;
+  text-align: center;
+}
+
+.footer-text {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 8rpx;
+}
+
+/* 弹窗样式 */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  width: 80%;
+  max-height: 70vh;
+  background-color: #fff;
+  border-radius: 16rpx;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.modal-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.modal-body {
+  max-height: 50vh;
+  padding: 32rpx;
+}
+
+.modal-text {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.6;
+}
+
+.modal-footer {
+  padding: 24rpx 32rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.modal-btn {
+  width: 100%;
+  height: 80rpx;
+  background: linear-gradient(90deg, #0F9D58 0%, #81C784 100%);
+  color: #fff;
+  border-radius: 12rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

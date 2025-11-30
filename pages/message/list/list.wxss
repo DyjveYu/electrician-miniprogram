@@ -1,0 +1,199 @@
+/* pages/message/list/list.wxss */
+.container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* Tab切换样式 */
+.tab-container {
+  display: flex;
+  background-color: #fff;
+  border-bottom: 1rpx solid #e5e5e5;
+}
+
+.tab-item {
+  flex: 1;
+  position: relative;
+  padding: 30rpx 20rpx;
+  text-align: center;
+  font-size: 32rpx;
+  color: #666;
+  transition: all 0.3s;
+}
+
+.tab-item.active {
+  color: #1890ff;
+  font-weight: 500;
+}
+
+.tab-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60rpx;
+  height: 4rpx;
+  background-color: #1890ff;
+  border-radius: 2rpx;
+}
+
+.badge {
+  position: absolute;
+  top: 20rpx;
+  right: 20rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  line-height: 32rpx;
+  background-color: #ff4757;
+  color: #fff;
+  font-size: 20rpx;
+  text-align: center;
+  border-radius: 16rpx;
+  padding: 0 8rpx;
+}
+
+/* 消息列表样式 */
+.message-list {
+  background-color: #fff;
+  margin-top: 20rpx;
+}
+
+.message-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 30rpx 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  position: relative;
+}
+
+.message-item:last-child {
+  border-bottom: none;
+}
+
+.message-icon {
+  width: 80rpx;
+  height: 80rpx;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.icon {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.order-icon {
+  background-color: #e8f4fd;
+}
+
+.order-icon::after {
+  content: '📋';
+  font-size: 32rpx;
+}
+
+.system-icon {
+  background-color: #fff2e8;
+}
+
+.system-icon::after {
+  content: '📢';
+  font-size: 32rpx;
+}
+
+.message-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10rpx;
+}
+
+.message-title {
+  font-size: 32rpx;
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+  margin-right: 10rpx;
+}
+
+.new-badge {
+  background-color: #ff4757;
+  color: #fff;
+  font-size: 20rpx;
+  padding: 4rpx 8rpx;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+
+.message-desc {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.4;
+  margin-bottom: 10rpx;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.message-time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.message-arrow {
+  width: 40rpx;
+  height: 40rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ccc;
+  margin-left: 10rpx;
+  flex-shrink: 0;
+}
+
+/* 空状态样式 */
+.empty-state {
+  text-align: center;
+  padding: 100rpx 20rpx;
+  color: #999;
+  background-color: #fff;
+  margin-top: 20rpx;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 20rpx;
+}
+
+.empty-text {
+  font-size: 28rpx;
+}
+
+/* 加载状态样式 */
+.loading-state {
+  text-align: center;
+  padding: 40rpx;
+  color: #999;
+  font-size: 28rpx;
+  background-color: #fff;
+  margin-top: 20rpx;
+}
+
+.no-more {
+  text-align: center;
+  padding: 40rpx;
+  color: #ccc;
+  font-size: 24rpx;
+  background-color: #fff;
+}
