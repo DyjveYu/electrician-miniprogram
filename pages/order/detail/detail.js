@@ -514,7 +514,16 @@ Page({
       const app = getApp();
       const isDev = /localhost|127\.0\.0\.1|:3000/.test(app.globalData.baseUrl || '');
       const method = app.globalData.paymentMethod || (isDev ? 'test' : 'wechat');
+      
+      console.log('[详情页-支付] 开始支付流程');
+      console.log('[详情页-支付] isDev:', isDev);
+      console.log('[详情页-支付] baseUrl:', app.globalData.baseUrl);
+      console.log('[详情页-支付] paymentMethod 配置:', app.globalData.paymentMethod);
+      console.log('[详情页-支付] 最终使用的 method:', method);
+      console.log('[详情页-支付] 支付类型 type:', type);
+      
       const openid = method === 'wechat' ? await this.resolveOpenId() : undefined;
+      console.log('[详情页-支付] OpenID:', openid);
 
       const { PaymentAPI } = require('../../../utils/api');
       const result = await PaymentAPI.createPayment({
@@ -524,24 +533,35 @@ Page({
         openid
       });
 
+      console.log('[详情页-支付] 后端返回结果:', result);
+
       this.setData({ paying: false });
 
       const payload = result.data || result;
+      console.log('[详情页-支付] 解析后的 payload:', payload);
+      
       if (payload && (payload.success || payload.pay_params)) {
         const payParams = payload.pay_params || payload;
+        console.log('[详情页-支付] 支付参数:', payParams);
+        console.log('[详情页-支付] 判断：method =', method);
+        
         if (method === 'wechat') {
+          console.log('[详情页-支付] 调用 processPayment 拉起微信支付');
           this.processPayment(payParams);
         } else {
+          console.log('[详情页-支付] 测试支付，直接标记成功');
           this.processTestPayment(payload.payment_no);
           this.paymentSuccess();
         }
       } else {
+        console.error('[详情页-支付] 支付创建失败:', result);
         wx.showToast({
           title: result.message || '支付创建失败',
           icon: 'none'
         });
       }
     } catch (err) {
+      console.error('[详情页-支付] 支付异常:', err);
       this.setData({ paying: false });
       wx.showToast({
         title: err.message || '支付异常',
@@ -552,6 +572,14 @@ Page({
 
   // 拉起微信支付
   processPayment(payParams) {
+    console.log('[详情页-支付] processPayment 被调用');
+    console.log('[详情页-支付] 支付参数详情:', payParams);
+    console.log('[详情页-支付] timeStamp:', payParams.timeStamp);
+    console.log('[详情页-支付] nonceStr:', payParams.nonceStr);
+    console.log('[详情页-支付] package:', payParams.package);
+    console.log('[详情页-支付] signType:', payParams.signType);
+    console.log('[详情页-支付] paySign:', payParams.paySign);
+    
     wx.requestPayment({
       timeStamp: String(payParams.timeStamp),
       nonceStr: payParams.nonceStr,
@@ -559,9 +587,11 @@ Page({
       signType: payParams.signType || 'RSA',
       paySign: payParams.paySign,
       success: () => {
+        console.log('[详情页-支付] wx.requestPayment 成功');
         this.paymentSuccess();
       },
-      fail: () => {
+      fail: (err) => {
+        console.error('[详情页-支付] wx.requestPayment 失败:', err);
         wx.showToast({
           title: '支付失败，请重新发起支付',
           icon: 'none'
@@ -605,29 +635,73 @@ Page({
   resolveOpenId() {
     return new Promise((resolve, reject) => {
       const app = getApp();
-      if (app.globalData.openid) return resolve(app.globalData.openid);
+      console.log('[详情页] 开始获取 OpenID');
+      
+      // 1. 优先使用全局缓存
+      if (app.globalData.openid) {
+        console.log('[详情页] 使用全局缓存的 OpenID:', app.globalData.openid);
+        return resolve(app.globalData.openid);
+      }
 
+      // 2. 尝试从本地存储读取
       const cached = wx.getStorageSync('openid');
       if (cached) {
+        console.log('[详情页] 使用本地存储的 OpenID:', cached);
         app.globalData.openid = cached;
         return resolve(cached);
       }
 
+      // 3. 开发环境 Mock 逻辑
       const isDev = /localhost|127\.0\.0\.1|:3000/.test(app.globalData.baseUrl || '');
-      if (isDev) {
+      console.log('[详情页] isDev:', isDev, 'baseUrl:', app.globalData.baseUrl);
+      
+      if (isDev && !app.globalData.useRealOpenId) { 
         const mock = `MOCK_OPENID_${Math.floor(Math.random() * 100000)}`;
+        console.log('[详情页] 使用 Mock OpenID:', mock);
         wx.setStorageSync('openid', mock);
         app.globalData.openid = mock;
         return resolve(mock);
       }
 
-      // 生产环境需后端支持 code2session
+      // 4. 调用 wx.login + 后端 code2session
+      console.log('[详情页] 调用 wx.login 获取真实 OpenID');
       wx.login({
-        success: () => {
-          reject(new Error('无法获取openid，请配置后端code2session接口'));
+        success: (res) => {
+          if (res.code) {
+            console.log('[详情页] wx.login 成功，code:', res.code);
+            // 调用后端接口
+            wx.request({
+              url: `${app.globalData.baseUrl}/auth/code2session`,
+              method: 'POST',
+              data: { code: res.code },
+              success: (apiRes) => {
+                console.log('[详情页] code2session 后端响应:', apiRes.data);
+                // 兼容后端返回 code 为 0 或 200
+                if (apiRes.data.code === 0 || apiRes.data.code === 200 || apiRes.data.success) {
+                  const openid = apiRes.data.data.openid;
+                  console.log('[详情页] 获取到 OpenID:', openid);
+                  // 缓存 OpenID
+                  app.globalData.openid = openid;
+                  wx.setStorageSync('openid', openid);
+                  resolve(openid);
+                } else {
+                  console.error('[详情页] 获取 OpenID 失败，后端返回:', apiRes.data);
+                  reject(new Error(apiRes.data.message || '获取OpenID失败'));
+                }
+              },
+              fail: (err) => {
+                console.error('[详情页] 请求后端失败:', err);
+                reject(new Error('请求后端获取OpenID失败'));
+              }
+            });
+          } else {
+            console.error('[详情页] wx.login 未返回 code:', res);
+            reject(new Error('微信登录失败: ' + res.errMsg));
+          }
         },
-        fail: () => {
-          reject(new Error('微信登录失败，请重试'));
+        fail: (err) => {
+          console.error('[详情页] wx.login 调用失败:', err);
+          reject(new Error('wx.login 接口调用失败'));
         }
       });
     });

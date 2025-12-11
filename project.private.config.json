@@ -1,7 +1,19 @@
 {
   "libVersion": "3.10.1",
   "projectname": "electrician-miniprogram",
-  "condition": {},
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "开发版",
+          "pathName": "pages/order/create/create",
+          "query": "",
+          "scene": null,
+          "launchMode": "default"
+        }
+      ]
+    }
+  },
   "setting": {
     "urlCheck": false,
     "coverView": true,

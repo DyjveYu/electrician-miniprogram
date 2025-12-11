@@ -203,20 +203,20 @@ Page({
       
       // 延迟跳转，让用户看到成功提示
       setTimeout(() => {
-        console.log('登录成功，准备跳转到我的页面');
+        console.log('登录成功，准备跳转到首页');
         console.log('当前全局数据:', app.globalData);
         
-        // 使用reLaunch确保完全重新加载页面
+        // 使用reLaunch确保完全重新加载首页
         wx.reLaunch({
-          url: '/pages/profile/profile/profile',
+          url: '/pages/index/index',
           success: () => {
-            console.log('跳转到我的页面成功');
+            console.log('跳转到首页成功');
           },
           fail: (err) => {
-            console.error('跳转到我的页面失败:', err);
+            console.error('跳转到首页失败:', err);
             // 如果reLaunch失败，尝试switchTab
             wx.switchTab({
-              url: '/pages/profile/profile/profile',
+              url: '/pages/index/index',
               success: () => {
                 console.log('switchTab跳转成功');
               },

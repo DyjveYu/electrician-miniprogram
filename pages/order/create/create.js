@@ -31,8 +31,8 @@ Page({
     selectedSlot: '',
     expectedTimeStr: '',
     expectedTimeIso: '',
-    // 预付金额（默认30.00，如服务类型有配置则覆盖）
-    prepayAmount: '30.00',
+    // 预付金额（默认30.00，如服务类型有配置则覆盖；测试阶段0.01）
+    prepayAmount: '0.01',
     canSubmit: false,
     submitting: false
   },
@@ -74,7 +74,7 @@ Page({
   // 尝试从后端加载服务类型，失败则回退到默认数组
   loadServiceTypes() {
     const app = getApp();
-    const url = `${app.globalData.baseUrl}/service-types`;
+    const url = `${app.globalData.baseUrl}/system/service-types`;
     console.log('加载服务类型，URL=', url);
 
     wx.request({

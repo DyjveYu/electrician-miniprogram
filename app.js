@@ -3,13 +3,14 @@ App({
   globalData: {
     userInfo: null,
     token: null,
-    baseUrl: 'http://localhost:3000/api', // 开发环境API地址
+    baseUrl: 'https://www.mijutime.com/api', // 阿里云 开发环境API地址
+    // baseUrl: 'http://localhost:3000/api', // 本地开发环境API地址
     isLogin: false,
     currentRole: 'user', // user | electrician
     systemInfo: null,
     location: null,
     // 支付方式全局配置：生产默认微信支付wechat；开发可自动走测试支付test
-    paymentMethod: 'test'
+    paymentMethod: 'wechat'
   },
 
   onLaunch() {

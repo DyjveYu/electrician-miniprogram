@@ -13,9 +13,14 @@ Page({
   },
 
   onLoad(options) {
-    if (options.orderId) {
+    if (options.orderId && options.orderId !== 'undefined') {
       this.setData({ orderId: options.orderId });
       this.loadOrderInfo();
+    } else {
+      wx.showToast({ title: '订单信息错误', icon: 'none' });
+      setTimeout(() => {
+        wx.switchTab({ url: '/pages/order/list/list' });
+      }, 1500);
     }
     // 可支持直接通过参数指定支付类型
     if (options.type && (options.type === 'prepay' || options.type === 'repair')) {
@@ -125,26 +130,60 @@ Page({
   resolveOpenId() {
     return new Promise((resolve, reject) => {
       const app = getApp();
+      
+      // 1. 优先使用全局缓存
       if (app.globalData.openid) return resolve(app.globalData.openid);
+
+      // 2. 尝试从本地存储读取
       const cached = wx.getStorageSync('openid');
       if (cached) {
         app.globalData.openid = cached;
         return resolve(cached);
       }
+
+      // 3. 开发环境 Mock 逻辑
       const isDev = /localhost|127\.0\.0\.1|:3000/.test(app.globalData.baseUrl || '');
-      if (isDev) {
+      if (isDev && !app.globalData.useRealOpenId) { 
         const mock = `MOCK_OPENID_${Math.floor(Math.random() * 100000)}`;
         wx.setStorageSync('openid', mock);
         app.globalData.openid = mock;
         return resolve(mock);
       }
-      // 生产环境需后端支持 code2session，这里仅尝试 wx.login 并给出提示
+
+      // 4. 调用 wx.login + 后端 code2session
       wx.login({
-        success: () => {
-          reject(new Error('无法获取openid，请配置后端code2session接口'));
+        success: (res) => {
+          if (res.code) {
+            // 调用后端接口
+            wx.request({
+              url: `${app.globalData.baseUrl}/auth/code2session`,
+              method: 'POST',
+              data: { code: res.code },
+              success: (apiRes) => {
+                console.log('[支付页] code2session 后端响应:', apiRes.data);
+                // 兼容后端返回 code 为 0 或 200
+                if (apiRes.data.code === 0 || apiRes.data.code === 200 || apiRes.data.success) {
+                  const openid = apiRes.data.data.openid;
+                  console.log('[支付页] 获取到 OpenID:', openid);
+                  // 缓存 OpenID
+                  app.globalData.openid = openid;
+                  wx.setStorageSync('openid', openid);
+                  resolve(openid);
+                } else {
+                  console.error('[支付页] 获取 OpenID 失败，后端返回:', apiRes.data);
+                  reject(new Error(apiRes.data.message || '获取OpenID失败'));
+                }
+              },
+              fail: (err) => {
+                reject(new Error('请求后端获取OpenID失败'));
+              }
+            });
+          } else {
+            reject(new Error('微信登录失败: ' + res.errMsg));
+          }
         },
-        fail: () => {
-          reject(new Error('微信登录失败，请重试'));
+        fail: (err) => {
+          reject(new Error('wx.login 接口调用失败'));
         }
       });
     });
