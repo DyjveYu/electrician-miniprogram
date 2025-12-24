@@ -15,8 +15,8 @@
 
   <!-- 问题描述 -->
   <view class="form-section">
-    <view class="section-title">故障描述</view>
-    <textarea placeholder="请描述您遇到的问题..." 
+    <view class="section-title">{{descriptionTitle}}</view>
+    <textarea placeholder="请填写服务内容..." 
               value="{{description}}" 
               bindinput="onDescriptionInput" 
               maxlength="220"
@@ -25,7 +25,7 @@
 
   <!-- 上传图片 -->
   <view class="form-section">
-    <view class="section-title">上传图片（选填）</view>
+    <view class="section-title">上传图片（非必填）</view>
     <view class="image-list">
       <block wx:for="{{images}}" wx:key="index">
         <image src="{{item}}" class="uploaded-image" mode="aspectFill" />
@@ -36,19 +36,12 @@
 
   <!-- 服务地址与时间 -->
   <view class="form-section">
-    <view class="section-title">服务地址与时间</view>
+  <view class="section-title">服务地址</view>
     <view class="form-item" bindtap="openAddressSheet">
       <text class="label">请选择上门地址</text>
       <view class="value">
         <text wx:if="{{selectedAddressStr}}">{{selectedAddressStr}}</text>
         <text wx:else class="placeholder">点击选择地址</text>
-      </view>
-    </view>
-    <view class="form-item" bindtap="openTimeSheet">
-      <text class="label">请选择上门时间</text>
-      <view class="value">
-        <text wx:if="{{expectedTimeStr}}">{{expectedTimeStr}}</text>
-        <text wx:else class="placeholder">点击选择时间</text>
       </view>
     </view>
   </view>
@@ -86,31 +79,4 @@
     </view>
   </view>
 
-  <!-- 时间选择弹层 -->
-  <view wx:if="{{showTimeSheet}}" class="sheet-mask" bindtap="closeTimeSheet"></view>
-  <view wx:if="{{showTimeSheet}}" class="action-sheet" catchtouchmove="true">
-    <view class="sheet-header">
-      <text>您期望上门服务时间</text>
-      <view class="close-icon" bindtap="closeTimeSheet">×</view>
-    </view>
-    <view class="time-sheet-body">
-      <scroll-view scroll-y="true" class="date-column">
-        <view class="date-item {{selectedDateIndex === index ? 'selected' : ''}}" 
-              wx:for="{{dateList}}" wx:key="index" 
-              data-index="{{index}}" bindtap="selectDate">
-          <text>{{item.label}}</text>
-        </view>
-      </scroll-view>
-      <scroll-view scroll-y="true" class="slot-column">
-        <view class="slot-item {{selectedSlot === item ? 'selected' : ''}}" 
-              wx:for="{{timeSlots}}" wx:key="item" 
-              data-slot="{{item}}" bindtap="selectSlot">
-          <text>{{item}}</text>
-        </view>
-      </scroll-view>
-    </view>
-    <view class="sheet-footer">
-      <button class="footer-btn primary" bindtap="confirmTime">确定</button>
-    </view>
-  </view>
 </view>

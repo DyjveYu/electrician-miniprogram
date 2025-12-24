@@ -3,8 +3,8 @@ App({
   globalData: {
     userInfo: null,
     token: null,
-    baseUrl: 'https://www.mijutime.com/api', // 阿里云 开发环境API地址
-    // baseUrl: 'http://localhost:3000/api', // 本地开发环境API地址
+    baseUrl: 'https://electrician.mijutime.com/api', // 阿里云 API地址
+    //baseUrl: 'http://localhost:3000/api', // 本地开发环境API地址
     isLogin: false,
     currentRole: 'user', // user | electrician
     systemInfo: null,
@@ -15,10 +15,10 @@ App({
 
   onLaunch() {
     console.log('小程序启动');
-    
+
     // 获取系统信息
     this.getSystemInfo();
-    
+
     // 检查登录状态
     this.checkLoginStatus();
     // 位置权限不在启动阶段申请，避免重复弹窗；在真正需要定位的页面再调用
@@ -57,13 +57,13 @@ App({
   checkLoginStatus() {
     const token = wx.getStorageSync('token');
     const userInfo = wx.getStorageSync('userInfo');
-    
+
     if (token && userInfo) {
       this.globalData.token = token;
       this.globalData.userInfo = userInfo;
       this.globalData.isLogin = true;
       this.globalData.currentRole = userInfo.current_role || 'user';
-      
+
       // 验证token是否有效
       this.verifyToken();
     }
@@ -140,16 +140,16 @@ App({
    */
   login(userInfo, token) {
     console.log('开始保存登录信息:', { userInfo, token });
-    
+
     this.globalData.userInfo = userInfo;
     this.globalData.token = token;
     this.globalData.isLogin = true;
     this.globalData.currentRole = userInfo.current_role || 'user';
-    
+
     // 存储到本地
     wx.setStorageSync('userInfo', userInfo);
     wx.setStorageSync('token', token);
-    
+
     console.log('用户登录成功，全局数据已更新:', {
       userInfo: this.globalData.userInfo,
       token: this.globalData.token,
@@ -166,13 +166,13 @@ App({
     this.globalData.token = null;
     this.globalData.isLogin = false;
     this.globalData.currentRole = 'user';
-    
+
     // 清除本地存储
     wx.removeStorageSync('userInfo');
     wx.removeStorageSync('token');
-    
+
     console.log('用户登出');
-    
+
     // 跳转到登录页
     wx.reLaunch({
       url: '/pages/login/login'
@@ -186,10 +186,10 @@ App({
     if (this.globalData.userInfo) {
       this.globalData.userInfo.current_role = newRole;
       this.globalData.currentRole = newRole;
-      
+
       // 更新本地存储
       wx.setStorageSync('userInfo', this.globalData.userInfo);
-      
+
       console.log('角色切换成功:', newRole);
     }
   },
@@ -275,7 +275,7 @@ App({
     const hour = String(d.getHours()).padStart(2, '0');
     const minute = String(d.getMinutes()).padStart(2, '0');
     const second = String(d.getSeconds()).padStart(2, '0');
-    
+
     return format
       .replace('YYYY', year)
       .replace('MM', month)

@@ -1,10 +1,28 @@
 // pages/order/create/create.js
-const DEFAULT_SERVICE_TYPES = [
+const SERVICE_TYPE_DISPLAY_MAP = {
+  '电路维修': '电工维修',
+  '开关插座': '电工安装'
+};
+
+const SERVICE_TYPE_WHITELIST = Object.keys(SERVICE_TYPE_DISPLAY_MAP);
+
+const RAW_SERVICE_TYPES = [
   { id: 1, name: '电路维修', icon: '🔌' },
   { id: 2, name: '开关插座', icon: '🔘' },
   { id: 3, name: '灯具安装', icon: '💡' },
   { id: 4, name: '其他电工服务', icon: '⚡' }
 ];
+
+const DEFAULT_SERVICE_TYPES = formatServiceTypes(RAW_SERVICE_TYPES);
+
+function formatServiceTypes(list = []) {
+  return (list || [])
+    .filter(item => SERVICE_TYPE_WHITELIST.includes(item.name))
+    .map(item => ({
+      ...item,
+      name: SERVICE_TYPE_DISPLAY_MAP[item.name] || item.name
+    }));
+}
 
 Page({
   data: {
@@ -24,13 +42,7 @@ Page({
     selectedAddressStr: '',
     latitude: '',
     longitude: '',
-    showTimeSheet: false,
-    dateList: [],
-    timeSlots: ['08:00-09:00','09:00-10:00','10:00-11:00','11:00-12:00','13:00-14:00','14:00-15:00','15:00-16:00','16:00-17:00','17:00-18:00','19:00-20:00','20:00-21:00','21:00-22:00'],
-    selectedDateIndex: 0,
-    selectedSlot: '',
-    expectedTimeStr: '',
-    expectedTimeIso: '',
+    descriptionTitle: '故障描述',
     // 预付金额（默认30.00，如服务类型有配置则覆盖；测试阶段0.01）
     prepayAmount: '0.01',
     canSubmit: false,
@@ -57,7 +69,6 @@ Page({
     // 原有逻辑
     this.loadServiceTypes();
     this.getUserInfo();
-    this.prepareDateList();
   },
 
   // 预填联系人
@@ -84,16 +95,27 @@ Page({
         // 兼容后端两种风格： code === 0 / code === 200
         const ok = res && res.data && (res.data.code === 0 || res.data.code === 200);
         if (ok && Array.isArray(res.data.data) && res.data.data.length > 0) {
-          console.log('从后端加载到服务类型：', res.data.data);
-          this.setData({ serviceTypes: res.data.data });
+          const formatted = formatServiceTypes(res.data.data);
+          if (formatted.length > 0) {
+            console.log('从后端加载到服务类型：', formatted);
+            this.setData({ serviceTypes: formatted });
+            const st = formatted[0] || {};
+            const amount = (st.prepay_amount != null) ? Number(st.prepay_amount).toFixed(2) : this.data.prepayAmount;
+            this.setData({ prepayAmount: amount });
+          } else {
+            console.warn('后端返回的服务类型被过滤后为空，回退到默认值', res && res.data);
+            this.setData({ serviceTypes: DEFAULT_SERVICE_TYPES });
+            const st = (DEFAULT_SERVICE_TYPES || [])[0] || {};
+            const amount = (st.prepay_amount != null) ? Number(st.prepay_amount).toFixed(2) : this.data.prepayAmount;
+            this.setData({ prepayAmount: amount });
+          }
         } else {
           console.warn('后端返回的 service-types 格式不符合预期，回退到默认值', res && res.data);
           this.setData({ serviceTypes: DEFAULT_SERVICE_TYPES });
+          const st = (DEFAULT_SERVICE_TYPES || [])[0] || {};
+          const amount = (st.prepay_amount != null) ? Number(st.prepay_amount).toFixed(2) : this.data.prepayAmount;
+          this.setData({ prepayAmount: amount });
         }
-        // 根据第一个服务类型预付金额更新展示（如有）
-        const st = (this.data.serviceTypes || [])[0] || {};
-        const amount = (st.prepay_amount != null) ? Number(st.prepay_amount).toFixed(2) : this.data.prepayAmount;
-        this.setData({ prepayAmount: amount });
       },
       fail: (err) => {
         console.warn('获取 service-types 失败，使用默认值。错误：', err);
@@ -112,9 +134,11 @@ Page({
     if (typeof index === 'undefined') {
       const id = e.currentTarget.dataset.id;
       const found = this.data.serviceTypes.find(s => s.id == id);
+      const descTitle = this.getDescriptionTitle(found?.name);
       this.setData({
         selectedServiceTypeId: id,
-        selectedServiceType: found || null
+        selectedServiceType: found || null,
+        descriptionTitle: descTitle
       });
       return;
     }
@@ -124,9 +148,14 @@ Page({
     this.setData({
       selectedServiceTypeId: selected.id,
       selectedServiceType: selected,
-      prepayAmount: (selected.prepay_amount != null) ? Number(selected.prepay_amount).toFixed(2) : this.data.prepayAmount
+      prepayAmount: (selected.prepay_amount != null) ? Number(selected.prepay_amount).toFixed(2) : this.data.prepayAmount,
+      descriptionTitle: this.getDescriptionTitle(selected.name)
     });
     this.updateSubmitEnable();
+  },
+
+  getDescriptionTitle(serviceName) {
+    return serviceName === '电工安装' ? '工程描述' : '故障描述';
   },
 
   // 文本输入处理
@@ -233,57 +262,6 @@ Page({
     wx.navigateTo({ url: '/pages/address/edit/edit' });
   },
 
-  // 时间弹层与选择
-  openTimeSheet() {
-    this.setData({ showTimeSheet: true });
-  },
-  closeTimeSheet() {
-    this.setData({ showTimeSheet: false });
-  },
-  prepareDateList() {
-    const list = [];
-    const now = new Date();
-    for (let i = 0; i < 10; i++) {
-      const d = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
-      const labelPrefix = i === 0 ? '今天' : i === 1 ? '明天' : i === 2 ? '后天' : `周${'日一二三四五六'[d.getDay()]}`;
-      const label = `${labelPrefix} ${d.getMonth()+1}月${d.getDate()}日`;
-      list.push({ date: d, label });
-    }
-    this.setData({ dateList: list, selectedDateIndex: 0 });
-  },
-  selectDate(e) {
-    const index = e.currentTarget.dataset.index;
-    this.setData({ selectedDateIndex: index });
-  },
-  selectSlot(e) {
-    const slot = e.currentTarget.dataset.slot;
-    this.setData({ selectedSlot: slot });
-  },
-  confirmTime() {
-    const date = this.data.dateList[this.data.selectedDateIndex];
-    if (!date || !this.data.selectedSlot) {
-      wx.showToast({ title: '请选择日期和时间段', icon: 'none' });
-      return;
-    }
-    const expectedStr = `${date.label} ${this.data.selectedSlot}`;
-    // 将时段的开始时间转换为ISO字符串，保留本地时区偏移
-    const [startStr] = this.data.selectedSlot.split('-');
-    const [hh, mm] = (startStr || '00:00').split(':').map(s => parseInt(s, 10) || 0);
-    const base = date.date; // 实际日期对象
-    const y = base.getFullYear();
-    const m = base.getMonth() + 1;
-    const d = base.getDate();
-    const pad = (n) => (n < 10 ? `0${n}` : `${n}`);
-    const tzMinutes = -new Date().getTimezoneOffset(); // 本地时区偏移，单位分钟
-    const sign = tzMinutes >= 0 ? '+' : '-';
-    const tzAbs = Math.abs(tzMinutes);
-    const tzH = Math.floor(tzAbs / 60);
-    const tzM = tzAbs % 60;
-    const iso = `${y}-${pad(m)}-${pad(d)}T${pad(hh)}:${pad(mm)}:00${sign}${pad(tzH)}:${pad(tzM)}`;
-    this.setData({ expectedTimeStr: expectedStr, expectedTimeIso: iso });
-    this.updateSubmitEnable();
-    this.closeTimeSheet();
-  },
 
   // 表单验证
   validateForm() {
@@ -302,10 +280,6 @@ Page({
     // 联系人手机号若存在则校验；允许为空（地址中已包含）
     if (this.data.contactPhone && !/^1[3-9]\d{9}$/.test(this.data.contactPhone)) {
       wx.showToast({ title: '联系人手机号格式不正确', icon: 'none' });
-      return false;
-    }
-    if (!this.data.expectedTimeStr) {
-      wx.showToast({ title: '请选择上门时间', icon: 'none' });
       return false;
     }
     return true;
@@ -328,7 +302,6 @@ Page({
       service_address: this.data.selectedAddressStr,
       latitude: this.data.latitude,
       longitude: this.data.longitude,
-      expected_time: this.data.expectedTimeIso || null,
       images: this.data.images || []
     };
 
@@ -361,7 +334,7 @@ Page({
   }
   ,
   updateSubmitEnable() {
-    const ok = !!this.data.selectedServiceTypeId && !!(this.data.description && this.data.description.trim()) && !!this.data.selectedAddressStr && !!this.data.expectedTimeStr;
+    const ok = !!this.data.selectedServiceTypeId && !!(this.data.description && this.data.description.trim()) && !!this.data.selectedAddressStr;
     this.setData({ canSubmit: ok });
   }
 });

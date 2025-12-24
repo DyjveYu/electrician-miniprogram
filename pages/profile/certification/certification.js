@@ -2,6 +2,9 @@
 Page({
   data: {
     mode: 'apply', // apply: 申请认证, view: 查看认证
+    workTypes: ['maintenance'], // 默认选中维修电工
+    isMaintenanceChecked: true, // 维修电工是否选中
+    isInstallationChecked: false, // 安装电工是否选中
     formData: {
       realName: '',
       idCard: '',
@@ -46,7 +49,12 @@ Page({
       success: (res) => {
         if (res.data.code === 0 && res.data.data) {
           const certInfo = res.data.data;
+          // 解析 work_types 字段
+          const workTypes = certInfo.work_types ? certInfo.work_types.split(',') : ['maintenance'];
           this.setData({
+            workTypes: workTypes,
+            isMaintenanceChecked: workTypes.includes('maintenance'),
+            isInstallationChecked: workTypes.includes('installation'),
             formData: {
               realName: certInfo.real_name || '',
               idCard: certInfo.id_card || '',
@@ -71,6 +79,20 @@ Page({
         wx.hideLoading();
       }
     });
+  },
+
+  // 工作类型多选处理
+  onWorkTypesChange(e) {
+    const values = e.detail.value; // 获取选中的值数组
+    console.log('工作类型变更:', values);
+    
+    this.setData({
+      workTypes: values,
+      isMaintenanceChecked: values.includes('maintenance'),
+      isInstallationChecked: values.includes('installation')
+    });
+    
+    this.checkFormValid();
   },
 
   // 表单输入处理
@@ -160,8 +182,9 @@ Page({
   checkFormValid() {
     const { formData } = this.data;
 
-    // 检查所有必填字段
-    const isValid = formData.realName &&
+    // 检查所有必填字段（包括工作类型）
+    const isValid = this.data.workTypes.length > 0 &&
+      formData.realName &&
       formData.idCard &&
       formData.certificateNumber &&
       formData.certificateStartDate &&
@@ -176,10 +199,15 @@ Page({
   // 提交认证申请
   submitCertification() {
     if (this.data.submitDisabled) {
+      console.log('❌ 表单未完成，无法提交');
       return;
     }
 
     const app = getApp();
+
+    console.log('========== 开始提交电工认证 ==========');
+    console.log('1. BaseUrl:', app.globalData.baseUrl);
+    console.log('2. Token:', app.globalData.token ? '存在' : '不存在');
 
     wx.showLoading({
       title: '提交中',
@@ -187,6 +215,7 @@ Page({
 
     // 构建请求数据
     const requestData = {
+      work_types: this.data.workTypes.join(','), // 将数组转换为逗号分隔的字符串
       real_name: this.data.formData.realName,
       id_card: this.data.formData.idCard,
       electrician_cert_no: this.data.formData.certificateNumber,
@@ -196,9 +225,13 @@ Page({
       region: this.data.region.join(',')
     };
 
+    console.log('3. 请求数据:', JSON.stringify(requestData, null, 2));
+
+    const fullUrl = `${app.globalData.baseUrl}/electricians/certification`;
+    console.log('4. 完整URL:', fullUrl);
 
     wx.request({
-      url: `${app.globalData.baseUrl}/electricians/certification`,
+      url: fullUrl,
       method: 'POST',
       header: {
         'Authorization': `Bearer ${app.globalData.token}`,
@@ -206,8 +239,13 @@ Page({
       },
       data: requestData,
       success: (res) => {
+        console.log('5. ✅ 请求成功');
+        console.log('6. HTTP状态码:', res.statusCode);
+        console.log('7. 响应数据:', JSON.stringify(res.data, null, 2));
+        
         const code = res.data.code;
         if (code === 0 || code === 200) {
+          console.log('8. ✅ 业务成功');
           wx.showToast({
             title: '提交成功',
             icon: 'success'
@@ -215,22 +253,27 @@ Page({
 
           // 延迟返回上一页
           setTimeout(() => {
+            console.log('9. 返回上一页');
             wx.navigateBack();
           }, 1500);
         } else {
+          console.log('8. ❌ 业务失败, code:', code);
           wx.showToast({
             title: res.data.message || '提交失败',
             icon: 'none'
           });
         }
       },
-      fail: () => {
+      fail: (err) => {
+        console.error('5. ❌ 请求失败');
+        console.error('6. 错误信息:', JSON.stringify(err, null, 2));
         wx.showToast({
           title: '提交失败',
           icon: 'none'
         });
       },
       complete: () => {
+        console.log('========== 提交流程结束 ==========\n');
         wx.hideLoading();
       }
     });

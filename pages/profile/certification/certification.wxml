@@ -19,6 +19,21 @@
 
   <!-- 申请表单 -->
   <view class="form-container" wx:if="{{mode === 'apply' || (mode === 'view' && certificationStatus === 'approved')}}">
+    <!-- 从事工作类型 -->
+    <view class="form-group">
+      <view class="form-label">你从事的工作</view>
+      <checkbox-group class="checkbox-group" bindchange="onWorkTypesChange">
+        <label class="checkbox-item">
+          <checkbox value="maintenance" checked="{{isMaintenanceChecked}}" disabled="{{mode === 'view'}}"/>
+          <text>维修电工</text>
+        </label>
+        <label class="checkbox-item">
+          <checkbox value="installation" checked="{{isInstallationChecked}}" disabled="{{mode === 'view'}}"/>
+          <text>安装电工</text>
+        </label>
+      </checkbox-group>
+    </view>
+
     <view class="form-group">
       <view class="form-label">姓名</view>
       <input 

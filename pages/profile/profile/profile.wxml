@@ -81,8 +81,9 @@
       <text class="menu-arrow">></text>
     </view>
 
-    <!-- 电工认证 -->
+    <!-- 电工认证 - 仅电工角色显示 -->
     <view 
+      wx:if="{{currentRole === 'electrician'}}"
       class="menu-item"
       bindtap="handleCertification"
     >
@@ -110,18 +111,6 @@
       <text class="menu-arrow">></text>
     </view>
 
-    <!-- 角色切换 -->
-    <view 
-      class="menu-item"
-      bindtap="navigateToSwitchRole"
-    >
-      <view class="menu-icon">🔄</view>
-      <view class="menu-content">
-        <text class="menu-title">角色切换</text>
-        <text class="menu-desc">切换用户/电工身份</text>
-      </view>
-      <text class="menu-arrow">></text>
-    </view>
   </view>
 
   <!-- 其他功能 -->

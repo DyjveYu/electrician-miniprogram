@@ -11,6 +11,18 @@
   <view class="login-form">
     <view class="form-title">数字赋能电工，服务贴心到家</view>
     
+    <!-- 角色选择 -->
+    <view class="role-selector">
+      <view class="role-option {{selectedRole === 'user' ? 'active' : ''}}" bindtap="selectRole" data-role="user">
+        <view class="role-icon">👤</view>
+        <text class="role-text">我是用户</text>
+      </view>
+      <view class="role-option {{selectedRole === 'electrician' ? 'active' : ''}}" bindtap="selectRole" data-role="electrician">
+        <view class="role-icon">⚡</view>
+        <text class="role-text">我是电工</text>
+      </view>
+    </view>
+    
     <!-- 手机号输入 -->
     <view class="form-group">
       <view class="form-label">手机号码</view>

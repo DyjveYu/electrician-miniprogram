@@ -17,6 +17,7 @@ Page({
     isLogging: false,
     showTestTip: false,
     testCode: '',
+    selectedRole: 'user', // 默认选择用户角色
     
     // 弹窗相关
     showModal: false,
@@ -26,10 +27,12 @@ Page({
 
   onLoad() {
     console.log('登录页面加载');
+    console.log('初始 selectedRole:', this.data.selectedRole);
     this.checkTestEnvironment();
   },
 
   onShow() {
+    console.log('登录页面显示，当前 selectedRole:', this.data.selectedRole);
     // 如果已经登录，直接返回首页
     if (app.globalData.isLogin) {
       wx.switchTab({
@@ -48,6 +51,18 @@ Page({
       showTestTip: isTestEnv,
       testCode: '123456'
     });
+  },
+
+  /**
+   * 选择角色
+   */
+  selectRole(e) {
+    const role = e.currentTarget.dataset.role;
+    console.log('选择角色:', role);
+    this.setData({
+      selectedRole: role
+    });
+    console.log('当前 selectedRole:', this.data.selectedRole);
   },
 
   /**
@@ -192,7 +207,9 @@ Page({
         loginButtonText: '登录中...'
       });
       
-      const res = await AuthAPI.login(phone, code);
+      // 传递角色选择给后端
+      console.log('准备登录，选择的角色:', this.data.selectedRole);
+      const res = await AuthAPI.login(phone, code, this.data.selectedRole);
       
       console.log('登录API响应:', res);
       

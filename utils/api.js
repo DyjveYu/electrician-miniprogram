@@ -108,6 +108,7 @@ class API {
    * POST请求
    */
   static post(url, data = {}, options = {}) {
+    console.log(`API.post 调用: ${url}`, 'data:', data);
     return this.request({
       url,
       method: 'POST',
@@ -209,8 +210,9 @@ class AuthAPI {
   /**
    * 用户登录
    */
-  static login(phone, code) {
-    return API.post('/auth/login', { phone, code });
+  static login(phone, code, initialRole = 'user') {
+    console.log('AuthAPI.login 调用参数:', { phone, code, initialRole });
+    return API.post('/auth/login', { phone, code, initialRole });
   }
 
   /**

@@ -71,6 +71,46 @@
   margin-bottom: 60rpx;
 }
 
+/* 角色选择器 */
+.role-selector {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 48rpx;
+}
+
+.role-option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32rpx 20rpx;
+  background-color: #f7f8fa;
+  border: 2rpx solid #e5e7eb;
+  border-radius: 16rpx;
+  transition: all 0.3s;
+}
+
+.role-option.active {
+  background-color: #e9f5ee;
+  border-color: #0F9D58;
+}
+
+.role-icon {
+  font-size: 48rpx;
+  margin-bottom: 12rpx;
+}
+
+.role-text {
+  font-size: 28rpx;
+  color: #374151;
+  font-weight: 500;
+}
+
+.role-option.active .role-text {
+  color: #0F9D58;
+}
+
 .form-group {
   margin-bottom: 32rpx;
 }

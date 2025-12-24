@@ -1,6 +1,0 @@
-<button class="wxc-btn {{type}} {{size}} {{plain?'plain':''}} {{disabled?'disabled':''}}" 
-  hover-class="{{disabled?'':'button-hover'}}" 
-  style="{{customStyle}}"
-  bindtap="onClick">
-  <slot></slot>
-</button>

@@ -1,5 +1,6 @@
 .page-container {
   padding: 20rpx;
+  padding-bottom: 260rpx;
   background-color: #f8f8f8;
   min-height: 100vh;
 }
@@ -223,24 +224,3 @@
 .footer-btn.secondary { background: #e9f5ee; color: #0F9D58; }
 
 /* 时间选择布局 */
-.time-sheet-body {
-  display: flex;
-  border-top: 1px solid #f2f2f2;
-}
-.date-column {
-  width: 50%;
-  height: 40vh;
-  border-right: 1px solid #f2f2f2;
-}
-.slot-column {
-  width: 50%;
-  height: 40vh;
-}
-.date-item, .slot-item {
-  padding: 22rpx 24rpx;
-  font-size: 28rpx;
-}
-.date-item.selected, .slot-item.selected {
-  background: #e9f5ee;
-  color: #0F9D58;
-}
