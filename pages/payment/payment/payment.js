@@ -9,7 +9,9 @@ Page({
     // 根据订单状态或入参自动判定：'prepay' | 'repair'
     payType: 'prepay',
     // 展示在页面上的支付金额（来自创建支付的返回）
-    payAmount: 0
+    payAmount: 0,
+    // 支付单号,用于查询支付状态
+    paymentNo: ''
   },
 
   onLoad(options) {
@@ -38,7 +40,7 @@ Page({
         'Authorization': `Bearer ${app.globalData.token}`
       },
       success: (res) => {
-        if (res.data.code === 0) {
+        if (res.data.code === 0 || res.data.code === 200) {
           const order = res.data.data;
           // 根据订单状态判定支付类型
           const typeByStatus = order.status === 'pending_repair_payment' ? 'repair' : 'prepay';
@@ -83,6 +85,8 @@ Page({
           this.setData({ payAmount: Number(payload.amount) || 0 });
         }
         const payParams = payload.pay_params || payload;
+        // 保存payment_no用于后续查询支付状态
+        this.setData({ paymentNo: payload.payment_no });
         if (method === 'wechat') {
           this.processPayment(payParams);
         } else {
@@ -100,16 +104,20 @@ Page({
 
   // 拉起微信支付
   processPayment(payParams) {
+    console.log('[支付页] 拉起微信支付, payParams:', payParams);
     wx.requestPayment({
       timeStamp: String(payParams.timeStamp),
       nonceStr: payParams.nonceStr,
       package: payParams.package,
       signType: payParams.signType || 'RSA',
       paySign: payParams.paySign,
-      success: () => {
-        this.paymentSuccess();
+      success: (res) => {
+        console.log('[支付页] 微信支付成功回调', res);
+        // 支付成功后,主动查询支付状态(作为回调失败的备用方案)
+        this.pollPaymentStatus(payParams.package);
       },
       fail: () => {
+        console.error('[支付页] 微信支付失败');
         wx.showToast({ title: '支付失败，请重新发起支付', icon: 'none' });
         // 失败后按要求跳转：先到“我的订单”Tab，再进入订单详情
         wx.switchTab({
@@ -126,11 +134,118 @@ Page({
     });
   },
 
+  // 轮询查询支付状态(作为微信回调的备用方案)
+  pollPaymentStatus(packageStr) {
+    console.log('[支付页] 开始轮询支付状态...');
+
+    // 显示加载提示
+    wx.showLoading({ title: '确认支付结果...', mask: true });
+
+    let pollCount = 0;
+    const maxPolls = 10; // 最多轮询10次
+    const pollInterval = 1000; // 每次间隔1秒
+
+    const checkStatus = () => {
+      pollCount++;
+      console.log(`[支付页] 第 ${pollCount} 次查询支付状态`);
+
+      const app = getApp();
+
+      // 【测试回调模式】注释掉主动查询支付状态的代码，仅通过轮询订单状态来验证微信回调是否生效
+      // if (this.data.paymentNo) {
+      //   wx.request({
+      //     url: `${app.globalData.baseUrl}/payments/${this.data.paymentNo}`,
+      //     method: 'GET',
+      //     header: { 'Authorization': `Bearer ${app.globalData.token}` },
+      //     success: (paymentRes) => {
+      //       console.log('[支付页] 支付状态查询结果:', paymentRes.data);
+      //       // 支付状态查询完成后,再查询订单状态
+      //       this.queryOrderStatus(pollCount, maxPolls, pollInterval, checkStatus);
+      //     },
+      //     fail: (err) => {
+      //       console.error('[支付页] 支付状态查询失败:', err);
+      //       // 即使失败也继续查询订单
+      //       this.queryOrderStatus(pollCount, maxPolls, pollInterval, checkStatus);
+      //     }
+      //   });
+      // } else {
+      //   // 没有paymentNo,直接查询订单
+      //   this.queryOrderStatus(pollCount, maxPolls, pollInterval, checkStatus);
+      // }
+
+      // 直接查询订单状态（测试回调专用）
+      this.queryOrderStatus(pollCount, maxPolls, pollInterval, checkStatus);
+    };
+
+    // 开始第一次查询
+    checkStatus();
+  },
+
+  // 查询订单状态的方法
+  queryOrderStatus(pollCount, maxPolls, pollInterval, checkStatus) {
+    const app = getApp();
+    // 查询订单详情,检查订单状态是否已更新
+    wx.request({
+      url: `${app.globalData.baseUrl}/orders/${this.data.orderId}`,
+      method: 'GET',
+      header: { 'Authorization': `Bearer ${app.globalData.token}` },
+      success: (res) => {
+        console.log('[支付页] 订单详情查询结果:', res.data);
+
+        if ((res.data.code === 0 || res.data.code === 200) && res.data.data && res.data.data.order) {
+          const order = res.data.data.order;
+          const payType = this.data.payType;
+
+          // 判断支付是否成功
+          let paymentSuccess = false;
+          if (payType === 'prepay') {
+            // 预付款:检查订单状态是否从 pending_payment 变为 pending
+            paymentSuccess = order.status === 'pending' || order.has_paid_prepay;
+          } else if (payType === 'repair') {
+            // 维修费:检查是否已支付维修费
+            paymentSuccess = order.has_paid_repair || order.status === 'in_progress';
+          }
+
+          if (paymentSuccess) {
+            console.log('[支付页] ✅ 支付状态已确认成功');
+            wx.hideLoading();
+            this.paymentSuccess();
+          } else if (pollCount >= maxPolls) {
+            console.warn('[支付页] ⚠️ 达到最大轮询次数,但订单状态未更新');
+            wx.hideLoading();
+            // 即使状态未更新,也跳转到成功页面,让用户自行刷新
+            this.paymentSuccess();
+          } else {
+            // 继续轮询
+            setTimeout(checkStatus, pollInterval);
+          }
+        } else {
+          console.error('[支付页] 订单详情查询失败:', res.data);
+          if (pollCount >= maxPolls) {
+            wx.hideLoading();
+            this.paymentSuccess();
+          } else {
+            setTimeout(checkStatus, pollInterval);
+          }
+        }
+      },
+      fail: (err) => {
+        console.error('[支付页] 订单详情查询网络错误:', err);
+        if (pollCount >= maxPolls) {
+          wx.hideLoading();
+          this.paymentSuccess();
+        } else {
+          setTimeout(checkStatus, pollInterval);
+        }
+      }
+    });
+  },
+
   // 解析或生成 openid（开发环境提供回退）
   resolveOpenId() {
     return new Promise((resolve, reject) => {
       const app = getApp();
-      
+
       // 1. 优先使用全局缓存
       if (app.globalData.openid) return resolve(app.globalData.openid);
 
@@ -143,7 +258,7 @@ Page({
 
       // 3. 开发环境 Mock 逻辑
       const isDev = /localhost|127\.0\.0\.1|:3000/.test(app.globalData.baseUrl || '');
-      if (isDev && !app.globalData.useRealOpenId) { 
+      if (isDev && !app.globalData.useRealOpenId) {
         const mock = `MOCK_OPENID_${Math.floor(Math.random() * 100000)}`;
         wx.setStorageSync('openid', mock);
         app.globalData.openid = mock;

@@ -1,0 +1,177 @@
+/* pages/profile/certification/electrician-cert/electrician-cert.wxss */
+.container {
+  min-height: 100vh;
+  background-color: #fff;
+  padding: 40rpx 30rpx;
+  box-sizing: border-box;
+}
+
+.header {
+  margin-bottom: 60rpx;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.highlight {
+  color: #ff8f00;
+}
+
+.subtitle {
+  font-size: 26rpx;
+  color: #999;
+}
+
+.upload-section {
+  display: flex;
+  flex-direction: column;
+  gap: 30rpx;
+  margin-bottom: 60rpx;
+}
+
+.upload-card {
+  position: relative;
+  width: 100%;
+  height: 480rpx; /* Taller for cert */
+  background-color: #f8f9fc;
+  border-radius: 20rpx;
+  border: 2rpx dashed #e0e0e0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+.placeholder-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+}
+
+.camera-icon {
+  width: 80rpx;
+  height: 80rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.6;
+}
+.camera-icon:empty::before {
+    content: '📷';
+    font-size: 60rpx;
+    color: #666;
+}
+
+
+.placeholder-content text {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+}
+
+.re-upload-mask {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 10rpx 0;
+  text-align: center;
+}
+
+.re-upload-mask text {
+  color: #fff;
+  font-size: 24rpx;
+}
+
+/* Example section */
+.example-section {
+  margin-bottom: 40rpx;
+}
+
+.example-title {
+  font-size: 30rpx;
+  color: #333;
+  margin-bottom: 30rpx;
+}
+
+.example-list {
+  display: flex;
+  justify-content: space-between;
+}
+
+.example-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 24rpx;
+  color: #666;
+  gap: 12rpx;
+}
+
+.example-box {
+  width: 120rpx;
+  height: 90rpx;
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8rpx;
+  border: 1rpx solid #eee;
+}
+
+.example-box.correct text {
+    color: #0F9D58;
+}
+
+.example-box.error text {
+    color: #f44336;
+}
+
+
+.footer {
+  margin-top: auto;
+  padding-bottom: 40rpx;
+}
+
+.confirm-btn {
+  width: 100%;
+  height: 90rpx;
+  background: linear-gradient(90deg, #0F9D58 0%, #81C784 100%);
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 45rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  box-shadow: 0 4rpx 12rpx rgba(15, 157, 88, 0.25);
+}
+
+.confirm-btn::after {
+  border: none;
+}
+
+.confirm-btn.disabled {
+  background: #d1d5db;
+  color: #9ca3af;
+  box-shadow: none;
+}

@@ -373,7 +373,7 @@ Page({
       data: completeData,
       success: (res) => {
         this.setData({ completing: false });
-        if (res.data.code === 0) {
+        if (res.data.code === 0 || res.data.code === 200) {
           wx.showToast({ title: '订单已完成', icon: 'success' });
           setTimeout(() => {
             wx.navigateBack();

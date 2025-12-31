@@ -124,46 +124,24 @@
     <view class="upload-section">
       <view class="upload-title">证件照片</view>
       
-      <view class="upload-item">
-        <view class="upload-label">身份证正面</view>
-        <view class="upload-content" wx:if="{{!idCardFrontPath && mode === 'apply'}}" bindtap="uploadImage" data-type="idCardFront">
-          <view class="upload-icon">+</view>
-          <view class="upload-text">上传照片</view>
-        </view>
-        <view class="upload-preview" wx:if="{{idCardFrontPath}}" bindtap="previewImage" data-type="idCardFront">
-          <image class="preview-image" src="{{idCardFrontPath}}" mode="aspectFit"></image>
-          <view class="preview-mask" wx:if="{{mode === 'apply'}}">
-            <view class="preview-text">点击预览</view>
+      <view class="cert-upload-item" bindtap="navigateToIdentity">
+        <view class="cert-info">
+          <view class="cert-name">身份证件</view>
+          <view class="cert-status {{idCardFrontPath && idCardBackPath ? 'done' : ''}}">
+            {{idCardFrontPath && idCardBackPath ? '已上传' : '未上传'}}
           </view>
         </view>
+        <view class="arrow">></view>
       </view>
 
-      <view class="upload-item">
-        <view class="upload-label">身份证反面</view>
-        <view class="upload-content" wx:if="{{!idCardBackPath && mode === 'apply'}}" bindtap="uploadImage" data-type="idCardBack">
-          <view class="upload-icon">+</view>
-          <view class="upload-text">上传照片</view>
-        </view>
-        <view class="upload-preview" wx:if="{{idCardBackPath}}" bindtap="previewImage" data-type="idCardBack">
-          <image class="preview-image" src="{{idCardBackPath}}" mode="aspectFit"></image>
-          <view class="preview-mask" wx:if="{{mode === 'apply'}}">
-            <view class="preview-text">点击预览</view>
+      <view class="cert-upload-item" bindtap="navigateToElectricianCert">
+        <view class="cert-info">
+          <view class="cert-name">电工证件</view>
+          <view class="cert-status {{certificatePath ? 'done' : ''}}">
+            {{certificatePath ? '已上传' : '未上传'}}
           </view>
         </view>
-      </view>
-
-      <view class="upload-item">
-        <view class="upload-label">电工证照片</view>
-        <view class="upload-content" wx:if="{{!certificatePath && mode === 'apply'}}" bindtap="uploadImage" data-type="certificate">
-          <view class="upload-icon">+</view>
-          <view class="upload-text">上传照片</view>
-        </view>
-        <view class="upload-preview" wx:if="{{certificatePath}}" bindtap="previewImage" data-type="certificate">
-          <image class="preview-image" src="{{certificatePath}}" mode="aspectFit"></image>
-          <view class="preview-mask" wx:if="{{mode === 'apply'}}">
-            <view class="preview-text">点击预览</view>
-          </view>
-        </view>
+        <view class="arrow">></view>
       </view>
     </view>
 

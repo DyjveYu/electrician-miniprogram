@@ -1,7 +1,33 @@
 <!--pages/address/edit/edit.wxml-->
 <view class="container">
   <view class="form-section">
-    <!-- 联系人信息 -->
+    <!-- 地址信息 (置顶) -->
+    <view class="form-group">
+      <view class="form-item" bindtap="chooseLocation">
+        <text class="label">所在地区</text>
+        <view class="region-selector">
+          <view class="location-content" wx:if="{{formData.province}}">
+            <text class="location-name" wx:if="{{formData.locationName}}">{{formData.locationName}}</text>
+            <text class="region-text">{{formData.province}} {{formData.city}} {{formData.district}}</text>
+          </view>
+          <text class="placeholder" wx:else>点击选择位置</text>
+          <text class="arrow">></text>
+        </view>
+      </view>
+      
+      <view class="form-item">
+        <text class="label">详细地址</text>
+        <textarea 
+          class="textarea"
+          placeholder="请输入详细地址（街道、门牌号等）"
+          value="{{formData.detail}}"
+          bindinput="onDetailInput"
+          maxlength="100"
+        ></textarea>
+      </view>
+    </view>
+
+    <!-- 联系人信息 (下移) -->
     <view class="form-group">
       <view class="form-item">
         <text class="label">联系人</text>
@@ -22,34 +48,6 @@
           bindinput="onContactPhoneInput"
           type="number"
         />
-      </view>
-    </view>
-
-    <!-- 地址信息 -->
-    <view class="form-group">
-       <picker mode="region" value="{{regionValue}}" bindchange="onRegionChange">
-          <view class="form-item">
-            <text class="label">所在地区</text>
-            <view class="region-selector">
-              <text class="region-text" wx:if="{{formData.province}}">
-                {{formData.province}} {{formData.city}} {{formData.district}}
-              </text>
-              <text class="placeholder" wx:else>请选择省市区</text>
-              <text class="arrow">></text>
-            </view>
-          </view>
-        </picker>
-     
-      
-      <view class="form-item">
-        <text class="label">详细地址</text>
-        <textarea 
-          class="textarea"
-          placeholder="请输入详细地址（街道、门牌号等）"
-          value="{{formData.detail}}"
-          bindinput="onDetailInput"
-          maxlength="100"
-        ></textarea>
       </view>
     </view>
 

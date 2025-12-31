@@ -1,0 +1,60 @@
+<!--pages/profile/certification/electrician-cert/electrician-cert.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="title">请拍摄/上传 <text class="highlight">电工证</text> (选填)</view>
+    <view class="subtitle">请保证证件信息清晰可见</view>
+  </view>
+
+  <view class="upload-section">
+    <!-- 电工证正面/内页 -->
+    <view class="upload-card" bindtap="chooseImage">
+      <block wx:if="{{certificatePath}}">
+        <image class="preview-image" src="{{certificatePath}}" mode="aspectFill"></image>
+        <view class="re-upload-mask">
+          <text>点击重新上传</text>
+        </view>
+      </block>
+      <block wx:else>
+        <view class="placeholder-content">
+          <image class="camera-icon" src="/images/icons/camera.png" mode="aspectFit"></image>
+          <text>点击上传电工证照片</text>
+        </view>
+        <image class="card-bg" src="/images/bg/certificate-bg.png" mode="aspectFit"></image>
+      </block>
+    </view>
+  </view>
+
+  <view class="example-section">
+    <view class="example-title">拍摄示例</view>
+    <view class="example-list">
+      <view class="example-item">
+        <view class="example-box correct">
+            <text>✓</text>
+        </view>
+        <text>标准</text>
+      </view>
+      <view class="example-item">
+        <view class="example-box error">
+            <text>✕</text>
+        </view>
+        <text>边框缺失</text>
+      </view>
+      <view class="example-item">
+        <view class="example-box error">
+            <text>✕</text>
+        </view>
+        <text>照片模糊</text>
+      </view>
+      <view class="example-item">
+        <view class="example-box error">
+            <text>✕</text>
+        </view>
+        <text>闪光强烈</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="footer">
+    <button class="confirm-btn {{canSubmit ? '' : 'disabled'}}" bindtap="submit" disabled="{{!canSubmit}}">确认</button>
+  </view>
+</view>

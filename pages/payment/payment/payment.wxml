@@ -1,6 +1,7 @@
 <!--pages/payment/payment/payment.wxml-->
 <view class="container">
   <!-- 订单信息 -->
+  <!--
   <view class="order-section" wx:if="{{order}}">
     <view class="section-title">订单信息</view>
     <view class="order-info">
@@ -18,7 +19,7 @@
       </view>
     </view>
   </view>
-
+ -->
   <!-- 支付金额 -->
   <view class="amount-section">
     <view class="amount-label">支付金额</view>

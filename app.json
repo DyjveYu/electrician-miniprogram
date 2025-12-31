@@ -1,5 +1,4 @@
 {
-
   "pages": [
     "pages/index/index",
     "pages/login/login",
@@ -12,6 +11,8 @@
     "pages/profile/edit/edit",
     "pages/profile/switch-role/switch-role",
     "pages/profile/certification/certification",
+    "pages/profile/certification/identity/identity",
+    "pages/profile/certification/electrician-cert/electrician-cert",
     "pages/payment/payment/payment",
     "pages/payment/result/result",
     "pages/address/list/list",
@@ -73,7 +74,9 @@
       "desc": "您的位置信息将用于为您推荐附近的电工服务"
     }
   },
-  "requiredBackgroundModes": ["location"],
+  "requiredBackgroundModes": [
+    "location"
+  ],
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents"
 }

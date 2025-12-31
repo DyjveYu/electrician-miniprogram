@@ -3,7 +3,12 @@
   <!-- 头像设置 -->
   <view class="section">
     <view class="section-title">头像</view>
-    <view class="avatar-section" bindtap="chooseAvatar">
+    <button 
+      class="avatar-section" 
+      open-type="chooseAvatar" 
+      bindchooseavatar="onChooseAvatar"
+      style="margin:0; padding:0; background:none; width:auto; line-height:normal;"
+    >
       <image 
         class="avatar"
         src="{{userInfo.avatar || '/images/default-avatar.png'}}"
@@ -12,7 +17,7 @@
       <view class="avatar-overlay">
         <text class="upload-text">{{uploading ? '上传中...' : '点击更换'}}</text>
       </view>
-    </view>
+    </button>
   </view>
 
   <!-- 基本信息 -->

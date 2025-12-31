@@ -4,7 +4,7 @@ App({
     userInfo: null,
     token: null,
     baseUrl: 'https://electrician.mijutime.com/api', // 阿里云 API地址
-    //baseUrl: 'http://localhost:3000/api', // 本地开发环境API地址
+     //baseUrl: 'http://localhost:3000/api', // 本地开发环境API地址
     isLogin: false,
     currentRole: 'user', // user | electrician
     systemInfo: null,

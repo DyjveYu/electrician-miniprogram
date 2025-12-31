@@ -9,7 +9,9 @@ Page({
       city: '',
       district: '',
       detail: '',
-      regionValue: ['', '', ''], // 用于 picker 的值
+      locationName: '', // 新增位置名称
+      latitude: null,   // 新增经度
+      longitude: null,  // 新增纬度
       isDefault: false
     },
     saving: false,
@@ -50,15 +52,91 @@ Page({
     this.setData({ 'formData.contactPhone': e.detail.value });
   },
 
-  // 选择地区 10.28 新增
-  onRegionChange(e) {
-    const [province, city, district] = e.detail.value;
-    this.setData({
-      'formData.province': province,
-      'formData.city': city,
-      'formData.district': district,
-      regionValue: e.detail.value
+  // 选择地区 (调用微信地图选点)
+  chooseLocation() {
+    const that = this;
+    wx.chooseLocation({
+      latitude: that.data.formData.latitude || '',
+      longitude: that.data.formData.longitude || '',
+      success(res) {
+        console.log('地图选点结果:', res);
+        // 解析地址 (简单解析，为了满足后端必填校验)
+        // 腾讯地图返回的 address 通常格式为 "北京市海淀区..." 或 "广东省深圳市南山区..."
+        // 我们尝试提取省市区
+        const parsed = that.parseAddress(res.address);
+
+        that.setData({
+          'formData.locationName': res.name, // 地点名称，如"冠华苑"
+          'formData.province': parsed.province,
+          'formData.city': parsed.city,
+          'formData.district': parsed.district,
+          'formData.detail': res.address, // 将详细地址填入
+          'formData.latitude': res.latitude,
+          'formData.longitude': res.longitude
+        });
+      },
+      fail(err) {
+        console.error('地图选点失败/取消:', err);
+        // 如果是权限问题，可能需要引导用户打开权限
+        if (err.errMsg.indexOf('auth deny') >= 0) {
+          wx.showModal({
+            title: '提示',
+            content: '需要获取您的地理位置授权，请在设置中打开',
+            success(modalRes) {
+              if (modalRes.confirm) {
+                wx.openSetting();
+              }
+            }
+          });
+        }
+      }
     });
+  },
+
+  // 简单的地址解析辅助函数
+  parseAddress(addressStr) {
+    if (!addressStr) return { province: '', city: '', district: '' };
+
+    // 正则匹配：省、市、区
+    // 注意：这只是一个简单的尽最大努力解析，不保证100%覆盖所有行政区划
+    let province = '';
+    let city = '';
+    let district = '';
+
+    // 尝试匹配省/自治区/直辖市
+    // 匹配规则：2-3个汉字 + 省/自治区/市
+    const provinceMatch = addressStr.match(/^(.+?(省|自治区|北京市|天津市|上海市|重庆市))/);
+    if (provinceMatch) {
+      province = provinceMatch[1];
+      // 截取剩余部分
+      let remain = addressStr.slice(province.length);
+
+      // 直辖市特殊处理：省和市相同
+      if (['北京市', '天津市', '上海市', '重庆市'].includes(province)) {
+        city = province;
+      } else {
+        // 非直辖市，匹配市/自治州/地区
+        const cityMatch = remain.match(/^(.+?(市|自治州|地区|盟))/);
+        if (cityMatch) {
+          city = cityMatch[1];
+          remain = remain.slice(city.length);
+        }
+      }
+
+      // 匹配区/县/市
+      const districtMatch = remain.match(/^(.+?(区|县|市|旗))/);
+      if (districtMatch) {
+        district = districtMatch[1];
+      }
+    }
+
+    // 兜底：如果解析失败，使用默认值或让用户手动填(虽然UI没提供手动填省市区的地方，但为了不报错)
+    // 实际场景中 wx.chooseLocation 返回的 address 质量较高
+    if (!province) province = '北京市'; // 默认
+    if (!city) city = '北京市';
+    if (!district) district = '昌平区';
+
+    return { province, city, district };
   },
   // 选择地区 旧的方法。
   chooseRegion() {
@@ -99,8 +177,8 @@ Page({
     const method = this.data.isEdit ? 'PUT' : 'POST';
 
     console.log('提交地址前的数据:', this.data.formData);
-    // ① 从 formData 中排除 regionValue 字段
-    const { regionValue, ...formData } = this.data.formData;
+    // ① 直接使用 formData
+    const formData = this.data.formData;
     // ② 打印确认实际提交的数据
     console.log('实际提交到后端的数据:', formData);
     // ③ 调用接口

@@ -47,8 +47,9 @@
       </view>
       <view class="info-row" wx:if="{{order.amount}}">
         <text class="label">预付款：</text>
-        <text class="value amount">¥{{order.amount || '30.00'}}</text>
+        <text class="value amount">{{order.amount || '30.00'}}元</text>
       </view>
+      
     </view>
    
     <!-- 服务地址 -->
@@ -112,7 +113,7 @@
       <block wx:else>
         <view class="form-item">
           <text class="form-label">维修金额：</text>
-          <text class="form-value">¥{{order.repairAmount || updateAmount || '0.00'}}</text>
+          <text class="value amount">{{order.repairAmount || updateAmount || '0.00'}}元</text>
         </view>
         <view class="form-item">
           <text class="form-label">维修内容：</text>

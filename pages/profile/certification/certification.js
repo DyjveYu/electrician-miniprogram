@@ -17,7 +17,10 @@ Page({
     rejectReason: '',
     submitDisabled: true,
     region: ['', '', ''],
-    customItem: '全部'
+    customItem: '全部',
+    idCardFrontPath: '',
+    idCardBackPath: '',
+    certificatePath: ''
   },
 
   onLoad(options) {
@@ -65,7 +68,10 @@ Page({
             },
             certificationStatus: certInfo.status || '',
             rejectReason: certInfo.reject_reason || '',
-            region: certInfo.region ? certInfo.region.split(',') : ['', '', '']
+            region: certInfo.region ? certInfo.region.split(',') : ['', '', ''],
+            idCardFrontPath: certInfo.id_card_front || '',
+            idCardBackPath: certInfo.id_card_back || '',
+            certificatePath: certInfo.certificate_img || ''
           });
         }
       },
@@ -85,13 +91,13 @@ Page({
   onWorkTypesChange(e) {
     const values = e.detail.value; // 获取选中的值数组
     console.log('工作类型变更:', values);
-    
+
     this.setData({
       workTypes: values,
       isMaintenanceChecked: values.includes('maintenance'),
       isInstallationChecked: values.includes('installation')
     });
-    
+
     this.checkFormValid();
   },
 
@@ -178,18 +184,64 @@ Page({
     });
   },
 
+  // 跳转至身份证上传页面
+  navigateToIdentity() {
+    const that = this;
+    wx.navigateTo({
+      url: '/pages/profile/certification/identity/identity?mode=' + this.data.mode,
+      events: {
+        acceptDataFromIdentityPage: function (data) {
+          that.setData({
+            idCardFrontPath: data.idCardFront,
+            idCardBackPath: data.idCardBack
+          });
+          that.checkFormValid();
+        }
+      },
+      success: function (res) {
+        res.eventChannel.emit('acceptDataFromOpenerPage', {
+          idCardFront: that.data.idCardFrontPath,
+          idCardBack: that.data.idCardBackPath
+        });
+      }
+    });
+  },
+
+  // 跳转至电工证上传页面
+  navigateToElectricianCert() {
+    const that = this;
+    wx.navigateTo({
+      url: '/pages/profile/certification/electrician-cert/electrician-cert?mode=' + this.data.mode,
+      events: {
+        acceptDataFromCertPage: function (data) {
+          that.setData({
+            certificatePath: data.certificatePath
+          });
+          that.checkFormValid();
+        }
+      },
+      success: function (res) {
+        res.eventChannel.emit('acceptDataFromOpenerPage', {
+          certificatePath: that.data.certificatePath
+        });
+      }
+    });
+  },
+
   // 检查表单是否有效
   checkFormValid() {
     const { formData } = this.data;
 
-    // 检查所有必填字段（包括工作类型）
+    // 检查所有必填字段（包括工作类型和图片）
     const isValid = this.data.workTypes.length > 0 &&
       formData.realName &&
       formData.idCard &&
       formData.certificateNumber &&
       formData.certificateStartDate &&
       formData.certificateEndDate &&
-      formData.serviceArea;
+      formData.serviceArea &&
+      this.data.idCardFrontPath &&
+      this.data.idCardBackPath;
 
     this.setData({
       submitDisabled: !isValid
@@ -222,7 +274,11 @@ Page({
       cert_start_date: this.data.formData.certificateStartDate,
       cert_end_date: this.data.formData.certificateEndDate,
       service_area: this.data.formData.serviceArea,
-      region: this.data.region.join(',')
+      region: this.data.region.join(','),
+      // 添加图片路径
+      id_card_front: this.data.idCardFrontPath,
+      id_card_back: this.data.idCardBackPath,
+      certificate_img: this.data.certificatePath
     };
 
     console.log('3. 请求数据:', JSON.stringify(requestData, null, 2));
@@ -242,7 +298,7 @@ Page({
         console.log('5. ✅ 请求成功');
         console.log('6. HTTP状态码:', res.statusCode);
         console.log('7. 响应数据:', JSON.stringify(res.data, null, 2));
-        
+
         const code = res.data.code;
         if (code === 0 || code === 200) {
           console.log('8. ✅ 业务成功');
@@ -279,26 +335,7 @@ Page({
     });
   },
 
-  // 预览图片
-  previewImage(e) {
-    const { type } = e.currentTarget.dataset;
-    let url = '';
 
-    if (type === 'idCardFront') {
-      url = this.data.idCardFrontPath;
-    } else if (type === 'idCardBack') {
-      url = this.data.idCardBackPath;
-    } else if (type === 'certificate') {
-      url = this.data.certificatePath;
-    }
-
-    if (url) {
-      wx.previewImage({
-        urls: [url],
-        current: url
-      });
-    }
-  },
 
   // 重新申请认证
   reapplyCertification() {

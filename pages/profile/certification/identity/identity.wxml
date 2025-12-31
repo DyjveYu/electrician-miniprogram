@@ -1,0 +1,53 @@
+<!--pages/profile/certification/identity/identity.wxml-->
+<view class="container">
+  <view class="header">
+    <view class="title">请拍摄/上传 <text class="highlight">本人身份证</text> (必填)</view>
+    <view class="subtitle">请保证证件边框完整、字体清晰、亮度均匀</view>
+  </view>
+
+  <view class="upload-section">
+    <!-- 人像面 -->
+    <view class="upload-card" bindtap="chooseImage" data-type="front">
+      <block wx:if="{{idCardFront}}">
+        <image class="preview-image" src="{{idCardFront}}" mode="aspectFill"></image>
+        <view class="re-upload-mask">
+          <text>点击重新上传</text>
+        </view>
+      </block>
+      <block wx:else>
+        <view class="placeholder-content">
+          <image class="camera-icon" src="/images/icons/camera.png" mode="aspectFit"></image>
+          <text>点击上传人像面</text>
+        </view>
+        <image class="card-bg" src="/images/bg/id-card-front-bg.png" mode="aspectFit"></image>
+      </block>
+    </view>
+
+    <!-- 国徽面 -->
+    <view class="upload-card" bindtap="chooseImage" data-type="back">
+      <block wx:if="{{idCardBack}}">
+        <image class="preview-image" src="{{idCardBack}}" mode="aspectFill"></image>
+        <view class="re-upload-mask">
+          <text>点击重新上传</text>
+        </view>
+      </block>
+      <block wx:else>
+        <view class="placeholder-content">
+          <image class="camera-icon" src="/images/icons/camera.png" mode="aspectFit"></image>
+          <text>点击上传国徽面</text>
+        </view>
+        <image class="card-bg" src="/images/bg/id-card-back-bg.png" mode="aspectFit"></image>
+      </block>
+    </view>
+  </view>
+
+  <view class="security-tip">
+    <image class="shield-icon" src="/images/icons/shield.png" mode="aspectFit"></image>
+    <text>系统将对信息加密，实时保障信息安全</text>
+  </view>
+
+  <view class="footer">
+    <button class="confirm-btn {{canSubmit ? '' : 'disabled'}}" bindtap="submit" disabled="{{!canSubmit}}">确认</button>
+    <view class="privacy-tip">信息仅用于身份验证，我们依照隐私政策保护您的个人信息</view>
+  </view>
+</view>
