@@ -19,7 +19,8 @@
     "pages/address/edit/edit",
     "pages/message/list/list",
     "pages/message/detail/detail",
-    "pages/service-types/service-types"
+    "pages/service-types/service-types",
+    "pages/wallet/withdraw/withdraw"
   ],
   "requiredPrivateInfos": [
     "getLocation",

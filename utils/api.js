@@ -208,11 +208,18 @@ class AuthAPI {
   }
 
   /**
+   * 微信 code2session
+   */
+  static code2Session(code) {
+    return API.post('/auth/code2session', { code });
+  }
+
+  /**
    * 用户登录
    */
-  static login(phone, code, initialRole = 'user') {
-    console.log('AuthAPI.login 调用参数:', { phone, code, initialRole });
-    return API.post('/auth/login', { phone, code, initialRole });
+  static login(phone, code, initialRole = 'user', openid = null) {
+    console.log('AuthAPI.login 调用参数:', { phone, code, initialRole, openid });
+    return API.post('/auth/login', { phone, code, initialRole, openid });
   }
 
   /**

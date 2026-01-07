@@ -74,8 +74,7 @@
       <view class="empty-tip" wx:if="{{!loadingAddresses && addresses.length === 0}}">暂无地址，请新增</view>
     </scroll-view>
     <view class="sheet-footer">
-      <button class="footer-btn secondary" bindtap="openMapChoose" data-type="map">从地图选择</button>
-      <button class="footer-btn primary" bindtap="addAddress">新增地址</button>
+      <button class="footer-btn primary" bindtap="addAddress">服务地址</button>
     </view>
   </view>
 

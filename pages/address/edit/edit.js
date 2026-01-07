@@ -55,9 +55,25 @@ Page({
   // 选择地区 (调用微信地图选点)
   chooseLocation() {
     const that = this;
+    const app = getApp();
+
+    // 优先使用当前表单的坐标，其次使用全局定位，最后不传(让API自动定位)
+    let latitude = that.data.formData.latitude;
+    let longitude = that.data.formData.longitude;
+
+    // 如果表单没有坐标，且全局有坐标，则使用全局坐标
+    if (!latitude && app.globalData.location) {
+      latitude = app.globalData.location.latitude;
+      longitude = app.globalData.location.longitude;
+    }
+
+    // 转换为数字或undefined，避免空字符串
+    latitude = latitude ? Number(latitude) : undefined;
+    longitude = longitude ? Number(longitude) : undefined;
+
     wx.chooseLocation({
-      latitude: that.data.formData.latitude || '',
-      longitude: that.data.formData.longitude || '',
+      latitude: latitude,
+      longitude: longitude,
       success(res) {
         console.log('地图选点结果:', res);
         // 解析地址 (简单解析，为了满足后端必填校验)

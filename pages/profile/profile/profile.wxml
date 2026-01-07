@@ -81,6 +81,20 @@
       <text class="menu-arrow">></text>
     </view>
 
+    <!-- 收入金额 - 仅电工角色显示 -->
+    <view 
+      wx:if="{{currentRole === 'electrician'}}"
+      class="menu-item"
+      bindtap="navigateToWallet"
+    >
+      <view class="menu-icon">💰</view>
+      <view class="menu-content">
+        <text class="menu-title">收入金额</text>
+        <text class="menu-desc">可提现: ¥{{wallet.available_balance || '0.00'}}</text>
+      </view>
+      <text class="menu-arrow">></text>
+    </view>
+
     <!-- 电工认证 - 仅电工角色显示 -->
     <view 
       wx:if="{{currentRole === 'electrician'}}"

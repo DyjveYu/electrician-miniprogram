@@ -226,10 +226,42 @@
   background: white;
 }
 
+.agreement-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkbox {
+  width: 32rpx;
+  height: 32rpx;
+  border: 2rpx solid #9ca3af;
+  border-radius: 50%;
+  margin-right: 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.checkbox.checked {
+  background-color: #0F9D58;
+  border-color: #0F9D58;
+}
+
+.check-mark {
+  width: 16rpx;
+  height: 8rpx;
+  border-left: 3rpx solid #fff;
+  border-bottom: 3rpx solid #fff;
+  transform: rotate(-45deg);
+  margin-top: -4rpx;
+}
+
 .agreement-text {
   font-size: 24rpx;
   color: #9ca3af;
-  text-align: center;
   line-height: 1.5;
 }
 

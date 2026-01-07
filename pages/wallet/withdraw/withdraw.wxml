@@ -1,0 +1,48 @@
+<view class="container">
+  <view class="balance-card">
+    <view class="label">可提现余额 (元)</view>
+    <view class="amount">{{wallet.available_balance || '0.00'}}</view>
+    <view class="stats-row">
+      <view class="stat-item">
+        <text class="stat-label">总收入</text>
+        <text class="stat-value">¥{{wallet.total_income || '0.00'}}</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-label">已提现</text>
+        <text class="stat-value">¥{{wallet.withdrawn_amount || '0.00'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="withdraw-section">
+    <view class="section-title">提现金额</view>
+    <view class="input-group">
+      <text class="currency">¥</text>
+      <input 
+        class="amount-input" 
+        type="digit" 
+        placeholder="请输入提现金额" 
+        value="{{withdrawAmount}}"
+        bindinput="onAmountInput"
+      />
+      <view class="all-btn" bindtap="handleWithdrawAll">全部提现</view>
+    </view>
+    <view class="tips">最低提现金额 ¥1.00</view>
+    
+    <button 
+      class="withdraw-btn" 
+      disabled="{{!canWithdraw}}" 
+      bindtap="handleWithdraw"
+      loading="{{submitting}}"
+    >
+      确认提现
+    </button>
+  </view>
+  
+  <view class="notice">
+    <view class="notice-title">提现说明</view>
+    <view class="notice-item">1. 仅限5星评价的订单收入可提现。</view>
+    <view class="notice-item">2. 提现申请提交后，资金将直接转入您的微信零钱。</view>
+    <view class="notice-item">3. 单日提现次数限制为5次。</view>
+  </view>
+</view>

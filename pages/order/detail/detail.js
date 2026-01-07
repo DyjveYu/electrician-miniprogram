@@ -271,8 +271,16 @@ Page({
             const code = res?.data?.code;
             const success = code === 0 || code === 200 || res.statusCode === 200 || res?.data?.success === true;
             if (success) {
-              wx.showToast({ title: '接单成功', icon: 'success' });
-              this.loadOrderDetail();
+              wx.showToast({
+                title: '接单成功',
+                icon: 'success',
+                duration: 1500
+              });
+              setTimeout(() => {
+                wx.switchTab({
+                  url: '/pages/order/list/list'
+                });
+              }, 1500);
             } else {
               wx.showToast({ title: res?.data?.message || '接单失败', icon: 'none' });
             }
@@ -415,8 +423,12 @@ Page({
         this.setData({ updating: false });
         const ok = res?.data?.code === 0 || res?.data?.success === true || res.statusCode === 200;
         if (ok) {
-          wx.showToast({ title: '提交成功', icon: 'success' });
-          this.loadOrderDetail();
+          wx.showToast({ title: '提交成功', icon: 'success', duration: 1500 });
+          setTimeout(() => {
+            wx.switchTab({
+              url: '/pages/order/list/list'
+            });
+          }, 1500);
         } else {
           wx.showToast({ title: res.data?.message || '提交失败', icon: 'none' });
         }

@@ -132,10 +132,9 @@ loadUserInfo() {
         app.globalData.userInfo = normalizedUserInfo;
         app.globalData.currentRole = this.data.currentRole;
 
-        // 如果用户处于电工角色或想查看电工详细信息（approved 状态），可拉取电工详情
-        if (this.data.currentRole === 'electrician' || normalizedUserInfo.isElectrician) {
-          // 小优化：只在必要时拉取电工信息
-          this.loadElectricianInfo();
+        // 如果用户处于电工角色，可加载收入/钱包信息
+        if (this.data.currentRole === 'electrician') {
+          this.loadWalletInfo();
         }
       } else if (data && data.code === 401) {
         // token无效
@@ -153,24 +152,39 @@ loadUserInfo() {
   });
 },
 
-  // 加载电工信息
-  loadElectricianInfo() {
+  // 加载钱包信息
+  loadWalletInfo() {
     const app = getApp();
     
     wx.request({
-      url: `${app.globalData.baseUrl}/electricians/profile`,
+      url: `${app.globalData.baseUrl}/electricians/income`,
       method: 'GET',
       header: {
         'Authorization': `Bearer ${app.globalData.token}`
       },
       success: (res) => {
-        if (res.data.code === 0) {
-          this.setData({ electricianInfo: res.data.data });
+        if (res.data.success) {
+          const incomeData = res.data.data || {};
+          const total = Number(incomeData.total_income || 0);
+          const withdrawn = Number(incomeData.withdrawn_amount || 0);
+          const balance = Number(incomeData.available_balance != null ? incomeData.available_balance : (total - withdrawn));
+          console.log('[ElectricianIncomeCalc] 总收入(total_income):', total,
+            '已提现(withdrawn_amount):', withdrawn,
+            '可提现余额(available_balance):', balance,
+            '计算: available = total - withdrawn');
+          this.setData({ wallet: incomeData });
         }
       },
       fail: () => {
-        console.log('获取电工信息失败');
+        console.log('获取钱包信息失败');
       }
+    });
+  },
+
+  // 跳转到提现页面
+  navigateToWallet() {
+    wx.navigateTo({
+      url: '/pages/wallet/withdraw/withdraw'
     });
   },
 

@@ -65,10 +65,17 @@ Page({
       }, 1500);
       return;
     }
-    
+
     // 原有逻辑
     this.loadServiceTypes();
     this.getUserInfo();
+  },
+
+  onShow() {
+    // 如果地址弹层处于打开状态（例如从新增/编辑地址页返回），刷新地址列表
+    if (this.data.showAddressSheet) {
+      this.loadAddresses();
+    }
   },
 
   // 预填联系人
@@ -164,8 +171,8 @@ Page({
     this.updateSubmitEnable();
   },
   // 联系人输入已移除（保留空方法以兼容旧绑定，不再使用）
-  onContactNameInput() {},
-  onContactPhoneInput() {},
+  onContactNameInput() { },
+  onContactPhoneInput() { },
 
   // 上传图片（简化）
   chooseImage() {

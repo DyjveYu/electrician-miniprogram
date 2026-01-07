@@ -65,7 +65,7 @@
     </view>
 
     <!-- 电工信息（用户视角） -->
-    <view class="section card electrician-section" wx:if="{{order.electrician && order.status !== 'pending'}}">
+    <view class="section card electrician-section" wx:if="{{order.electrician && order.status !== 'pending' && currentRole !== 'electrician'}}">
       <view class="section-title">电工信息</view>
       <view class="electrician-info-row">
         <view>
@@ -123,7 +123,7 @@
     </view>
 
     <!-- 电工和用户双视角：维修内容（进行中/已完成/待支付状态） -->
-    <view class="section card" wx:if="{{order.status === 'in_progress' || order.status === 'pending_payment' || order.status === 'completed'}}">
+    <view class="section card" wx:if="{{order.status === 'in_progress' || order.status === 'pending_payment' || order.status === 'completed' || order.status === 'settled'}}">
       <view class="section-title">维修金额与内容</view>
       <view class="form-item" wx:if="{{order.repairAmount}}">
         <text class="form-label">维修金额：</text>
@@ -200,7 +200,7 @@
     </view>
     
     <!-- 用户视角：我的评价 -->
-    <view class="section card" wx:if="{{order.status === 'completed'}}">
+    <view class="section card" wx:if="{{order.status === 'completed' || order.status === 'settled'}}">
       <view class="section-title">我的评价</view>
       <view class="review-display" wx:if="{{order.review && order.review.rating}}">
         <view class="review-label">评分</view>

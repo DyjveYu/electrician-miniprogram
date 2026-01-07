@@ -17,8 +17,9 @@ Page({
     isLogging: false,
     showTestTip: false,
     testCode: '',
-    selectedRole: 'user', // 默认选择用户角色
-    
+    selectedRole: 'electrician', // 默认选择电工角色 user
+    isAgreed: false, // 是否同意协议
+
     // 弹窗相关
     showModal: false,
     modalTitle: '',
@@ -32,13 +33,24 @@ Page({
   },
 
   onShow() {
-    console.log('登录页面显示，当前 selectedRole:', this.data.selectedRole);
-    // 如果已经登录，直接返回首页
-    if (app.globalData.isLogin) {
-      wx.switchTab({
-        url: '/pages/index/index'
+    console.log('[登录页] 页面显示');
+
+    // 延迟检查登录状态,确保app.js初始化完成
+    setTimeout(() => {
+      const app = getApp();
+      console.log('[登录页] 检查登录状态:', {
+        isLogin: app.globalData.isLogin,
+        token: app.globalData.token ? '存在' : '不存在'
       });
-    }
+
+      // 如果已经登录,直接返回首页
+      if (app.globalData.isLogin && app.globalData.token) {
+        console.log('[登录页] 已登录,跳转到首页');
+        wx.reLaunch({
+          url: '/pages/index/index'
+        });
+      }
+    }, 100);
   },
 
   /**
@@ -59,10 +71,30 @@ Page({
   selectRole(e) {
     const role = e.currentTarget.dataset.role;
     console.log('选择角色:', role);
+    /*临时功能 1月6日
+    if (role === 'user') {
+      wx.showToast({
+        title: '功能开发中，敬请期待',
+        icon: 'none',
+        duration: 2000
+      });
+      return;
+    }
+    */
     this.setData({
       selectedRole: role
     });
     console.log('当前 selectedRole:', this.data.selectedRole);
+  },
+
+  /**
+   * 切换协议勾选状态
+   */
+  toggleAgreement() {
+    this.setData({
+      isAgreed: !this.data.isAgreed
+    });
+    this.validateForm();
   },
 
   /**
@@ -93,14 +125,14 @@ Page({
    * 验证表单
    */
   validateForm() {
-    const { phone, code } = this.data;
-    
+    const { phone, code, isAgreed } = this.data;
+
     // 验证手机号
     const canSendCode = validatePhone(phone);
-    
+
     // 验证登录条件
-    const canLogin = canSendCode && code.length === 6;
-    
+    const canLogin = canSendCode && code.length === 6 && isAgreed;
+
     this.setData({
       canSendCode,
       canLogin
@@ -116,7 +148,7 @@ Page({
     }
 
     const { phone } = this.data;
-    
+
     // 验证手机号
     if (!validatePhone(phone)) {
       this.setData({
@@ -127,14 +159,14 @@ Page({
 
     try {
       app.showLoading('发送中...');
-      
+
       const res = await AuthAPI.sendCode(phone, 'login');
-      
+
       app.showToast('验证码发送成功', 'success');
-      
+
       // 开始倒计时
       this.startCountdown();
-      
+
       // 测试环境显示验证码
       if (res.code) {
         this.setData({
@@ -184,7 +216,7 @@ Page({
     }
 
     const { phone, code } = this.data;
-    
+
     // 验证手机号
     if (!validatePhone(phone)) {
       this.setData({
@@ -206,23 +238,41 @@ Page({
         isLogging: true,
         loginButtonText: '登录中...'
       });
-      
+
+      // 1. 尝试获取 OpenID (静默获取)
+      let openid = '';
+      try {
+        console.log('正在获取微信登录凭证...');
+        const wxLoginRes = await wx.login();
+        if (wxLoginRes.code) {
+           console.log('获取到微信 code:', wxLoginRes.code);
+           const sessionRes = await AuthAPI.code2Session(wxLoginRes.code);
+           console.log('code2session 响应:', sessionRes);
+           if (sessionRes && (sessionRes.code === 0 || sessionRes.code === 200) && sessionRes.data && sessionRes.data.openid) {
+             openid = sessionRes.data.openid;
+             console.log('成功获取 OpenID:', openid);
+           }
+        }
+      } catch (err) {
+        console.error('获取 OpenID 失败，将尝试不带 OpenID 登录:', err);
+      }
+
       // 传递角色选择给后端
-      console.log('准备登录，选择的角色:', this.data.selectedRole);
-      const res = await AuthAPI.login(phone, code, this.data.selectedRole);
-      
+      console.log('准备登录，选择的角色:', this.data.selectedRole, 'OpenID:', openid);
+      const res = await AuthAPI.login(phone, code, this.data.selectedRole, openid);
+
       console.log('登录API响应:', res);
-      
+
       // 保存登录信息
       app.login(res.data.user, res.data.token);
-      
+
       app.showToast('登录成功');
-      
+
       // 延迟跳转，让用户看到成功提示
       setTimeout(() => {
         console.log('登录成功，准备跳转到首页');
         console.log('当前全局数据:', app.globalData);
-        
+
         // 使用reLaunch确保完全重新加载首页
         wx.reLaunch({
           url: '/pages/index/index',
@@ -324,7 +374,7 @@ Page({
 4. 信息共享
 除法律要求外，我们不会向第三方分享您的个人信息。
 
-如有疑问，请联系客服：400-123-4567`
+如有疑问，请联系客服：13552949114`
     });
   },
 
@@ -360,7 +410,7 @@ Page({
 6. 协议修改
 平台有权根据业务需要修改本协议，修改后的协议将在平台公布。
 
-如有疑问，请联系客服：400-123-4567`
+如有疑问，请联系客服：13552949114`
     });
   },
 

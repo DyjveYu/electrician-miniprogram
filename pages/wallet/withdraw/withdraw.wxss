@@ -1,0 +1,126 @@
+.container {
+  padding: 30rpx;
+  background-color: #f5f7fa;
+  min-height: 100vh;
+}
+
+.balance-card {
+  background: linear-gradient(135deg, #0F9D58 0%, #A5D6A7 100%);
+  border-radius: 20rpx;
+  padding: 40rpx;
+  color: #fff;
+  margin-bottom: 30rpx;
+  box-shadow: 0 10rpx 20rpx rgba(79, 172, 254, 0.3);
+}
+
+.label {
+  font-size: 28rpx;
+  opacity: 0.9;
+  margin-bottom: 20rpx;
+}
+
+.amount {
+  font-size: 64rpx;
+  font-weight: bold;
+  margin-bottom: 40rpx;
+}
+
+.stats-row {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1rpx solid rgba(255, 255, 255, 0.2);
+  padding-top: 20rpx;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 24rpx;
+  opacity: 0.8;
+  margin-bottom: 10rpx;
+}
+
+.stat-value {
+  font-size: 32rpx;
+  font-weight: 500;
+}
+
+.withdraw-section {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  margin-bottom: 30rpx;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 500;
+  margin-bottom: 30rpx;
+  color: #333;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  border-bottom: 1rpx solid #eee;
+  padding-bottom: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.currency {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+  margin-right: 20rpx;
+}
+
+.amount-input {
+  flex: 1;
+  font-size: 40rpx;
+  height: 60rpx;
+}
+
+.all-btn {
+  font-size: 28rpx;
+  color: #4facfe;
+  padding-left: 20rpx;
+  border-left: 1rpx solid #eee;
+}
+
+.tips {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 40rpx;
+}
+
+.withdraw-btn {
+  background: #4facfe;
+  color: #fff;
+  border-radius: 50rpx;
+  font-size: 32rpx;
+}
+
+.withdraw-btn[disabled] {
+  background: #ccc;
+  color: #fff;
+}
+
+.notice {
+  padding: 20rpx;
+}
+
+.notice-title {
+  font-size: 28rpx;
+  color: #666;
+  margin-bottom: 20rpx;
+}
+
+.notice-item {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 10rpx;
+  line-height: 1.5;
+}

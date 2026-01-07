@@ -209,7 +209,8 @@ const getOrderStatusText = (status) => {
     'pending_payment': '待支付预付款',
     'pending_repair_payment': '待支付维修费',
     'pending_review': '待评价',
-    'closed': '交易关闭'
+    'closed': '交易关闭',
+    'settled': '已结算'
   };
   return statusMap[status] || '未知状态';
 };
@@ -236,6 +237,11 @@ const mapOrderToDisplayStatus = (order) => {
   }
   if (st === 'cancel_pending') {
     return { code: 'cancel_pending', text: '交易关闭（取消处理中）' };
+  }
+  
+  // 已结算
+  if (st === 'settled') {
+    return { code: 'settled', text: '已结算' };
   }
 
   // 待支付预付款

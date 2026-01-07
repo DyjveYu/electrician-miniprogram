@@ -4,13 +4,12 @@ App({
     userInfo: null,
     token: null,
     baseUrl: 'https://electrician.mijutime.com/api', // 阿里云 API地址
-     //baseUrl: 'http://localhost:3000/api', // 本地开发环境API地址
+    //baseUrl: 'http://localhost:3000/api', // 本地开发环境API地址
     isLogin: false,
     currentRole: 'user', // user | electrician
     systemInfo: null,
     location: null,
-    // 支付方式全局配置：生产默认微信支付wechat；开发可自动走测试支付test
-    paymentMethod: 'wechat'
+    paymentMethod: 'wechat' // 支付方式全局配置：生产默认微信支付 wechat ；开发可自动走测试支付test
   },
 
   onLaunch() {
@@ -55,8 +54,16 @@ App({
    * 检查登录状态
    */
   checkLoginStatus() {
+    console.log('[App] 开始检查登录状态...');
+
     const token = wx.getStorageSync('token');
     const userInfo = wx.getStorageSync('userInfo');
+
+    console.log('[App] 本地存储数据:', {
+      hasToken: !!token,
+      hasUserInfo: !!userInfo,
+      userInfo: userInfo
+    });
 
     if (token && userInfo) {
       this.globalData.token = token;
@@ -64,8 +71,16 @@ App({
       this.globalData.isLogin = true;
       this.globalData.currentRole = userInfo.current_role || 'user';
 
+      console.log('[App] 登录状态已恢复:', {
+        isLogin: this.globalData.isLogin,
+        currentRole: this.globalData.currentRole,
+        userId: userInfo.id
+      });
+
       // 验证token是否有效
       this.verifyToken();
+    } else {
+      console.log('[App] 未找到登录信息');
     }
   },
 
@@ -73,6 +88,7 @@ App({
    * 验证token有效性
    */
   verifyToken() {
+    console.log('[App] 开始验证Token有效性...');
     wx.request({
       url: `${this.globalData.baseUrl}/auth/verify-token`,
       method: 'GET',
@@ -80,13 +96,19 @@ App({
         'Authorization': `Bearer ${this.globalData.token}`
       },
       success: (res) => {
-        if (res.statusCode !== 200 || !res.data.success) {
-          // token无效，清除登录状态
+        console.log('[App] Token验证响应:', res);
+        // 只有明确的 401 或者 success=false 且 code=401 时才登出
+        if (res.statusCode === 401 || (res.data && res.data.code === 401)) {
+          console.warn('[App] Token已失效(401)，执行登出');
           this.logout();
+        } else if (res.statusCode !== 200) {
+          console.warn('[App] Token验证非200:', res.statusCode);
+          // 这里可以选择不登出，或者根据业务决定
         }
       },
-      fail: () => {
-        // 网络错误，暂不处理
+      fail: (err) => {
+        console.error('[App] Token验证网络请求失败:', err);
+        // 网络错误不应该登出，保持离线登录状态
       }
     });
   },

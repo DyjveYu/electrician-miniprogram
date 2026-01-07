@@ -53,11 +53,19 @@ Page({
 
   onLoad() {
     console.log('首页加载');
+    // 检查登录状态
+    if (!this.checkLogin()) {
+      return;
+    }
     this.initPage();
   },
 
   onShow() {
     console.log('首页显示');
+    // 检查登录状态
+    if (!this.checkLogin()) {
+      return;
+    }
     this.initPage();
   },
 
@@ -68,16 +76,64 @@ Page({
   },
 
   /**
+   * 检查登录状态
+   */
+  checkLogin() {
+    const app = getApp();
+    let isLogin = app.globalData.isLogin;
+    let token = app.globalData.token;
+
+    console.log('[首页] 检查全局登录状态:', {
+      isLogin: isLogin,
+      token: token ? '存在' : '不存在'
+    });
+
+    // 如果全局数据未就绪，尝试从Storage读取（双重保障）
+    if (!token) {
+      console.log('[首页] 全局Token不存在，尝试从Storage读取...');
+      try {
+        token = wx.getStorageSync('token');
+        const userInfo = wx.getStorageSync('userInfo');
+
+        if (token && userInfo) {
+          console.log('[首页] 从Storage恢复登录状态成功');
+          // 恢复全局数据
+          app.globalData.token = token;
+          app.globalData.userInfo = userInfo;
+          app.globalData.isLogin = true;
+          app.globalData.currentRole = userInfo.current_role || 'user';
+          isLogin = true;
+        } else {
+          console.log('[首页] Storage中也未找到登录信息');
+        }
+      } catch (e) {
+        console.error('[首页] 读取Storage失败:', e);
+      }
+    }
+
+    if (!isLogin || !token) {
+      console.log('[首页] 最终判定未登录，跳转到登录页');
+      wx.reLaunch({
+        url: '/pages/login/login'
+      });
+      return false;
+    }
+
+    console.log('[首页] 判定已登录，允许访问');
+    return true;
+  },
+
+  /**
    * 初始化页面
    */
   initPage() {
     // 获取用户角色
     const currentRole = app.globalData.currentRole || 'user';
     this.setData({ currentRole });
-    
+
     // 获取用户位置
     this.getCurrentLocation();
-    
+
     // 加载数据
     this.loadData();
   },
@@ -93,7 +149,7 @@ Page({
           latitude: res.latitude,
           longitude: res.longitude
         });
-        
+
         // 逆地理编码获取地址
         this.reverseGeocode(res.latitude, res.longitude);
       },
@@ -136,28 +192,28 @@ Page({
     try {
       console.log('[DEBUG] 开始加载附近订单...');
       this.setData({ loading: true });
-      
+
       const params = {
         page: 1,
         limit: 20,
         my_orders: false, // 获取可接的订单
         status: 'pending' // 只获取待接单的订单
       };
-      
+
       console.log('[DEBUG] 请求参数:', params);
-      
+
       // 暂时移除地理位置参数，避免后端查询错误
       // TODO: 后续实现完整的地理位置筛选功能
-      
+
       const response = await OrderAPI.getOrderList(params);
       console.log('[DEBUG] API响应:', response);
-      
+
       if (response.code === 200) {
         // 根据后端返回的数据结构，订单数据在response.data.list中
         const orders = response.data.list || response.data.orders || [];
         console.log('[DEBUG] 解析到的订单数据:', orders);
         console.log('[DEBUG] 订单数量:', orders.length);
-        
+
         if (orders.length === 0) {
           console.log('[DEBUG] 没有找到可接的订单');
           this.setData({
@@ -169,7 +225,7 @@ Page({
           });
           return;
         }
-        
+
         const formattedOrders = orders.map(order => {
           console.log('[DEBUG] 处理订单:', order.id, order.title);
           const normalizedStatus = order.status === 'confirmed' ? 'in_progress' : order.status;
@@ -181,13 +237,13 @@ Page({
             distance: this.calculateDistance(order.latitude, order.longitude)
           };
         });
-        
+
         console.log('[DEBUG] 格式化后的订单:', formattedOrders);
-        
+
         this.setData({
           nearbyOrders: formattedOrders
         });
-        
+
         console.log('[DEBUG] 订单数据已设置到页面');
       } else {
         console.error('[DEBUG] API返回错误:', response.message);
@@ -215,19 +271,19 @@ Page({
     try {
       console.log('[DEBUG] 开始加载最近订单...');
       this.setData({ loading: true });
-      
+
       const params = {
         page: 1,
         limit: 5,
         my_orders: true,
         status: 'completed'
       };
-      
+
       console.log('[DEBUG] 请求参数:', params);
-      
+
       const response = await OrderAPI.getOrderList(params);
       console.log('[DEBUG] API响应:', response);
-      
+
       if (response.code === 200) {
         // 统一数据结构处理：优先使用list字段，兼容orders字段
         let orders = response.data.list || response.data.orders || [];
@@ -243,7 +299,7 @@ Page({
           // 保持使用模拟数据
           return;
         }
-        
+
         const formattedOrders = orders.map(order => {
           console.log('[DEBUG] 处理订单:', order.id, order.title);
           return {
@@ -252,13 +308,13 @@ Page({
             createdTime: formatTime(order.created_at)
           };
         });
-        
+
         console.log('[DEBUG] 格式化后的订单:', formattedOrders);
-        
+
         this.setData({
           recentOrders: formattedOrders
         });
-        
+
         console.log('[DEBUG] 最近订单数据已设置到页面');
       } else {
         console.error('[DEBUG] API返回错误:', response.message);
@@ -282,14 +338,14 @@ Page({
     if (!this.data.latitude || !this.data.longitude || !lat || !lng) {
       return '';
     }
-    
+
     const distance = formatDistance(
       this.data.latitude,
       this.data.longitude,
       lat,
       lng
     );
-    
+
     return distance;
   },
 
@@ -329,7 +385,7 @@ Page({
       }, 1500);
       return;
     }
-    
+
     // 检查用户角色
     if (this.data.currentRole !== 'user') {
       wx.showToast({
@@ -338,7 +394,7 @@ Page({
       });
       return;
     }
-    
+
     // 跳转到创建订单页
     wx.navigateTo({
       url: '/pages/order/create/create'
@@ -369,7 +425,7 @@ Page({
    */
   takeOrder(e) {
     const orderId = e.currentTarget.dataset.id;
-    
+
     if (this.data.currentRole !== 'electrician') {
       wx.showToast({
         title: '请切换到电工身份',
@@ -377,14 +433,14 @@ Page({
       });
       return;
     }
-    
+
     // 跳转到订单详情页，在详情页进行接单确认
     wx.navigateTo({
       url: `/pages/order/detail/detail?id=${orderId}&action=take`
     });
   },
 
-  
+
 
   /**
    * 刷新订单列表
