@@ -232,7 +232,10 @@ const mapOrderToDisplayStatus = (order) => {
   const repairContent = order.repair_content ?? order.completion_note ?? null;
 
   // 交易关闭类
-  if (st === 'cancelled' || st === 'closed') {
+  if (st === 'cancelled') {
+    return { code: 'cancelled', text: '订单已取消' };
+  }
+  if (st === 'closed') {
     return { code: 'closed', text: '交易关闭' };
   }
   if (st === 'cancel_pending') {

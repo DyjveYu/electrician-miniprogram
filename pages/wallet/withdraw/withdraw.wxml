@@ -27,7 +27,7 @@
       />
       <view class="all-btn" bindtap="handleWithdrawAll">全部提现</view>
     </view>
-    <view class="tips">最低提现金额 ¥1.00</view>
+    <view class="tips">最低提现金额 0.1元</view>
     
     <button 
       class="withdraw-btn" 

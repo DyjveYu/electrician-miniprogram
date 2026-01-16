@@ -3,6 +3,13 @@ const app = getApp();
 const { SystemAPI, OrderAPI, AuthAPI } = require('../../utils/api');
 const { formatTime, formatDistance, getOrderStatusText } = require('../../utils/util');
 
+function toMasterName(name) {
+  if (!name || typeof name !== 'string') return '师傅';
+  const trimmed = name.trim();
+  const first = trimmed ? trimmed[0] : '';
+  return (first || '') + '师傅';
+}
+
 Page({
   data: {
     userInfo: null,
@@ -302,10 +309,16 @@ Page({
 
         const formattedOrders = orders.map(order => {
           console.log('[DEBUG] 处理订单:', order.id, order.title);
+          const nickname =
+            (order.electrician && order.electrician.nickname) ||
+            order.electrician_name ||
+            order.electricianNickname ||
+            '';
           return {
             ...order,
             statusText: getOrderStatusText(order.status),
-            createdTime: formatTime(order.created_at)
+            createdTime: formatTime(order.created_at),
+            electrician_name: toMasterName(nickname)
           };
         });
 
@@ -405,7 +418,7 @@ Page({
    * 查看所有订单
    */
   viewAllOrders() {
-    wx.navigateTo({
+    wx.switchTab({
       url: '/pages/order/list/list'
     });
   },

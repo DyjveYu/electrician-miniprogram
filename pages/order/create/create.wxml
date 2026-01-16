@@ -34,15 +34,26 @@
     </view>
   </view>
 
-  <!-- 服务地址与时间 -->
+  <!-- 服务地址 -->
   <view class="form-section">
   <view class="section-title">服务地址</view>
     <view class="form-item" bindtap="openAddressSheet">
-      <text class="label">请选择上门地址</text>
+     
       <view class="value">
         <text wx:if="{{selectedAddressStr}}">{{selectedAddressStr}}</text>
         <text wx:else class="placeholder">点击选择地址</text>
       </view>
+    </view>
+  </view>
+  <!-- 复选框 -->
+    <view class="form-section">
+    <view class="terms-row">
+      <checkbox-group bindchange="onAgreeChange">
+        <label class="terms-label">
+          <checkbox value="agree" checked="{{agreePrepayTerms}}"></checkbox>
+          <text class="terms-text">下单预约将支付维修预付款。如因您个人原因（如取消服务、无法提供维修条件等）导致未能完成维修，该预付款将作为上门服务费不予退还。</text>
+        </label>
+      </checkbox-group>
     </view>
   </view>
 
@@ -65,7 +76,7 @@
       <view class="address-item" wx:for="{{addresses}}" wx:key="id" bindtap="selectAddress" data-address="{{item}}">
         <view class="address-main">
           <text class="addr-title">{{item.contactName}} {{item.contactPhone}}</text>
-          <text class="addr-detail">{{item.province}}{{item.city}}{{item.district}}{{item.detail}}</text>
+          <view class="addr-detail">{{item.province}}{{item.city}}{{item.district}}{{item.detail}}</view>
         </view>
         <view class="addr-actions">
           <button class="mini-btn" data-id="{{item.id}}" bindtap="editAddress" catchtap="editAddress">编辑</button>

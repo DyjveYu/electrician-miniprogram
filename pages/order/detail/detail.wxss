@@ -117,7 +117,7 @@
 
 .label {
   color: #666;
-  width: 160rpx;
+  width: 170rpx;
   flex-shrink: 0;
 }
 

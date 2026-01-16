@@ -21,7 +21,8 @@ Page({
       const result = await MessageAPI.getMessageDetail(this.data.messageId);
       if (result.code === 0 || result.code === 200 || result.success) {
         const message = result.data || result;
-        message.createTime = message.createTime || message.published_at || message.created_at || '';
+        const rawTime = message.createTime || message.published_at || message.created_at || '';
+        message.createTime = this.formatDateTime(rawTime);
         this.setData({ message });
         await this.markAsRead();
       } else {
@@ -36,6 +37,19 @@ Page({
     } finally {
       this.setData({ loading: false });
     }
+  },
+ 
+  formatDateTime(input) {
+    if (!input) return '';
+    const d = new Date(input);
+    if (isNaN(d)) return String(input);
+    const p2 = n => String(n).padStart(2, '0');
+    const y = d.getFullYear();
+    const m = p2(d.getMonth() + 1);
+    const da = p2(d.getDate());
+    const h = p2(d.getHours());
+    const mi = p2(d.getMinutes());
+    return `${y}-${m}-${da} ${h}:${mi}`;
   },
 
   async markAsRead() {

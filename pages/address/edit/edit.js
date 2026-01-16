@@ -35,8 +35,25 @@ Page({
         'Authorization': `Bearer ${app.globalData.token}`
       },
       success: (res) => {
-        if (res.data.code === 0) {
-          this.setData({ formData: res.data.data });
+        const ok = res?.data?.code === 0 || res?.data?.code === 200;
+        const payload = res?.data?.data;
+        if (ok && payload) {
+          const item = payload.address || payload;
+          const mapped = {
+            contactName: item.contact_name || item.contactName || '',
+            contactPhone: item.contact_phone || item.contactPhone || '',
+            province: item.province || '',
+            city: item.city || '',
+            district: item.district || '',
+            detail: item.detail_address || item.detail || '',
+            locationName: item.location_name || item.locationName || '',
+            latitude: typeof item.latitude !== 'undefined' ? item.latitude : null,
+            longitude: typeof item.longitude !== 'undefined' ? item.longitude : null,
+            isDefault: !!(item.is_default || item.isDefault)
+          };
+          this.setData({ formData: mapped });
+        } else {
+          wx.showToast({ title: res?.data?.message || '加载地址失败', icon: 'none' });
         }
       }
     });
@@ -235,6 +252,11 @@ Page({
 
     if (!contactName.trim()) {
       wx.showToast({ title: '请输入联系人', icon: 'none' });
+      return false;
+    }
+    const hanCount = (contactName.match(/[\u4e00-\u9fa5]/g) || []).length;
+    if (hanCount < 2) {
+      wx.showToast({ title: '联系人姓名至少需要两个汉字', icon: 'none' });
       return false;
     }
 

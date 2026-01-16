@@ -5,7 +5,7 @@ Page({
     // 单一“我的订单”Tab
     currentTab: 0,
     tabs: [
-      { name: '我的订单', status: 'all' }
+      { name: '我的工单', status: 'all' }
     ],
     orders: [],
     loading: false,

@@ -45,10 +45,19 @@
         <text class="label">创建时间：</text>
         <text class="value">{{order.createTime}}</text>
       </view>
-      <view class="info-row" wx:if="{{order.amount}}">
-        <text class="label">预付款：</text>
-        <text class="value amount">{{order.amount || '30.00'}}元</text>
-      </view>
+      <!-- 金额展示：根据状态显示 -->
+      <block wx:if="{{(order.status === 'in_progress' || order.status === 'pending_review' || order.status === 'completed') && order.installFee}}">
+        <view class="info-row">
+          <text class="label">维修安装费：</text>
+          <text class="value amount">{{order.installFee}}元</text>
+        </view>
+      </block>
+      <block wx:elif="{{order.amount}}">
+        <view class="info-row">
+          <text class="label">预付款：</text>
+          <text class="value amount">{{order.amount}}元</text>
+        </view>
+      </block>
       
     </view>
    
@@ -83,13 +92,17 @@
     </view>
     
 
-    <!-- 电工视角：维修金额与内容（已接单/待支付维修费） -->
+    <!-- 电工视角：维修明细（已接单/待支付维修费） -->
     <view class="section card" wx:if="{{order.status === 'accepted' || order.status === 'pending_repair_payment'}}">
-      <view class="section-title">维修金额与内容</view>
+      <view class="section-title">维修明细</view>
+            <view class="info-row" wx:if="{{order.amount}}">
+        <text class="label">预付款：</text>
+        <text class="value amount">{{order.amount || '30.00'}}元</text>
+      </view>
       <block wx:if="{{order.canSubmitCompletedUpdate}}">
         <view class="update-form">
         <view class="form-item">
-          <text class="form-label">维修金额（单位:元）</text>
+          <text class="form-label">剩余维修款（单位:元）</text>
           <input
             class="amount-input"
             placeholder="请输入维修金额"
@@ -122,14 +135,20 @@
       </block>
     </view>
 
-    <!-- 电工和用户双视角：维修内容（进行中/已完成/待支付状态） -->
-    <view class="section card" wx:if="{{order.status === 'in_progress' || order.status === 'pending_payment' || order.status === 'completed' || order.status === 'settled'}}">
-      <view class="section-title">维修金额与内容</view>
-      <view class="form-item" wx:if="{{order.repairAmount}}">
-        <text class="form-label">维修金额：</text>
-        <text class="form-value">¥{{order.repairAmount}}</text>
-        <text class="form-label">维修内容：</text>
-        <text class="form-value">{{order.workContent}}</text>
+    <!-- 电工和用户双视角：维修内容（进行中/待评价/已完成/待支付/已结算） -->
+    <view class="section card" wx:if="{{order.status === 'in_progress' || order.status === 'pending_review' || order.status === 'completed' || order.status === 'pending_payment' || order.status === 'settled'}}">
+      <view class="section-title">维修明细</view>
+       <view class="info-row" wx:if="{{order.amount}}">
+        <text class="label">预付款：</text>
+        <text class="value">{{order.amount}}元</text>
+      </view>
+      <view class="info-row" wx:if="{{order.repairAmount}}">
+        <text class="label">维修款：</text>
+        <text class="value">{{order.repairAmount}}元</text>
+      </view>
+      <view class="info-row" wx:if="{{order.repairAmount}}">
+        <text class="label">维修内容：</text>
+        <text class="value">{{order.workContent}}</text>
       </view>
        <!-- 维修图片 -->
        <view class="work-images-display" wx:if="{{order.workImages && order.workImages.length > 0}}">
@@ -291,6 +310,17 @@
 
       <!-- 待支付状态 -->
       <block wx:if="{{order.status === 'pending_payment'}}">
+        
+       <button
+          wx:if="{{order.canCancel}}"
+          class="service-btn"
+          bindtap="cancelOrder"
+        >
+           <text class="service-text">取消订单</text>
+        </button>
+       
+
+
         <button 
           wx:if="{{order.canPay}}"
           class="main-action-btn pay"
@@ -298,6 +328,7 @@
         >
           去支付¥{{order.amount || '30.00'}}
         </button>
+   
       </block>
 
       <!-- 待支付维修费状态 -->

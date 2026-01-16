@@ -21,12 +21,11 @@
 
     <!-- 相关订单 -->
     <view class="related-order" wx:if="{{message.orderId}}">
-      <view class="section-title">相关订单</view>
+   
       <view class="order-card" bindtap="viewOrder" data-id="{{message.orderId}}">
         <view class="order-info">
           <text class="order-number">订单号：{{message.orderNumber}}</text>
-          <text class="order-status">{{message.orderStatus}}</text>
-        </view>
+             </view>
         <text class="view-order">查看订单 ></text>
       </view>
     </view>

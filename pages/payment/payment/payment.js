@@ -119,17 +119,8 @@ Page({
       fail: () => {
         console.error('[支付页] 微信支付失败');
         wx.showToast({ title: '支付失败，请重新发起支付', icon: 'none' });
-        // 失败后按要求跳转：先到“我的订单”Tab，再进入订单详情
-        wx.switchTab({
-          url: '/pages/order/list/list',
-          success: () => {
-            setTimeout(() => {
-              wx.navigateTo({
-                url: `/pages/order/detail/detail?orderId=${this.data.orderId}`
-              });
-            }, 50);
-          }
-        });
+        // 失败后按要求跳转到“我的订单”Tab
+        wx.switchTab({ url: '/pages/order/list/list' });
       }
     });
   },

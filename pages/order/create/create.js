@@ -46,7 +46,8 @@ Page({
     // 预付金额（默认30.00，如服务类型有配置则覆盖；测试阶段0.01）
     prepayAmount: '0.01',
     canSubmit: false,
-    submitting: false
+    submitting: false,
+    agreePrepayTerms: false
   },
 
   onLoad() {
@@ -268,6 +269,12 @@ Page({
   addAddress() {
     wx.navigateTo({ url: '/pages/address/edit/edit' });
   },
+  onAgreeChange(e) {
+    const values = e.detail.value || [];
+    const agreed = Array.isArray(values) ? values.includes('agree') : !!values;
+    this.setData({ agreePrepayTerms: agreed });
+    this.updateSubmitEnable();
+  },
 
 
   // 表单验证
@@ -287,6 +294,10 @@ Page({
     // 联系人手机号若存在则校验；允许为空（地址中已包含）
     if (this.data.contactPhone && !/^1[3-9]\d{9}$/.test(this.data.contactPhone)) {
       wx.showToast({ title: '联系人手机号格式不正确', icon: 'none' });
+      return false;
+    }
+    if (!this.data.agreePrepayTerms) {
+      wx.showToast({ title: '请勾选预付款说明', icon: 'none' });
       return false;
     }
     return true;
@@ -341,7 +352,7 @@ Page({
   }
   ,
   updateSubmitEnable() {
-    const ok = !!this.data.selectedServiceTypeId && !!(this.data.description && this.data.description.trim()) && !!this.data.selectedAddressStr;
+    const ok = !!this.data.selectedServiceTypeId && !!(this.data.description && this.data.description.trim()) && !!this.data.selectedAddressStr && !!this.data.agreePrepayTerms;
     this.setData({ canSubmit: ok });
   }
 });

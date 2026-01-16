@@ -9,7 +9,8 @@ App({
     currentRole: 'user', // user | electrician
     systemInfo: null,
     location: null,
-    paymentMethod: 'wechat' // 支付方式全局配置：生产默认微信支付 wechat ；开发可自动走测试支付test
+    paymentMethod: 'wechat', // 支付方式全局配置：生产默认微信支付 wechat ；开发可自动走测试支付test
+    mchId: '1103388382' // ⭐ 添加你的商户号
   },
 
   onLaunch() {

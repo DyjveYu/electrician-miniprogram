@@ -121,6 +121,12 @@ Page({
             prefillUpdateAmount
           };
 
+          // 计算“维修安装费”合计（仅在进行中/待评价/已完成展示）
+          const prepayNum = Number(order.amount) || 0;
+          const repairNum = Number(order.repairAmount) || 0;
+          const showInstallTotal = ['in_progress', 'pending_review', 'completed'].includes(normalizedStatus);
+          const installFee = showInstallTotal ? (prepayNum + repairNum).toFixed(2) : null;
+
           // 计算底部操作权限标记，避免按钮不显示
           const appRole = app.globalData.currentRole || 'user';
           const flags = this.computeActionFlags({ ...order, status: normalizedStatus }, appRole);
@@ -130,6 +136,7 @@ Page({
               ...order,
               status: normalizedStatus,
               statusText: getOrderStatusText(normalizedStatus),
+              installFee,
               ...flags
             }
           });
@@ -177,7 +184,7 @@ Page({
     const st = order.status;
     const hasReview = !!(order.has_review || order.reviewed_at);
     // 基础权限
-    const canCancel = st === 'pending';
+    const canCancel = st === 'pending' || st === 'pending_payment';
     const canAccept = role === 'electrician' && st === 'pending';
     const canComplete = role === 'electrician' && st === 'in_progress';
     const canConfirmAmount = role === 'user' && (st === 'pending_payment' || st === 'pending_repair_payment');
@@ -230,13 +237,16 @@ Page({
       header: {
         'Authorization': `Bearer ${app.globalData.token}`
       },
+      data: {
+        cancel_reason: '用户取消预付款'
+      },
       success: (res) => {
         const code = res?.data?.code;
         const ok = code === 0 || code === 200 || res.statusCode === 200 || res?.data?.success === true;
         if (ok) {
           wx.showToast({ title: '订单已取消', icon: 'success' });
           setTimeout(() => {
-            wx.navigateBack();
+            wx.switchTab({ url: '/pages/order/list/list' });
           }, 1500);
         } else {
           wx.showToast({ title: res.data.message || '取消失败', icon: 'none' });
