@@ -36,7 +36,7 @@
 .upload-card {
   position: relative;
   width: 100%;
-  height: 480rpx; /* Taller for cert */
+  height: 400rpx; /* Taller for cert */
   background-color: #f8f9fc;
   border-radius: 20rpx;
   border: 2rpx dashed #e0e0e0;
@@ -84,6 +84,7 @@
 .preview-image {
   width: 100%;
   height: 100%;
+  display: block;
 }
 
 .re-upload-mask {

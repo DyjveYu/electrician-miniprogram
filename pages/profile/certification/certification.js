@@ -20,7 +20,42 @@ Page({
     customItem: '全部',
     idCardFrontPath: '',
     idCardBackPath: '',
-    certificatePath: ''
+    certificatePath: '',
+    reapply: false,
+    submitting: false
+  },
+
+  parseServiceAreaToRegion(serviceArea) {
+    if (!serviceArea) return ['', '', ''];
+    const s = String(serviceArea).trim();
+    if (!s) return ['', '', ''];
+
+    const splitByDelimiters = (str) => {
+      const parts = str
+        .split(/[,\s/|-]+/g)
+        .map(v => String(v || '').trim())
+        .filter(Boolean);
+      if (parts.length >= 3) return [parts[0], parts[1], parts[2]];
+      if (parts.length === 2) return [parts[0], parts[1], ''];
+      if (parts.length === 1) return [parts[0], '', ''];
+      return ['', '', ''];
+    };
+
+    if (/[,\s/|-]/.test(s)) {
+      return splitByDelimiters(s);
+    }
+
+    const m = s.match(/^(.*?(?:省|自治区|特别行政区))(.*?(?:市|自治州|地区|盟))(.*)$/);
+    if (m) {
+      return [m[1] || '', m[2] || '', m[3] || ''];
+    }
+
+    const m2 = s.match(/^(.*?市)(.*?区|.*?县|.*?市)(.*)$/);
+    if (m2) {
+      return [m2[1] || '', m2[2] || '', m2[3] || ''];
+    }
+
+    return [s, '', ''];
   },
 
   onLoad(options) {
@@ -34,6 +69,10 @@ Page({
       this.loadCertificationInfo();
     }
   },
+  onShow() {
+    // 每次进入页面尝试刷新认证信息，避免状态滞留
+    this.loadCertificationInfo();
+  },
 
   // 加载认证信息
   loadCertificationInfo() {
@@ -44,35 +83,61 @@ Page({
     });
 
     wx.request({
-      url: `${app.globalData.baseUrl}/api/electricians/certification`,
+      url: `${app.globalData.baseUrl}/electricians/certification/status`,
       method: 'GET',
       header: {
         'Authorization': `Bearer ${app.globalData.token}`
       },
       success: (res) => {
-        if (res.data.code === 0 && res.data.data) {
-          const certInfo = res.data.data;
-          // 解析 work_types 字段
-          const workTypes = certInfo.work_types ? certInfo.work_types.split(',') : ['maintenance'];
+        const ok = res?.data?.success === true || res?.data?.code === 0 || res?.data?.code === 200;
+        if (ok) {
+          const data = res?.data?.data || {};
+          // 兼容两种返回结构：{ certification } 或直接返回认证实体 / { status: 'none' }
+          const cert = data.certification || (data.user_id || data.status ? data : null);
+          const status = (data.status || cert?.status || 'none');
+          const workTypes = cert?.work_types ? String(cert.work_types).split(',') : this.data.workTypes;
+          const region = cert?.region
+            ? String(cert.region).split(',')
+            : (cert?.service_area ? this.parseServiceAreaToRegion(cert.service_area) : this.data.region);
+          const normalizeDate = (val) => {
+            if (!val) return '';
+            const s = String(val);
+            if (s.length >= 10) return s.slice(0, 10);
+            return s;
+          };
+          const certificateStartDate = normalizeDate(
+            cert?.cert_start_date || cert?.certificate_start_date || cert?.certificateStartDate
+          ) || this.data.formData.certificateStartDate;
+          const certificateEndDate = normalizeDate(
+            cert?.cert_end_date || cert?.certificate_end_date || cert?.certificateEndDate
+          ) || this.data.formData.certificateEndDate;
+          const serviceArea = cert?.service_area || (Array.isArray(region) ? region.join('') : '') || this.data.formData.serviceArea;
           this.setData({
-            workTypes: workTypes,
+            workTypes,
             isMaintenanceChecked: workTypes.includes('maintenance'),
             isInstallationChecked: workTypes.includes('installation'),
             formData: {
-              realName: certInfo.real_name || '',
-              idCard: certInfo.id_card || '',
-              certificateNumber: certInfo.certificate_number || '',
-              certificateStartDate: certInfo.certificate_start_date || '',
-              certificateEndDate: certInfo.certificate_end_date || '',
-              serviceArea: certInfo.service_area || ''
+              realName: cert?.real_name || this.data.formData.realName,
+              idCard: cert?.id_card || this.data.formData.idCard,
+              certificateNumber: cert?.certificate_number || cert?.electrician_cert_no || this.data.formData.certificateNumber,
+              certificateStartDate,
+              certificateEndDate,
+              serviceArea
             },
-            certificationStatus: certInfo.status || '',
-            rejectReason: certInfo.reject_reason || '',
-            region: certInfo.region ? certInfo.region.split(',') : ['', '', ''],
-            idCardFrontPath: certInfo.id_card_front || '',
-            idCardBackPath: certInfo.id_card_back || '',
-            certificatePath: certInfo.certificate_img || ''
+            certificationStatus: status,
+            rejectReason: cert?.reject_reason || '',
+            region,
+            idCardFrontPath: this.data.idCardFrontPath || cert?.id_card_front || '',
+            idCardBackPath: this.data.idCardBackPath || cert?.id_card_back || '',
+            certificatePath: this.data.certificatePath || cert?.certificate_img || '',
+            reapply: false
+          }, () => {
+            this.checkFormValid();
           });
+          // 若状态存在且不是 none，则切换到查看模式
+          if (status && status !== 'none') {
+            this.setData({ mode: 'view' });
+          }
         }
       },
       fail: () => {
@@ -142,6 +207,10 @@ Page({
 
   // 获取当前位置
   getLocation() {
+    if (this.data.mode === 'view' && this.data.certificationStatus !== 'approved') {
+      wx.showToast({ title: '认证中不可修改', icon: 'none' });
+      return;
+    }
     wx.showLoading({
       title: '获取位置中',
     });
@@ -186,9 +255,14 @@ Page({
 
   // 跳转至身份证上传页面
   navigateToIdentity() {
+    if (this.data.mode === 'view' && this.data.certificationStatus !== 'approved') {
+      wx.showToast({ title: '认证中不可修改', icon: 'none' });
+      return;
+    }
     const that = this;
+    const targetMode = (this.data.mode === 'view' && this.data.certificationStatus === 'approved') ? 'apply' : this.data.mode;
     wx.navigateTo({
-      url: '/pages/profile/certification/identity/identity?mode=' + this.data.mode,
+      url: '/pages/profile/certification/identity/identity?mode=' + targetMode,
       events: {
         acceptDataFromIdentityPage: function (data) {
           that.setData({
@@ -209,9 +283,14 @@ Page({
 
   // 跳转至电工证上传页面
   navigateToElectricianCert() {
+    if (this.data.mode === 'view' && this.data.certificationStatus !== 'approved') {
+      wx.showToast({ title: '认证中不可修改', icon: 'none' });
+      return;
+    }
     const that = this;
+    const targetMode = (this.data.mode === 'view' && this.data.certificationStatus === 'approved') ? 'apply' : this.data.mode;
     wx.navigateTo({
-      url: '/pages/profile/certification/electrician-cert/electrician-cert?mode=' + this.data.mode,
+      url: '/pages/profile/certification/electrician-cert/electrician-cert?mode=' + targetMode,
       events: {
         acceptDataFromCertPage: function (data) {
           that.setData({
@@ -232,42 +311,258 @@ Page({
   checkFormValid() {
     const { formData } = this.data;
 
-    // 检查所有必填字段（包括工作类型和图片）
-    const isValid = this.data.workTypes.length > 0 &&
+    const baseValid = this.data.workTypes.length > 0 &&
       formData.realName &&
       formData.idCard &&
       formData.certificateNumber &&
       formData.certificateStartDate &&
       formData.certificateEndDate &&
       formData.serviceArea &&
-      this.data.idCardFrontPath &&
-      this.data.idCardBackPath;
+      true;
+
+    const imagesValid = this.data.idCardFrontPath &&
+      this.data.idCardBackPath &&
+      this.data.certificatePath;
+
+    const isFirstApplySubmit = this.data.mode === 'apply' && this.data.reapply !== true;
+    const isValid = isFirstApplySubmit ? (baseValid && imagesValid) : baseValid;
 
     this.setData({
       submitDisabled: !isValid
     });
   },
 
-  // 提交认证申请
-  submitCertification() {
-    if (this.data.submitDisabled) {
-      console.log('❌ 表单未完成，无法提交');
+  // 🔥 2026.1.27 新增：上传单个图片到服务器
+  // 1.28 修改：
+  // 🔥 修复：上传单个图片到服务器（只返回相对路径）
+uploadImage(filePath, fieldName) {
+  return new Promise((resolve, reject) => {
+    // 🔥 新增：防御性检查
+    if (!filePath || typeof filePath !== 'string') {
+      console.error(`🔥 ${fieldName} 路径无效:`, filePath);
+      reject(new Error(`${fieldName}路径无效`));
       return;
     }
 
+    console.log(`🔥 uploadImage 开始处理 ${fieldName}:`, filePath);
+    
+    // 如果已经是相对路径，直接返回
+    if (filePath.startsWith('/uploads/')) {
+      console.log(`🔥 ${fieldName} 已是相对路径:`, filePath);
+      resolve(filePath);
+      return;
+    }
+
+    // 🔥 使用字符串方法提取相对路径
+    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
+      console.log(`🔥 ${fieldName} 是完整URL，提取相对路径`);
+      try {
+        // 使用正则提取 /uploads/ 开头的路径
+        const match = filePath.match(/\/uploads\/.+$/);
+        if (match) {
+          const relativePath = match[0];
+          console.log(`🔥 ${fieldName} 提取的相对路径:`, relativePath);
+          resolve(relativePath);
+          return;
+        }
+        
+        // 备用方案：查找域名后的路径部分
+        const urlParts = filePath.split('/');
+        const uploadsIndex = urlParts.indexOf('uploads');
+        if (uploadsIndex > 0) {
+          const relativePath = '/' + urlParts.slice(uploadsIndex).join('/');
+          console.log(`🔥 ${fieldName} 提取的相对路径:`, relativePath);
+          resolve(relativePath);
+          return;
+        }
+        
+        console.error(`🔥 ${fieldName} 无法从URL中提取相对路径:`, filePath);
+        reject(new Error('无法提取相对路径'));
+      } catch (e) {
+        console.error(`🔥 ${fieldName} 提取相对路径失败:`, e);
+        reject(new Error('路径解析失败'));
+      }
+      return;
+    }
+
+    // 如果不是URL也不是相对路径，说明是本地文件，需要上传
+    console.log(`🔥 开始上传 ${fieldName}:`, filePath);
+
+    // 🔥 使用 getApp() 获取全局对象
     const app = getApp();
 
-    console.log('========== 开始提交电工认证 ==========');
-    console.log('1. BaseUrl:', app.globalData.baseUrl);
-    console.log('2. Token:', app.globalData.token ? '存在' : '不存在');
+    wx.uploadFile({
+      url: `${app.globalData.baseUrl}/upload/certification`,
+      filePath: filePath,
+      name: 'certification',
+      header: {
+        'Authorization': `Bearer ${app.globalData.token}`
+      },
+      success: (res) => {
+        console.log(`🔥 ${fieldName} 上传响应 statusCode:`, res.statusCode);
+        console.log(`🔥 ${fieldName} 上传响应 data:`, res.data);
+        
+        if (res.statusCode !== 200) {
+          console.error(`🔥 ${fieldName} 上传失败，状态码:`, res.statusCode);
+          reject(new Error(`${fieldName}上传失败`));
+          return;
+        }
 
-    wx.showLoading({
-      title: '提交中',
+        try {
+          const data = JSON.parse(res.data);
+          console.log(`🔥 ${fieldName} 解析后的数据:`, data);
+
+          if (data.code === 200 && data.data && data.data.url) {
+            let url = data.data.url;
+            console.log(`🔥 ${fieldName} 服务器返回的url:`, url);
+            
+            // 🔥 只保存相对路径
+            let relativePath;
+            
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+              console.log(`🔥 ${fieldName} 是完整URL，提取相对路径`);
+              
+              const match = url.match(/\/uploads\/.+$/);
+              if (match) {
+                relativePath = match[0];
+              } else {
+                const urlParts = url.split('/');
+                const uploadsIndex = urlParts.indexOf('uploads');
+                if (uploadsIndex > 0) {
+                  relativePath = '/' + urlParts.slice(uploadsIndex).join('/');
+                } else {
+                  console.warn(`🔥 ${fieldName} 无法提取标准路径，使用原始值`);
+                  relativePath = url;
+                }
+              }
+            } else if (url.startsWith('/')) {
+              relativePath = url;
+            } else {
+              relativePath = '/' + url;
+            }
+            
+            console.log(`🔥 ${fieldName} 最终相对路径:`, relativePath);
+            resolve(relativePath);
+          } else {
+            console.error(`🔥 ${fieldName} 返回数据格式错误:`, data);
+            reject(new Error(data.message || `${fieldName}上传失败`));
+          }
+        } catch (e) {
+          console.error(`🔥 ${fieldName} 解析响应失败:`, e);
+          console.error(`🔥 ${fieldName} 原始响应:`, res.data);
+          reject(new Error('解析响应失败'));
+        }
+      },
+      fail: (err) => {
+        console.error(`🔥 ${fieldName} 上传请求失败:`, err);
+        reject(new Error('网络错误'));
+      }
     });
+  });
+},
 
-    // 构建请求数据
+  // 🔥 2026.1.28 修改：提交认证申请
+  async submitCertification() {
+  if (this.data.submitDisabled) {
+    wx.showToast({ title: '请完善信息后再提交', icon: 'none' });
+    return;
+  }
+
+  const app = getApp();
+
+  console.log('========== 开始提交电工认证 ==========');
+  console.log('1. BaseUrl:', app.globalData.baseUrl);
+  console.log('2. Token:', app.globalData.token ? '存在' : '不存在');
+ // 🔥 1.28 11：09：详细的数据检查
+  console.log('3. 当前页面数据完整性检查:');
+  console.log('   - idCardFrontPath 类型:', typeof this.data.idCardFrontPath);
+  console.log('   - idCardFrontPath 值:', this.data.idCardFrontPath);
+  console.log('   - idCardBackPath 类型:', typeof this.data.idCardBackPath);
+  console.log('   - idCardBackPath 值:', this.data.idCardBackPath);
+  console.log('   - certificatePath 类型:', typeof this.data.certificatePath);
+  console.log('   - certificatePath 值:', this.data.certificatePath);
+  console.log('4. 完整 data 对象:', JSON.stringify({
+    idCardFrontPath: this.data.idCardFrontPath,
+    idCardBackPath: this.data.idCardBackPath,
+    certificatePath: this.data.certificatePath
+  }));
+
+
+  wx.showLoading({
+    title: '上传图片中...',
+    mask: true
+  });
+  this.setData({ submitting: true });
+
+  try {
+    // 🔥 步骤1：上传所有本地图片到服务器，获取相对路径
+    console.log('5. 开始处理图片路径...');
+   
+    let idCardFrontPath = this.data.idCardFrontPath;
+    let idCardBackPath = this.data.idCardBackPath;
+    let certificatePath = this.data.certificatePath;
+
+    console.log('6. 复制后的路径值:');
+    console.log('   - idCardFrontPath:', idCardFrontPath);
+    console.log('   - idCardBackPath:', idCardBackPath);
+    console.log('   - certificatePath:', certificatePath);
+
+    // 🔥 关键修复：检查路径是否有效
+    // 上传身份证正面
+     if (idCardFrontPath && typeof idCardFrontPath === 'string' && idCardFrontPath.trim()) {
+      console.log('🔥 处理身份证正面:', idCardFrontPath);
+      idCardFrontPath = await this.uploadImage(idCardFrontPath, '身份证正面');
+    } else {
+      console.error('🔥 ❌ 身份证正面路径无效:', {
+        value: idCardFrontPath,
+        type: typeof idCardFrontPath,
+        boolean: !!idCardFrontPath
+      });
+      throw new Error('身份证正面未上传或路径无效');
+    }
+
+    // 上传身份证背面
+    if (idCardBackPath && typeof idCardBackPath === 'string' && idCardBackPath.trim()) {
+      console.log('🔥 处理身份证背面:', idCardBackPath);
+      idCardBackPath = await this.uploadImage(idCardBackPath, '身份证背面');
+    } else {
+      console.error('🔥 ❌ 身份证背面路径无效:', {
+        value: idCardBackPath,
+        type: typeof idCardBackPath,
+        boolean: !!idCardBackPath
+      });
+      throw new Error('身份证背面未上传或路径无效');
+    }
+
+    // 上传电工证
+    if (certificatePath && typeof certificatePath === 'string' && certificatePath.trim()) {
+      console.log('🔥 处理电工证:', certificatePath);
+      wx.showLoading({ title: '上传电工证...', mask: true });
+      certificatePath = await this.uploadImage(certificatePath, '电工证');
+    } else {
+      console.error('🔥 ❌ 电工证路径无效:', {
+        value: certificatePath,
+        type: typeof certificatePath,
+        boolean: !!certificatePath
+      });
+      throw new Error('电工证未上传或路径无效');
+    }
+
+    console.log('7. ✅ 所有图片处理完成（相对路径）');
+    console.log('   - 身份证正面:', idCardFrontPath);
+    console.log('   - 身份证背面:', idCardBackPath);
+    console.log('   - 电工证:', certificatePath);
+
+    // 🔥 验证：确保所有图片都有值
+    if (!idCardFrontPath || !idCardBackPath || !certificatePath) {
+      throw new Error('请上传所有必需的证件照片');
+    }
+
+    // 🔥 步骤2：提交认证数据到服务器（使用相对路径）
+    wx.showLoading({ title: '提交认证...', mask: true });
+
     const requestData = {
-      work_types: this.data.workTypes.join(','), // 将数组转换为逗号分隔的字符串
+      work_types: this.data.workTypes.join(','),
       real_name: this.data.formData.realName,
       id_card: this.data.formData.idCard,
       electrician_cert_no: this.data.formData.certificateNumber,
@@ -275,73 +570,122 @@ Page({
       cert_end_date: this.data.formData.certificateEndDate,
       service_area: this.data.formData.serviceArea,
       region: this.data.region.join(','),
-      // 添加图片路径
-      id_card_front: this.data.idCardFrontPath,
-      id_card_back: this.data.idCardBackPath,
-      certificate_img: this.data.certificatePath
+      id_card_front: idCardFrontPath,
+      id_card_back: idCardBackPath,
+      certificate_img: certificatePath
     };
 
-    console.log('3. 请求数据:', JSON.stringify(requestData, null, 2));
+    console.log('8. 请求数据:', JSON.stringify(requestData, null, 2));
 
-    const fullUrl = `${app.globalData.baseUrl}/electricians/certification`;
-    console.log('4. 完整URL:', fullUrl);
+    const isReapply = this.data.reapply === true;
+    const fullUrl = isReapply 
+      ? `${app.globalData.baseUrl}/electricians/certification/reapply` 
+      : `${app.globalData.baseUrl}/electricians/certification`;
+    
+    console.log('6. 完整URL:', fullUrl);
 
-    wx.request({
-      url: fullUrl,
-      method: 'POST',
-      header: {
-        'Authorization': `Bearer ${app.globalData.token}`,
-        'Content-Type': 'application/json'
-      },
-      data: requestData,
-      success: (res) => {
-        console.log('5. ✅ 请求成功');
-        console.log('6. HTTP状态码:', res.statusCode);
-        console.log('7. 响应数据:', JSON.stringify(res.data, null, 2));
+    await new Promise((resolve, reject) => {
+      wx.request({
+        url: fullUrl,
+        method: isReapply ? 'PUT' : 'POST',
+        header: {
+          'Authorization': `Bearer ${app.globalData.token}`,
+          'Content-Type': 'application/json'
+        },
+        data: requestData,
+        success: (res) => {
+          console.log('7. ✅ 请求成功');
+          console.log('8. HTTP状态码:', res.statusCode);
+          console.log('9. 响应数据:', JSON.stringify(res.data, null, 2));
 
-        const code = res.data.code;
-        if (code === 0 || code === 200) {
-          console.log('8. ✅ 业务成功');
-          wx.showToast({
-            title: '提交成功',
-            icon: 'success'
-          });
-
-          // 延迟返回上一页
-          setTimeout(() => {
-            console.log('9. 返回上一页');
-            wx.navigateBack();
-          }, 1500);
-        } else {
-          console.log('8. ❌ 业务失败, code:', code);
-          wx.showToast({
-            title: res.data.message || '提交失败',
-            icon: 'none'
-          });
+          const ok = res?.data?.success === true || res?.data?.code === 0 || res?.data?.code === 200;
+          if (ok) {
+            resolve(res.data);
+          } else {
+            reject(new Error(res.data.message || '提交失败'));
+          }
+        },
+        fail: (err) => {
+          console.error('7. ❌ 请求失败:', err);
+          reject(err);
         }
-      },
-      fail: (err) => {
-        console.error('5. ❌ 请求失败');
-        console.error('6. 错误信息:', JSON.stringify(err, null, 2));
-        wx.showToast({
-          title: '提交失败',
-          icon: 'none'
-        });
-      },
-      complete: () => {
-        console.log('========== 提交流程结束 ==========\n');
-        wx.hideLoading();
+      });
+    });
+
+    // 🔥 步骤3：提交成功
+    console.log('10. ✅ 认证提交成功');
+    wx.hideLoading();
+    
+    wx.showToast({
+      title: '提交成功',
+      icon: 'success'
+    });
+
+    // 🔥 更新本地存储为相对路径
+    this.setData({
+      idCardFrontPath: idCardFrontPath,
+      idCardBackPath: idCardBackPath,
+      certificatePath: certificatePath
+    });
+
+    if (isReapply) {
+      this.setData({
+        mode: 'view',
+        certificationStatus: 'pending',
+        rejectReason: '',
+        reapply: false
+      }, () => {
+        this.loadCertificationInfo();
+      });
+    } else {
+      setTimeout(() => {
+        console.log('11. 返回上一页');
+        wx.navigateBack();
+      }, 1500);
+    }
+
+  } catch (error) {
+    console.error('❌ 提交过程出错:', error);
+    wx.hideLoading();
+    
+    wx.showModal({
+      title: '提交失败',
+      content: error.message || '请检查网络后重试',
+      showCancel: true,
+      confirmText: '重试',
+      cancelText: '取消',
+      success: (res) => {
+        if (res.confirm) {
+          this.submitCertification();
+        }
       }
     });
-  },
+  } finally {
+    console.log('========== 提交流程结束 ==========\n');
+    this.setData({ submitting: false });
+  }
+},
 
 
 
   // 重新申请认证
   reapplyCertification() {
+    const isApprovedView = this.data.mode === 'view' && this.data.certificationStatus === 'approved';
+    if (isApprovedView) {
+      this.setData({ reapply: true }, () => {
+        this.checkFormValid();
+        this.uploadImage();
+        this.submitCertification();
+      });
+      return;
+    }
     this.setData({
       mode: 'apply',
-      certificationStatus: ''
+      certificationStatus: '',
+      rejectReason: '',
+      reapply: false
+    }, () => {
+      this.checkFormValid();
     });
   }
 });

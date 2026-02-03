@@ -3,10 +3,13 @@ const app = getApp();
 
 Page({
     data: {
-        idCardFront: '',
-        idCardBack: '',
+        idCardFront: '',          // 存储的图片路径（相对路径或本地路径）
+        idCardBack: '',           // 存储的图片路径（相对路径或本地路径）
+        displayFront: '',         // 用于显示的完整URL
+        displayBack: '',          // 用于显示的完整URL
         canSubmit: false,
-        mode: 'apply'
+        mode: 'apply',
+        initializedFromParent: false
     },
 
     onLoad(options) {
@@ -14,24 +17,107 @@ Page({
             this.setData({ mode: options.mode });
         }
 
-        // Initialize with passed data if available
+        console.log('🔥 身份证上传页 onLoad, mode:', this.data.mode);
+
         const eventChannel = this.getOpenerEventChannel();
         if (eventChannel && eventChannel.on) {
             eventChannel.on('acceptDataFromOpenerPage', (data) => {
+                console.log('🔥 身份证页面收到上级传入数据:', data);
+                
+                const frontPath = data.idCardFront || '';
+                const backPath = data.idCardBack || '';
+                
                 this.setData({
-                    idCardFront: data.idCardFront || '',
-                    idCardBack: data.idCardBack || ''
+                    idCardFront: frontPath,
+                    idCardBack: backPath,
+                    displayFront: this.getFullImageUrl(frontPath),
+                    displayBack: this.getFullImageUrl(backPath),
+                    initializedFromParent: !!(frontPath || backPath)
                 });
                 this.checkStatus();
             });
         }
+
+        this.loadFromServerIfNeeded();
     },
 
+    // 🔥 新增：将相对路径转换为完整URL用于显示
+    getFullImageUrl(path) {
+        if (!path) return '';
+        
+        // 如果已经是完整URL，直接返回
+        if (path.startsWith('http://') || path.startsWith('https://')) {
+            return path;
+        }
+        
+        // 如果是本地临时文件，直接返回
+        if (path.includes('wxfile://') || path.includes('tmp_')) {
+            return path;
+        }
+        
+        // 如果是相对路径，拼接域名
+        const app = getApp();
+        const baseUrl = app.globalData.baseUrl.replace('/api', '');
+        const fullUrl = baseUrl + (path.startsWith('/') ? path : '/' + path);
+        console.log('🔥 拼接完整URL:', path, '→', fullUrl);
+        return fullUrl;
+    },
+
+    loadFromServerIfNeeded() {
+        if (this.data.initializedFromParent || (this.data.idCardFront && this.data.idCardBack)) {
+            console.log('🔥 已有数据，跳过服务器加载');
+            return;
+        }
+
+        console.log('🔥 开始从服务器加载已认证的身份证');
+        const app = getApp();
+
+        wx.request({
+            url: `${app.globalData.baseUrl}/electricians/certification/status`,
+            method: 'GET',
+            header: {
+                'Authorization': `Bearer ${app.globalData.token}`
+            },
+            success: (res) => {
+                console.log('🔥 服务器响应:', res.data);
+                const ok = res?.data?.success === true || res?.data?.code === 0 || res?.data?.code === 200;
+                if (!ok) return;
+
+                const data = res?.data?.data || {};
+                const cert = data.certification || (data.user_id || data.status ? data : null);
+                if (!cert) return;
+
+                if (this.data.initializedFromParent) return;
+
+                const idCardFront = cert.id_card_front || '';
+                const idCardBack = cert.id_card_back || '';
+
+                if (!idCardFront && !idCardBack) return;
+
+                console.log('🔥 从服务器加载的路径:');
+                console.log('   - 正面:', idCardFront);
+                console.log('   - 背面:', idCardBack);
+
+                this.setData({
+                    idCardFront: idCardFront,
+                    idCardBack: idCardBack,
+                    displayFront: this.getFullImageUrl(idCardFront),
+                    displayBack: this.getFullImageUrl(idCardBack)
+                });
+                this.checkStatus();
+            }
+        });
+    },
+
+    // 🔥 修改：选择图片 - 只保存本地路径
     chooseImage(e) {
+        console.log('🔥 chooseImage, mode:', this.data.mode);
+        
+        const type = e.currentTarget.dataset.type;
+
+        // 查看模式：预览图片
         if (this.data.mode === 'view') {
-            // View mode: preview image
-            const type = e.currentTarget.dataset.type;
-            const url = type === 'front' ? this.data.idCardFront : this.data.idCardBack;
+            const url = type === 'front' ? this.data.displayFront : this.data.displayBack;
             if (url) {
                 wx.previewImage({
                     urls: [url],
@@ -41,65 +127,29 @@ Page({
             return;
         }
 
-        const type = e.currentTarget.dataset.type;
-
         wx.chooseMedia({
             count: 1,
             mediaType: ['image'],
             sourceType: ['album', 'camera'],
             success: (res) => {
                 const tempFilePath = res.tempFiles[0].tempFilePath;
-                this.uploadFile(tempFilePath, type);
-            }
-        });
-    },
-
-    uploadFile(filePath, type) {
-        wx.showLoading({ title: '上传中...' });
-
-        wx.uploadFile({
-            url: `${app.globalData.baseUrl}/upload/certification`,
-            filePath: filePath,
-            name: 'certification',
-            header: {
-                'Authorization': `Bearer ${app.globalData.token}`
-            },
-            success: (res) => {
-                console.log('身份证上传响应:', res);
-                if (res.statusCode !== 200) {
-                    console.error('上传失败，状态码:', res.statusCode);
-                    wx.showToast({ title: '服务器异常 ' + res.statusCode, icon: 'none' });
-                    return;
+                console.log(`🔥 选择图片成功（${type === 'front' ? '正面' : '背面'}）:`, tempFilePath);
+                
+                // 🔥 只设置本地路径，不上传到服务器
+                if (type === 'front') {
+                    this.setData({
+                        idCardFront: tempFilePath,
+                        displayFront: tempFilePath
+                    });
+                } else {
+                    this.setData({
+                        idCardBack: tempFilePath,
+                        displayBack: tempFilePath
+                    });
                 }
-
-                try {
-                    const data = JSON.parse(res.data);
-                    console.log('身份证上传解析数据:', data);
-
-                    if (data.code === 200 && data.data) {
-                        const url = app.globalData.baseUrl.replace('/api', '') + data.data.url;
-                        console.log('图片上传成功，完整URL:', url);
-                        if (type === 'front') {
-                            this.setData({ idCardFront: url });
-                        } else {
-                            this.setData({ idCardBack: url });
-                        }
-                        this.checkStatus();
-                    } else {
-                        console.error('业务状态码错误:', data);
-                        wx.showToast({ title: data.message || '上传失败', icon: 'none' });
-                    }
-                } catch (e) {
-                    console.error('解析响应失败:', e);
-                    wx.showToast({ title: '解析响应失败', icon: 'none' });
-                }
-            },
-            fail: (err) => {
-                console.error('身份证上传网络请求失败:', err);
-                wx.showToast({ title: '网络请求失败', icon: 'none' });
-            },
-            complete: () => {
-                wx.hideLoading();
+                
+                this.checkStatus();
+                console.log('🔥 本地图片已设置，等待用户点击确认');
             }
         });
     },
@@ -111,10 +161,18 @@ Page({
         });
     },
 
+    // 🔥 点击"确认" - 返回父页面，传递原始路径
     submit() {
-        if (!this.data.canSubmit) return;
+        if (!this.data.canSubmit) {
+            console.log('🔥 不满足提交条件');
+            return;
+        }
 
-        // Return data to previous page
+        console.log('🔥 返回父页面，传递路径:');
+        console.log('   - 正面:', this.data.idCardFront);
+        console.log('   - 背面:', this.data.idCardBack);
+
+        // 🔥 传递原始路径给父页面（可能是本地路径或相对路径）
         const eventChannel = this.getOpenerEventChannel();
         eventChannel.emit('acceptDataFromIdentityPage', {
             idCardFront: this.data.idCardFront,

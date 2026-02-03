@@ -1,15 +1,31 @@
 <!--pages/profile/certification/electrician-cert/electrician-cert.wxml-->
+
 <view class="container">
+
   <view class="header">
     <view class="title">请拍摄/上传 <text class="highlight">电工证</text> (选填)</view>
     <view class="subtitle">请保证证件信息清晰可见</view>
   </view>
 
+  <!-- 调试信息 -->
+  <view style="padding: 20rpx; background: #f0f0f0; margin: 20rpx; font-size: 24rpx;">
+    <text>🔥 调试:\n</text>
+    <text>存储路径: {{certificatePath}}\n</text>
+    <text>显示路径: {{displayPath}}\n</text>
+    <text>是否本地: {{certificatePath.includes('wxfile://') ? '是' : '否'}}\n</text>
+    <text>是否相对: {{certificatePath.startsWith('/uploads/') ? '是' : '否'}}</text>
+  </view>
+
   <view class="upload-section">
-    <!-- 电工证正面/内页 -->
     <view class="upload-card" bindtap="chooseImage">
-      <block wx:if="{{certificatePath}}">
-        <image class="preview-image" src="{{certificatePath}}" mode="aspectFill"></image>
+      <block wx:if="{{displayPath}}">
+        <image 
+          class="preview-image" 
+          src="{{displayPath}}" 
+          mode="aspectFill"
+          binderror="imageError"
+          bindload="imageLoad"
+        ></image>
         <view class="re-upload-mask">
           <text>点击重新上传</text>
         </view>
@@ -22,39 +38,47 @@
         <image class="card-bg" src="/images/bg/certificate-bg.png" mode="aspectFit"></image>
       </block>
     </view>
+
+    <!-- 🔥 状态提示 -->
+    <view wx:if="{{certificatePath}}" class="status-tip">
+      <view class="status-icon">✓</view>
+      <view class="status-text">
+        <text class="status-title">图片已选择</text>
+        <text class="status-desc">点击下方"确认"返回认证页面</text>
+      </view>
+    </view>
   </view>
 
   <view class="example-section">
     <view class="example-title">拍摄示例</view>
     <view class="example-list">
       <view class="example-item">
-        <view class="example-box correct">
-            <text>✓</text>
-        </view>
+        <view class="example-box correct"><text>✓</text></view>
         <text>标准</text>
       </view>
       <view class="example-item">
-        <view class="example-box error">
-            <text>✕</text>
-        </view>
+        <view class="example-box error"><text>✕</text></view>
         <text>边框缺失</text>
       </view>
       <view class="example-item">
-        <view class="example-box error">
-            <text>✕</text>
-        </view>
+        <view class="example-box error"><text>✕</text></view>
         <text>照片模糊</text>
       </view>
       <view class="example-item">
-        <view class="example-box error">
-            <text>✕</text>
-        </view>
+        <view class="example-box error"><text>✕</text></view>
         <text>闪光强烈</text>
       </view>
     </view>
   </view>
 
   <view class="footer">
-    <button class="confirm-btn {{canSubmit ? '' : 'disabled'}}" bindtap="submit" disabled="{{!canSubmit}}">确认</button>
+    <button 
+      class="confirm-btn {{canSubmit ? '' : 'disabled'}}" 
+      bindtap="submit" 
+      disabled="{{!canSubmit}}"
+    >
+      确认
+    </button>
   </view>
+
 </view>

@@ -5,11 +5,20 @@
     <view class="subtitle">请保证证件边框完整、字体清晰、亮度均匀</view>
   </view>
 
+  <!-- 🔥 调试信息 -->
+  <view style="padding: 20rpx; background: #f0f0f0; margin: 20rpx; font-size: 24rpx;">
+    <text>🔥 调试:\n</text>
+    <text>正面存储: {{idCardFront}}\n</text>
+    <text>正面显示: {{displayFront}}\n</text>
+    <text>背面存储: {{idCardBack}}\n</text>
+    <text>背面显示: {{displayBack}}</text>
+  </view>
+
   <view class="upload-section">
     <!-- 人像面 -->
     <view class="upload-card" bindtap="chooseImage" data-type="front">
-      <block wx:if="{{idCardFront}}">
-        <image class="preview-image" src="{{idCardFront}}" mode="aspectFill"></image>
+      <block wx:if="{{displayFront}}">
+        <image class="preview-image" src="{{displayFront}}" mode="aspectFill"></image>
         <view class="re-upload-mask">
           <text>点击重新上传</text>
         </view>
@@ -25,8 +34,8 @@
 
     <!-- 国徽面 -->
     <view class="upload-card" bindtap="chooseImage" data-type="back">
-      <block wx:if="{{idCardBack}}">
-        <image class="preview-image" src="{{idCardBack}}" mode="aspectFill"></image>
+      <block wx:if="{{displayBack}}">
+        <image class="preview-image" src="{{displayBack}}" mode="aspectFill"></image>
         <view class="re-upload-mask">
           <text>点击重新上传</text>
         </view>
@@ -38,6 +47,15 @@
         </view>
         <image class="card-bg" src="/images/bg/id-card-back-bg.png" mode="aspectFit"></image>
       </block>
+    </view>
+  </view>
+
+  <!-- 🔥 状态提示 -->
+  <view wx:if="{{idCardFront && idCardBack}}" class="status-tip">
+    <view class="status-icon">✓</view>
+    <view class="status-text">
+      <text class="status-title">图片已选择</text>
+      <text class="status-desc">点击下方"确认"返回认证页面</text>
     </view>
   </view>
 
