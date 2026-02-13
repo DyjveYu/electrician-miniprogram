@@ -51,6 +51,7 @@
           bindinput="onCodeInput"
           maxlength="6"
         />
+        
         <button 
           class="send-code-btn {{canSendCode ? '' : 'disabled'}}" 
           bindtap="sendCode"
@@ -61,7 +62,7 @@
       </view>
       <text class="error-text" wx:if="{{codeError}}">{{codeError}}</text>
     </view>
-
+    <view class="tips-text"> 温馨提示：请阅读下方《隐私政策》和《用户协议》</view>
     <view class="login-btn {{canLogin ? '' : 'disabled'}}" bindtap="login">
       {{loginButtonText}}
     </view>

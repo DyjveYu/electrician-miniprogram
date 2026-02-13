@@ -76,8 +76,12 @@ Page({
         // 统一为“我的订单”：用户查看自己的订单；电工查看自己接的订单
         my_orders: true,
         page: this.data.page,
-        limit: this.data.pageSize
+        limit: this.data.pageSize,
+        // 2026.2.13修改排序功能
+        sort_by: 'updated_at',  // 按更新时间排序
+        sort_order: 'desc'      // 倒序，最新的在前
       },
+      // 2026.2.13 修改排序功能
       success: (res) => {
         wx.stopPullDownRefresh();
         this.setData({ loading: false });
@@ -87,7 +91,6 @@ Page({
           const normalizedOrders = newOrders.map(o => {
             const display = mapOrderToDisplayStatus(o);
             
-            // 字段映射和格式化
             return {
               ...o,
               statusText: display.text,
@@ -95,17 +98,40 @@ Page({
               orderNumber: o.orderNumber || o.order_no,
               createTime: this.formatOrderTime(o.createTime || o.created_at),
               serviceTypeName: o.title || o.serviceTypeName || (o.serviceType && o.serviceType.name) || '未知服务',
-              // 计算操作权限
+              // 确保有更新时间字段用于排序
+              updatedAt: o.updated_at || o.updatedAt || o.updateTime || o.created_at || o.createTime,
               ...this.computeActionFlags(o)
             };
           });
-          const getUpdatedAt = item => item.updated_at || item.updatedAt || item.updateTime || item.updated_at || item.createTime || item.created_at || 0;
-          const merged = (this.data.page === 1 ? normalizedOrders : this.data.orders.concat(normalizedOrders))
-            .sort((a, b) => new Date(getUpdatedAt(b)).getTime() - new Date(getUpdatedAt(a)).getTime());
+      
+          // 获取更新时间的辅助函数
+          const getUpdateTime = (item) => {
+            const time = item.updatedAt || item.updated_at || item.updateTime || item.createTime || item.created_at;
+            return time ? new Date(time).getTime() : 0;
+          };
+      
+          let finalOrders = [];
+          
+          if (this.data.page === 1) {
+            // 第一页：按更新时间倒序排序
+            finalOrders = normalizedOrders.sort((a, b) => {
+              return getUpdateTime(b) - getUpdateTime(a);
+            });
+          } else {
+            // 后续页：直接追加，保持原有顺序
+            finalOrders = this.data.orders.concat(normalizedOrders);
+          }
+      
           this.setData({
-            orders: merged,
+            orders: finalOrders,
             hasMore: normalizedOrders.length === this.data.pageSize
           });
+      
+          // 调试日志
+          console.log(`第${this.data.page}页加载完成，共${finalOrders.length}条订单`);
+          if (finalOrders.length > 0) {
+            console.log('最新订单时间:', finalOrders[0].createTime);
+          }
         } else {
           wx.showToast({ title: res.data.message || '加载失败', icon: 'none' });
         }
@@ -244,8 +270,8 @@ Page({
       canCancel: (currentRole === 'user' && (status === 'pending' || status === 'in_progress')),
       canAccept: (currentRole === 'electrician' && status === 'pending'),
       canComplete: (currentRole === 'electrician' && status === 'in_progress'),
-      canPay: (currentRole === 'user' && status === 'completed' && !order.has_paid_repair),
-      canReview: (currentRole === 'user' && status === 'completed' && !order.has_review)
+      canPay: (currentRole === 'user' && status === 'completed_settled' && !order.has_paid_repair),
+      canReview: (currentRole === 'user' && status === 'completed_settled' && !order.has_review)
     };
   },
 

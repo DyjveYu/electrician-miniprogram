@@ -265,6 +265,12 @@
   line-height: 1.5;
 }
 
+.tips-text {
+  font-size: 24rpx;
+  color: #ff0000;
+  line-height: 0.5;
+}
+
 .link {
   color: #0F9D58;
   text-decoration: none;

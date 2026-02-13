@@ -17,7 +17,7 @@ Page({
     isLogging: false,
     showTestTip: false,
     testCode: '',
-    selectedRole: 'electrician', // 默认选择电工角色 user
+    selectedRole: 'user', // 默认选择电工角色 user
     isAgreed: false, // 是否同意协议
 
     // 弹窗相关

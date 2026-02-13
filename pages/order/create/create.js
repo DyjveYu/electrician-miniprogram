@@ -177,10 +177,17 @@ Page({
 
   // 上传图片（简化）
   chooseImage() {
+    const current = Array.isArray(this.data.images) ? this.data.images : [];
+    const remaining = 5 - current.length;
+    if (remaining <= 0) {
+      wx.showToast({ title: '最多上传5张图片', icon: 'none' });
+      return;
+    }
     wx.chooseImage({
-      count: 3 - (this.data.images?.length || 0),
+      count: remaining,
       success: (res) => {
-        this.setData({ images: [...(this.data.images || []), ...res.tempFilePaths] });
+        const next = [...current, ...(res.tempFilePaths || [])].slice(0, 5);
+        this.setData({ images: next });
       }
     });
   },

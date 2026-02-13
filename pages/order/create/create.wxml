@@ -19,7 +19,7 @@
     <textarea placeholder="请填写服务内容..." 
               value="{{description}}" 
               bindinput="onDescriptionInput" 
-              maxlength="220"
+              maxlength="150"
               class="desc-textarea"/>
   </view>
 
@@ -30,7 +30,7 @@
       <block wx:for="{{images}}" wx:key="index">
         <image src="{{item}}" class="uploaded-image" mode="aspectFill" />
       </block>
-      <view class="add-image" bindtap="chooseImage">+</view>
+      <view class="add-image" bindtap="chooseImage" wx:if="{{images.length < 5}}">+</view>
     </view>
   </view>
 

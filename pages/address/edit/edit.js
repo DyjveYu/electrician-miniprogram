@@ -127,50 +127,79 @@ Page({
   },
 
   // 简单的地址解析辅助函数
-  parseAddress(addressStr) {
-    if (!addressStr) return { province: '', city: '', district: '' };
-
-    // 正则匹配：省、市、区
-    // 注意：这只是一个简单的尽最大努力解析，不保证100%覆盖所有行政区划
-    let province = '';
-    let city = '';
-    let district = '';
-
-    // 尝试匹配省/自治区/直辖市
-    // 匹配规则：2-3个汉字 + 省/自治区/市
-    const provinceMatch = addressStr.match(/^(.+?(省|自治区|北京市|天津市|上海市|重庆市))/);
-    if (provinceMatch) {
-      province = provinceMatch[1];
-      // 截取剩余部分
-      let remain = addressStr.slice(province.length);
-
-      // 直辖市特殊处理：省和市相同
-      if (['北京市', '天津市', '上海市', '重庆市'].includes(province)) {
-        city = province;
-      } else {
-        // 非直辖市，匹配市/自治州/地区
-        const cityMatch = remain.match(/^(.+?(市|自治州|地区|盟))/);
-        if (cityMatch) {
-          city = cityMatch[1];
-          remain = remain.slice(city.length);
-        }
-      }
-
-      // 匹配区/县/市
-      const districtMatch = remain.match(/^(.+?(区|县|市|旗))/);
-      if (districtMatch) {
-        district = districtMatch[1];
+  // 地址解析辅助函数 - 专门优化直辖市
+parseAddress(addressStr) {
+  if (!addressStr) return { province: '', city: '', district: '' };
+  
+  console.log('原始地址:', addressStr);
+  
+  let province = '';
+  let city = '';
+  let district = '';
+  
+  // 1. 直辖市快速匹配（北京、上海、天津、重庆）
+  if (addressStr.startsWith('北京市')) {
+    province = '北京市';
+    city = '北京市';
+    // 提取区名：北京市东城区... → 东城区
+    const districtMatch = addressStr.match(/北京市(.+?[区县])/);
+    district = districtMatch ? districtMatch[1] : '';
+  }
+  else if (addressStr.startsWith('上海市')) {
+    province = '上海市';
+    city = '上海市';
+    const districtMatch = addressStr.match(/上海市(.+?[区县])/);
+    district = districtMatch ? districtMatch[1] : '';
+  }
+  else if (addressStr.startsWith('天津市')) {
+    province = '天津市';
+    city = '天津市';
+    const districtMatch = addressStr.match(/天津市(.+?[区县])/);
+    district = districtMatch ? districtMatch[1] : '';
+  }
+  else if (addressStr.startsWith('重庆市')) {
+    province = '重庆市';
+    city = '重庆市';
+    const districtMatch = addressStr.match(/重庆市(.+?[区县])/);
+    district = districtMatch ? districtMatch[1] : '';
+  }
+  else {
+    // 2. 非直辖市，按空格或逗号分割
+    const parts = addressStr.split(/[\s,，]+/);
+    province = parts[0] || '';
+    
+    // 尝试提取市
+    if (parts.length > 1) {
+      const cityPart = parts[1];
+      // 如果包含"市"，取完整词；否则尝试匹配
+      if (cityPart.includes('市')) {
+        city = cityPart;
+      } else if (parts.length > 2) {
+        city = parts[1];
+        district = parts[2];
       }
     }
-
-    // 兜底：如果解析失败，使用默认值或让用户手动填(虽然UI没提供手动填省市区的地方，但为了不报错)
-    // 实际场景中 wx.chooseLocation 返回的 address 质量较高
-    if (!province) province = '北京市'; // 默认
-    if (!city) city = '北京市';
-    if (!district) district = '昌平区';
-
-    return { province, city, district };
-  },
+    
+    // 如果还没有区，尝试从剩余字符串匹配
+    if (!district && addressStr.length > province.length + city.length) {
+      const remain = addressStr.slice((province + city).length);
+      const districtMatch = remain.match(/^(.+?[区县市])/);
+      district = districtMatch ? districtMatch[1] : '';
+    }
+  }
+  
+  // 如果还是解析失败，使用原始address的前几个词作为fallback
+  if (!province) {
+    const parts = addressStr.split(/[\s,，]+/);
+    province = parts[0] || '北京市';
+    city = parts[1] || '北京市';
+    district = parts[2] || '';
+  }
+  
+  console.log('解析结果:', { province, city, district });
+  
+  return { province, city, district };
+},
   // 选择地区 旧的方法。
   chooseRegion() {
     const that = this;

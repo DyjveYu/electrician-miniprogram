@@ -124,7 +124,7 @@ Page({
           // 计算“维修安装费”合计（仅在进行中/待评价/已完成展示）
           const prepayNum = Number(order.amount) || 0;
           const repairNum = Number(order.repairAmount) || 0;
-          const showInstallTotal = ['in_progress', 'pending_review', 'completed'].includes(normalizedStatus);
+          const showInstallTotal = ['in_progress', 'pending_review', 'completed_settled'].includes(normalizedStatus);
           const installFee = showInstallTotal ? (prepayNum + repairNum).toFixed(2) : null;
 
           // 计算底部操作权限标记，避免按钮不显示
@@ -160,7 +160,7 @@ Page({
           }
 
           // 如果是完成订单操作，初始化表单数据（使用后端字段）
-          if (this.data.action === 'complete') {
+          if (this.data.action === 'completed_settled') {
             this.setData({
               workContent: order.workContent || '',
               finalAmount: order.amount ? String(order.amount) : ''
@@ -189,7 +189,7 @@ Page({
     const canComplete = role === 'electrician' && st === 'in_progress';
     const canConfirmAmount = role === 'user' && (st === 'pending_payment' || st === 'pending_repair_payment');
     const canPay = role === 'user' && (st === 'pending_payment' || st === 'pending_repair_payment');
-    const canReview = role === 'user' && st === 'pending_review';
+    const canReview = role === 'user' && (st === 'pending_review' || st === 'pending_second_review');
     const canSubmitCompletedUpdate = role === 'electrician' && (st === 'accepted' || st === 'pending_repair_payment');
     const canPayRepairFee = role === 'user' && st === 'pending_repair_payment';
     return { canCancel, canAccept, canComplete, canConfirmAmount, canPay, canReview, canSubmitCompletedUpdate, canPayRepairFee };

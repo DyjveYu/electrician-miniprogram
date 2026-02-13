@@ -202,7 +202,7 @@ const getOrderStatusText = (status) => {
     'pending': '待接单',
     'accepted': '已接单',
     'in_progress': '维修中',
-    'completed': '已完成',
+    'completed_settled': '已完成',
     'paid': '已支付',
     'cancelled': '已取消',
     'cancel_pending': '取消处理中',
@@ -210,7 +210,10 @@ const getOrderStatusText = (status) => {
     'pending_repair_payment': '待支付维修费',
     'pending_review': '待评价',
     'closed': '交易关闭',
+    'pending_second_review': '可追评',
+    'completed_unsettle': '非五星订单',
     'settled': '已结算'
+
   };
   return statusMap[status] || '未知状态';
 };
@@ -243,10 +246,14 @@ const mapOrderToDisplayStatus = (order) => {
   }
   
   // 已结算
-  if (st === 'settled') {
-    return { code: 'settled', text: '已结算' };
+  if (st === 'completed_settled') {
+    return { code: 'completed_settled', text: '已完成' };
   }
 
+    // 用户可进行二次评价
+    if (st === 'pending_second_review') {
+      return { code: 'pending_second_review', text: '可追评' };
+    }
   // 待支付预付款
   if (st === 'pending_payment' || (st === 'pending' && !hasPaidPrepay)) {
     return { code: 'prepay_pending', text: '待支付预付款' };

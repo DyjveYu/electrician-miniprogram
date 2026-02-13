@@ -46,7 +46,7 @@
         <text class="value">{{order.createTime}}</text>
       </view>
       <!-- 金额展示：根据状态显示 -->
-      <block wx:if="{{(order.status === 'in_progress' || order.status === 'pending_review' || order.status === 'completed') && order.installFee}}">
+      <block wx:if="{{(order.status === 'in_progress' || order.status === 'pending_review' || order.status === 'completed_settled') && order.installFee}}">
         <view class="info-row">
           <text class="label">维修安装费：</text>
           <text class="value amount">{{order.installFee}}元</text>
@@ -136,7 +136,7 @@
     </view>
 
     <!-- 电工和用户双视角：维修内容（进行中/待评价/已完成/待支付/已结算） -->
-    <view class="section card" wx:if="{{order.status === 'in_progress' || order.status === 'pending_review' || order.status === 'completed' || order.status === 'pending_payment' || order.status === 'settled'}}">
+    <view class="section card" wx:if="{{order.status === 'in_progress' || order.status === 'pending_review' || order.status === 'completed_settled' || order.status === 'pending_payment' || order.status === 'settled'}}">
       <view class="section-title">维修明细</view>
        <view class="info-row" wx:if="{{order.amount}}">
         <text class="label">预付款：</text>
@@ -219,7 +219,7 @@
     </view>
     
     <!-- 用户视角：我的评价 -->
-    <view class="section card" wx:if="{{order.status === 'completed' || order.status === 'settled'}}">
+    <view class="section card" wx:if="{{order.status === 'completed_settled' || order.status === 'settled'}}">
       <view class="section-title">我的评价</view>
       <view class="review-display" wx:if="{{order.review && order.review.rating}}">
         <view class="review-label">评分</view>
@@ -235,7 +235,7 @@
     </view>
 
     <!-- 用户视角：提交评价 -->
-    <view class="section card review-section" wx:if="{{order.status === 'pending_review' && currentRole === 'user'}}">
+    <view class="section card review-section" wx:if="{{(order.status === 'pending_review' || order.status === 'pending_second_review') && currentRole === 'user'}}">
       <view class="section-title">提交评价</view>
       <view class="rating-stars">
         <block wx:for="{{[1,2,3,4,5]}}" wx:for-item="star" wx:key="star">
@@ -363,6 +363,18 @@
         </button>
       </block>
 
+ <!-- 待二次评价状态 -->
+ <block wx:if="{{order.status === 'pending_second_review'}}">
+        <button
+          wx:if="{{order.canReview}}"
+          class="main-action-btn primary {{reviewing ? 'disabled' : ''}}"
+          bindtap="submitReview"
+          disabled="{{reviewing}}"
+        >
+          {{reviewing ? '提交中...' : '提交评价'}}
+        </button>
+      </block>
+
       <!-- 已接单状态（电工填写金额/内容后提交） -->
       <block wx:if="{{order.status === 'accepted'}}">
         <button
@@ -376,7 +388,7 @@
       </block>
 
       <!-- 已完成状态 -->
-      <block wx:if="{{order.status === 'completed'}}">
+      <block wx:if="{{order.status === 'completed_settled'}}">
         <button 
           wx:if="{{order.canReview}}"
           class="main-action-btn primary"
