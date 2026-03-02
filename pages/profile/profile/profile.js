@@ -108,9 +108,12 @@ loadUserInfo() {
 
         // 统一字段名 / 回退：避免 nickname 为 null 导致显示异常
         //（这里不改后端字段，只保证页面显示稳定）
+        // 获取认证信息中的真实姓名
+        const certification = data.data.certification || {};
         const normalizedUserInfo = {
           ...userInfo,
           nickname: (userInfo.nickname === null || userInfo.nickname === undefined) ? '' : userInfo.nickname,
+          real_name: certification.real_name || '', // 电工认证的真实姓名
           // 保持 phone、avatar 等原样
         };
 

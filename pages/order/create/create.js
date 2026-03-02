@@ -327,7 +327,9 @@ Page({
       service_address: this.data.selectedAddressStr,
       latitude: this.data.latitude,
       longitude: this.data.longitude,
-      images: this.data.images || []
+      images: this.data.images || [],
+      // 添加地址ID，用于关联省市区信息
+      address_id: this.data.selectedAddress?.id || null
     };
 
     console.log('提交的订单 payload:', payload);

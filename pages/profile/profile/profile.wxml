@@ -13,7 +13,7 @@
       
       <view class="user-info">
      
-         <text class="nickname">{{userInfo.nickname || userInfo.phone}}</text>
+         <text class="nickname">{{currentRole === 'user' ? '用户' + (userInfo.phone ? userInfo.phone.slice(-4) : '') : (userInfo.isElectrician ? (userInfo.real_name || userInfo.nickname) : '电工' + (userInfo.phone ? userInfo.phone.slice(-4) : ''))}}</text>
           
        <!-- 电工认证状态：对所有用户可见，用 certificationStatusText 显示当前状态 -->
  
@@ -112,18 +112,6 @@
       <text class="menu-arrow">></text>
     </view>
 
-    <!-- 编辑资料 -->
-    <view 
-      class="menu-item"
-      bindtap="navigateToEdit"
-    >
-      <view class="menu-icon">✏️</view>
-      <view class="menu-content">
-        <text class="menu-title">编辑资料</text>
-        <text class="menu-desc">修改个人信息</text>
-      </view>
-      <text class="menu-arrow">></text>
-    </view>
 
   </view>
 
@@ -135,7 +123,7 @@
     >
       <view class="menu-icon">⚙️</view>
       <view class="menu-content">
-        <text class="menu-title">设置</text>
+       <text class="menu-title">设置</text> 
         <text class="menu-desc">通知、隐私等设置</text>
       </view>
       <text class="menu-arrow">></text>

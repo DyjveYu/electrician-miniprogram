@@ -8,6 +8,7 @@ Page({
     formData: {
       realName: '',
       idCard: '',
+      phone: '',
       certificateNumber: '',
       certificateStartDate: '',
       certificateEndDate: '',
@@ -119,6 +120,7 @@ Page({
             formData: {
               realName: cert?.real_name || this.data.formData.realName,
               idCard: cert?.id_card || this.data.formData.idCard,
+              phone: cert?.phone || this.data.formData.phone,
               certificateNumber: cert?.certificate_number || cert?.electrician_cert_no || this.data.formData.certificateNumber,
               certificateStartDate,
               certificateEndDate,
@@ -126,7 +128,12 @@ Page({
             },
             certificationStatus: status,
             rejectReason: cert?.reject_reason || '',
-            region,
+            // 加载省市区信息
+            region: [
+              cert?.province || region[0] || '',
+              cert?.city || region[1] || '',
+              cert?.district || region[2] || ''
+            ],
             idCardFrontPath: this.data.idCardFrontPath || cert?.id_card_front || '',
             idCardBackPath: this.data.idCardBackPath || cert?.id_card_back || '',
             certificatePath: this.data.certificatePath || cert?.certificate_img || '',
@@ -311,13 +318,17 @@ Page({
   checkFormValid() {
     const { formData } = this.data;
 
+    // 检查区域是否选择了省份（只需要省份存在，市和区在提交时检查）
+    const regionValid = this.data.region[0] && true;
+
     const baseValid = this.data.workTypes.length > 0 &&
       formData.realName &&
       formData.idCard &&
+      formData.phone &&
       formData.certificateNumber &&
       formData.certificateStartDate &&
       formData.certificateEndDate &&
-      formData.serviceArea &&
+      regionValid &&
       true;
 
     const imagesValid = this.data.idCardFrontPath &&
@@ -468,6 +479,23 @@ uploadImage(filePath, fieldName) {
     return;
   }
 
+  // 检查服务区域：市和区必须选择完整，不能为"全部"
+  const region = this.data.region;
+  if (!region[1] || region[1] === '全部') {
+    wx.showToast({
+      title: '请选择城市',
+      icon: 'none'
+    });
+    return;
+  }
+  if (!region[2] || region[2] === '全部') {
+    wx.showToast({
+      title: '请选择区县',
+      icon: 'none'
+    });
+    return;
+  }
+
   const app = getApp();
 
   console.log('========== 开始提交电工认证 ==========');
@@ -565,15 +593,28 @@ uploadImage(filePath, fieldName) {
       work_types: this.data.workTypes.join(','),
       real_name: this.data.formData.realName,
       id_card: this.data.formData.idCard,
+      phone: this.data.formData.phone,
       electrician_cert_no: this.data.formData.certificateNumber,
       cert_start_date: this.data.formData.certificateStartDate,
       cert_end_date: this.data.formData.certificateEndDate,
       service_area: this.data.formData.serviceArea,
       region: this.data.region.join(','),
+      // 新增：省市区字段
+      province: this.data.region[0] || '',
+      city: this.data.region[1] || '',
+      district: this.data.region[2] || '',
       id_card_front: idCardFrontPath,
       id_card_back: idCardBackPath,
       certificate_img: certificatePath
     };
+
+    // 调试日志：查看 region 数据
+    console.log('【调试】region 数据:', this.data.region);
+    console.log('【调试】提交数据中的省市区:', {
+      province: this.data.region[0],
+      city: this.data.region[1],
+      district: this.data.region[2]
+    });
 
     console.log('8. 请求数据:', JSON.stringify(requestData, null, 2));
 
@@ -672,13 +713,18 @@ uploadImage(filePath, fieldName) {
   reapplyCertification() {
     const isApprovedView = this.data.mode === 'view' && this.data.certificationStatus === 'approved';
     if (isApprovedView) {
-      this.setData({ reapply: true }, () => {
+      // 已认证状态：切换到申请模式，让用户修改信息后再提交
+      // 保留 region 数据，wxml 显示已使用 region 数组
+      this.setData({
+        mode: 'apply',
+        reapply: true,
+        certificationStatus: ''
+      }, () => {
         this.checkFormValid();
-        this.uploadImage();
-        this.submitCertification();
       });
       return;
     }
+    // 被拒绝状态：直接切换到申请模式
     this.setData({
       mode: 'apply',
       certificationStatus: '',
