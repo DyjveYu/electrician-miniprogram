@@ -27,6 +27,10 @@
           <text class="info-value">{{item.title || item.serviceTypeName || item.serviceType.name}}</text>
         </view>
         <view class="info-item">
+          <text class="info-label">用电类型:</text>
+          <text class="info-value">{{item.electricityTypeName || '低压订单'}}</text>
+        </view>
+        <view class="info-item">
           <text class="info-label">故障描述:</text>
           <text class="info-value description">{{item.description}}</text>
         </view>
@@ -34,9 +38,9 @@
           <text class="info-label">下单时间:</text>
           <text class="info-value">{{item.createTime || item.created_at}}</text>
         </view>
-        <view class="info-item" wx:if="{{item.has_paid_prepay}}">
+        <view class="info-item" wx:if="{{item.has_paid_prepay && item.status !== 'cancelled' && item.status !== 'closed'}}">
           <text class="info-label">预付款:</text>
-          <text class="info-value price">{{item.serviceType.prepay_amount}}元</text>
+          <text class="info-value price">{{item.prepay_amount}}元</text>
         </view>
         <view class="info-item" wx:if="{{item.has_paid_repair}}">
           <text class="info-label">维修款:</text>

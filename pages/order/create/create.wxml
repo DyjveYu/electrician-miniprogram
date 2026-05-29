@@ -45,6 +45,27 @@
       </view>
     </view>
   </view>
+
+  <!-- 用电类型选择 -->
+  <view class="form-section">
+    <view class="section-title">用电类型 <text class="required">*</text></view>
+    <radio-group class="electricity-type-group" bindchange="onElectricityTypeChange">
+      <label class="electricity-type-item {{electricityType === 'residential' ? 'selected' : ''}}">
+        <radio value="residential" checked="{{electricityType === 'residential'}}" />
+        <text>居民用电</text>
+      </label>
+      <view class="electricity-type-gap"></view>
+      <label class="electricity-type-item {{electricityType === 'industrial' ? 'selected' : ''}}">
+        <radio value="industrial" checked="{{electricityType === 'industrial'}}" />
+        <text>工业用电</text>
+      </label>
+    </radio-group>
+    <view class="electricity-tip" wx:if="{{electricityType === 'industrial'}}">
+
+   
+    </view>
+  </view>
+
   <!-- 复选框 -->
     <view class="form-section">
     <view class="terms-row">

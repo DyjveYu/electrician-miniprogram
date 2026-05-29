@@ -4,10 +4,10 @@ const { SystemAPI, OrderAPI, AuthAPI } = require('../../utils/api');
 const { formatTime, formatDistance, getOrderStatusText } = require('../../utils/util');
 
 function toMasterName(name) {
-  if (!name || typeof name !== 'string') return '师傅';
+  if (!name || typeof name !== 'string') return '工';
   const trimmed = name.trim();
   const first = trimmed ? trimmed[0] : '';
-  return (first || '') + '师傅';
+  return (first || '') + '工';
 }
 
 Page({
@@ -24,7 +24,7 @@ Page({
         title: '客厅灯具安装',
         status: 'completed',
         statusText: '已完成',
-        electrician_name: '张师傅',
+        electrician_name: '张工',
         created_at: '2024-01-15 14:30',
         createdTime: '2024-01-15 14:30',
         rating: 5,
@@ -35,7 +35,7 @@ Page({
         title: '厨房插座维修',
         status: 'completed',
         statusText: '已完成',
-        electrician_name: '李师傅',
+        electrician_name: '李工',
         created_at: '2024-01-12 09:15',
         createdTime: '2024-01-12 09:15',
         rating: 4.8,
@@ -46,7 +46,7 @@ Page({
         title: '卫生间照明修理',
         status: 'completed',
         statusText: '已完成',
-        electrician_name: '王师傅',
+        electrician_name: '王工',
         created_at: '2024-01-10 16:20',
         createdTime: '2024-01-10 16:20',
         rating: 4.9,
@@ -71,6 +71,10 @@ Page({
     console.log('首页显示');
     // 检查登录状态
     if (!this.checkLogin()) {
+      return;
+    }
+    // 检查是否被冻结
+    if (app.checkFrozenAndRedirect()) {
       return;
     }
     this.initPage();
@@ -438,6 +442,7 @@ Page({
    */
   takeOrder(e) {
     const orderId = e.currentTarget.dataset.id;
+    const app = getApp();
 
     if (this.data.currentRole !== 'electrician') {
       wx.showToast({
@@ -447,9 +452,64 @@ Page({
       return;
     }
 
-    // 跳转到订单详情页，在详情页进行接单确认
-    wx.navigateTo({
-      url: `/pages/order/detail/detail?id=${orderId}&action=take`
+    // 检查账号是否被冻结
+    if (app.globalData.userInfo && app.globalData.userInfo.status === 'banned') {
+      wx.showToast({
+        title: '您的账号已被冻结，无法接单',
+        icon: 'none'
+      });
+      return;
+    }
+
+    // 检查押金状态
+    this.checkDepositAndTakeOrder(orderId);
+  },
+
+  /**
+   * 检查押金状态后接单
+   */
+  checkDepositAndTakeOrder(orderId) {
+    const app = getApp();
+
+    wx.request({
+      url: `${app.globalData.baseUrl}/deposits/status`,
+      method: 'GET',
+      header: { 'Authorization': `Bearer ${app.globalData.token}` },
+      success: (res) => {
+        if (res.data.code === 200) {
+          const data = res.data.data || {};
+          if (data.status !== 'paid') {
+            wx.showModal({
+              title: '提示',
+              content: '需要缴纳押金后才能接单，是否前往缴纳？',
+              confirmText: '去缴纳',
+              success: (modalRes) => {
+                if (modalRes.confirm) {
+                  wx.navigateTo({
+                    url: '/pages/profile/deposit/deposit'
+                  });
+                }
+              }
+            });
+            return;
+          }
+          // 押金已缴，跳转到订单详情页
+          wx.navigateTo({
+            url: `/pages/order/detail/detail?id=${orderId}&action=take`
+          });
+        } else {
+          // API失败，仍然尝试接单（后端会做最终检查）
+          wx.navigateTo({
+            url: `/pages/order/detail/detail?id=${orderId}&action=take`
+          });
+        }
+      },
+      fail: () => {
+        // 网络错误，仍然尝试接单（后端会做最终检查）
+        wx.navigateTo({
+          url: `/pages/order/detail/detail?id=${orderId}&action=take`
+        });
+      }
     });
   },
 

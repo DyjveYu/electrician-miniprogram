@@ -428,6 +428,13 @@ class SystemAPI {
   }
 
   /**
+   * 获取时段费率列表
+   */
+  static getTimePeriodFees() {
+    return API.get('/system/time-period-fees');
+  }
+
+  /**
    * 上传文件
    */
   static uploadFile(filePath) {

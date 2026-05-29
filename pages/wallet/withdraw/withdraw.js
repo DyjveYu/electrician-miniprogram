@@ -50,7 +50,7 @@ Page({
     
     const amount = parseFloat(value);
     const balance = this.data.wallet.available_balance;
-    const isValid = !isNaN(amount) && amount >= 0.1 && amount <= balance;
+    const isValid = !isNaN(amount) && amount >= 1 && amount <= balance;
 
     this.setData({
       withdrawAmount: value,
@@ -62,7 +62,7 @@ Page({
     const balance = this.data.wallet.available_balance;
     this.setData({
       withdrawAmount: balance.toString(),
-      canWithdraw: balance >= 0.1
+      canWithdraw: balance >= 1
     });
   },
 

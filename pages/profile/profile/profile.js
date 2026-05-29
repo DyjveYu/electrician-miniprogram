@@ -4,6 +4,9 @@ Page({
     userInfo: null,
     currentRole: 'user',
     electricianInfo: null,
+    isFrozen: false,
+    unfreezing: false,
+    depositStatus: null,
     menuItems: [
       {
         id: 'address',
@@ -63,6 +66,40 @@ Page({
     this.loadUserInfo();
   },
 
+  // 申请解冻
+  applyUnfreeze() {
+    if (this.data.unfreezing) return;
+
+    const app = getApp();
+    if (!app.globalData.token) {
+      wx.showToast({ title: '请先登录', icon: 'none' });
+      return;
+    }
+
+    this.setData({ unfreezing: true });
+
+    wx.request({
+      url: `${app.globalData.baseUrl}/electricians/unfreeze`,
+      method: 'POST',
+      header: { 'Authorization': `Bearer ${app.globalData.token}` },
+      success: (res) => {
+        if (res.data.success) {
+          wx.showToast({ title: '申请已提交，请等待审核', icon: 'success' });
+          // 刷新用户信息
+          this.loadUserInfo();
+        } else {
+          wx.showToast({ title: res.data.message || '申请失败', icon: 'none' });
+        }
+      },
+      fail: () => {
+        wx.showToast({ title: '网络错误', icon: 'none' });
+      },
+      complete: () => {
+        this.setData({ unfreezing: false });
+      }
+    });
+  },
+
   // 加载用户信息（替换现有函数）
 loadUserInfo() {
   const app = getApp();
@@ -110,11 +147,27 @@ loadUserInfo() {
         //（这里不改后端字段，只保证页面显示稳定）
         // 获取认证信息中的真实姓名
         const certification = data.data.certification || {};
+        // 头像URL归一化
+        let avatar = userInfo.avatar || '';
+        if (avatar) {
+          if (/^https?:\/\//.test(avatar)) {
+            // 标准完整URL，直接使用
+          } else if (avatar.startsWith('/')) {
+            // 相对路径，拼接 imageBaseUrl
+            avatar = app.globalData.imageBaseUrl + avatar;
+          } else {
+            // 畸形URL（如 https:/.51zoon.com/api/...），提取上传路径重组
+            const m = avatar.match(/\/uploads\/.+$/);
+            avatar = app.globalData.imageBaseUrl + (m ? m[0] : '/' + avatar);
+          }
+        }
+
         const normalizedUserInfo = {
           ...userInfo,
+          avatar,
           nickname: (userInfo.nickname === null || userInfo.nickname === undefined) ? '' : userInfo.nickname,
           real_name: certification.real_name || '', // 电工认证的真实姓名
-          // 保持 phone、avatar 等原样
+          phone: (userInfo.phone && typeof userInfo.phone === 'string' && userInfo.phone !== 'undefined') ? userInfo.phone : '',
         };
 
         // 更新页面数据（合并一次 setData）
@@ -123,6 +176,7 @@ loadUserInfo() {
           currentRole: app.globalData.currentRole || normalizedUserInfo.current_role || 'user',
           electricianInfo: data.data.certification || null,
           certificationStatusText: statusMap[normalizedUserInfo.certificationStatus] || '未认证',
+          isFrozen: normalizedUserInfo.status === 'banned',
           stats: {
             totalOrders: stats.total_orders || 0,
             completedOrders: stats.completed_orders || 0,
@@ -138,6 +192,7 @@ loadUserInfo() {
         // 如果用户处于电工角色，可加载收入/钱包信息
         if (this.data.currentRole === 'electrician') {
           this.loadWalletInfo();
+          this.loadDepositStatus();
         }
       } else if (data && data.code === 401) {
         // token无效
@@ -291,6 +346,37 @@ loadUserInfo() {
     wx.showToast({
       title: '功能开发中',
       icon: 'none'
+    });
+  },
+
+  // 导航到押金管理页面
+  navigateToDeposit() {
+    wx.navigateTo({
+      url: '/pages/profile/deposit/deposit'
+    });
+  },
+
+  // 加载押金状态
+  loadDepositStatus() {
+    const app = getApp();
+    if (!app.globalData.token || this.data.currentRole !== 'electrician') {
+      return;
+    }
+
+    wx.request({
+      url: `${app.globalData.baseUrl}/deposits/status`,
+      method: 'GET',
+      header: { 'Authorization': `Bearer ${app.globalData.token}` },
+      success: (res) => {
+        if (res.data.code === 200 && res.data.data) {
+          this.setData({
+            depositStatus: res.data.data.status
+          });
+        }
+      },
+      fail: () => {
+        console.log('获取押金状态失败');
+      }
     });
   },
 

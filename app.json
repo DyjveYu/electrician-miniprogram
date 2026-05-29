@@ -13,6 +13,8 @@
     "pages/profile/certification/certification",
     "pages/profile/certification/identity/identity",
     "pages/profile/certification/electrician-cert/electrician-cert",
+    "pages/profile/certification/notice/notice",
+    "pages/profile/deposit/deposit",
     "pages/payment/payment/payment",
     "pages/payment/result/result",
     "pages/address/list/list",

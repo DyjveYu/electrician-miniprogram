@@ -273,3 +273,47 @@
   color: #ccc;
   font-weight: bold;
 }
+
+/* 特种作业操作证单选组样式 */
+.cert-type-group {
+  display: flex;
+  align-items: center;
+  padding: 10rpx 0;
+}
+
+.cert-type-item {
+  display: flex;
+  align-items: center;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.cert-type-item radio {
+  margin-right: 8rpx;
+}
+
+.cert-type-gap {
+  width: 60rpx;
+}
+
+/* 认证须知勾选样式 */
+.cert-notice-agreement {
+  padding: 20rpx 0;
+  margin-bottom: 20rpx;
+}
+
+.notice-label {
+  display: flex;
+  align-items: center;
+  font-size: 28rpx;
+  color: #666;
+}
+
+.notice-label checkbox {
+  margin-right: 10rpx;
+}
+
+.notice-link {
+  color: #1890ff;
+  margin-left: 6rpx;
+}

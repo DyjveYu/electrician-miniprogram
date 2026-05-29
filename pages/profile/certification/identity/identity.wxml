@@ -5,7 +5,7 @@
     <view class="subtitle">请保证证件边框完整、字体清晰、亮度均匀</view>
   </view>
 
-  <!-- 🔥 调试信息 -->
+  <!-- 🔥 调试信息 
   <view style="padding: 20rpx; background: #f0f0f0; margin: 20rpx; font-size: 24rpx;">
     <text>🔥 调试:\n</text>
     <text>正面存储: {{idCardFront}}\n</text>
@@ -13,7 +13,7 @@
     <text>背面存储: {{idCardBack}}\n</text>
     <text>背面显示: {{displayBack}}</text>
   </view>
-
+-->
   <view class="upload-section">
     <!-- 人像面 -->
     <view class="upload-card" bindtap="chooseImage" data-type="front">

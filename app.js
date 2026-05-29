@@ -3,8 +3,10 @@ App({
   globalData: {
     userInfo: null,
     token: null,
-    baseUrl: 'https://electrician.mijutime.com/api', // 阿里云 API地址
+    //baseUrl: 'https://electrician.mijutime.com/api', // 阿里云 API地址
     //baseUrl: 'http://localhost:3000/api', // 本地开发环境API地址
+    baseUrl: 'https://api.51zoon.com/api',  
+    imageBaseUrl: 'https://api.51zoon.com',     // 用于拼接图片URL
     isLogin: false,
     currentRole: 'user', // user | electrician
     systemInfo: null,
@@ -321,5 +323,37 @@ App({
     s = s * 6378.137;
     s = Math.round(s * 10000) / 10000;
     return s * 1000; // 返回米
+  },
+
+  /**
+   * 检查用户是否被冻结，如果是则跳转回个人中心
+   * 返回 true 表示被冻结并已跳转，false 表示正常
+   */
+  checkFrozenAndRedirect() {
+    const userInfo = this.globalData.userInfo;
+    if (userInfo && userInfo.status === 'banned') {
+      wx.showToast({
+        title: '您的账户已冻结',
+        icon: 'none',
+        duration: 2000
+      });
+      setTimeout(() => {
+        wx.switchTab({
+          url: '/pages/profile/profile/profile'
+        });
+      }, 2000);
+      return true;
+    }
+    return false;
+  },
+
+  /**
+   * 更新全局用户状态（用于同步最新的冻结状态）
+   */
+  updateUserStatus(status) {
+    if (this.globalData.userInfo) {
+      this.globalData.userInfo.status = status;
+      wx.setStorageSync('userInfo', this.globalData.userInfo);
+    }
   }
 });

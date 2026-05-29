@@ -1,4 +1,5 @@
 // pages/order/list/list.js
+const app = getApp();
 const { getDisplayStatusText, mapOrderToDisplayStatus } = require('../../../utils/util');
 Page({
   data: {
@@ -26,6 +27,10 @@ Page({
   },
 
   onShow() {
+    // 检查是否被冻结
+    if (app.checkFrozenAndRedirect()) {
+      return;
+    }
     // 页面显示时刷新数据
     this.refreshOrders();
   },
@@ -98,6 +103,7 @@ Page({
               orderNumber: o.orderNumber || o.order_no,
               createTime: this.formatOrderTime(o.createTime || o.created_at),
               serviceTypeName: o.title || o.serviceTypeName || (o.serviceType && o.serviceType.name) || '未知服务',
+              electricityTypeName: o.electricityTypeName || (o.electricity_type === 'industrial' ? '工业用电' : o.electricity_type === 'residential' ? '居民用电' : ''),
               // 确保有更新时间字段用于排序
               updatedAt: o.updated_at || o.updatedAt || o.updateTime || o.created_at || o.createTime,
               ...this.computeActionFlags(o)

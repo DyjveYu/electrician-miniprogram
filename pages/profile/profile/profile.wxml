@@ -1,9 +1,21 @@
 <!--pages/profile/profile/profile.wxml-->
 <view class="container">
+  <!-- 冻结提示 -->
+  <view class="frozen-tip" wx:if="{{isFrozen && currentRole === 'electrician'}}">
+    <view class="frozen-content">
+      <text class="frozen-icon">❄️</text>
+      <view class="frozen-text">
+        <text class="frozen-title">账号已被冻结</text>
+        <text class="frozen-desc">因连续6个月未接单，您的账号已被冻结</text>
+      </view>
+    </view>
+    <button class="unfreeze-btn" bindtap="applyUnfreeze" loading="{{unfreezing}}">申请解冻</button>
+  </view>
+
   <!-- 用户信息卡片 -->
   <view class="user-card">
     <view class="user-header">
-      <view class="avatar-section" bindtap="previewAvatar">
+      <view class="avatar-section" bindtap="navigateToEdit">
         <image class="avatar" src="{{userInfo.avatar || '/assets/default-avatar.png'}}" />
        
         <view class="role-badge {{currentRole}}">
@@ -13,7 +25,7 @@
       
       <view class="user-info">
      
-         <text class="nickname">{{currentRole === 'user' ? '用户' + (userInfo.phone ? userInfo.phone.slice(-4) : '') : (userInfo.isElectrician ? (userInfo.real_name || userInfo.nickname) : '电工' + (userInfo.phone ? userInfo.phone.slice(-4) : ''))}}</text>
+         <text class="nickname">{{currentRole === 'user' ? '用户' + ((userInfo.phone && userInfo.phone.length >= 4) ? userInfo.phone.slice(-4) : '') : (userInfo.isElectrician ? (userInfo.real_name || userInfo.nickname) : '电工' + ((userInfo.phone && userInfo.phone.length >= 4) ? userInfo.phone.slice(-4) : ''))}}</text>
           
        <!-- 电工认证状态：对所有用户可见，用 certificationStatusText 显示当前状态 -->
  
@@ -96,7 +108,7 @@
     </view>
 
     <!-- 电工认证 - 仅电工角色显示 -->
-    <view 
+    <view
       wx:if="{{currentRole === 'electrician'}}"
       class="menu-item"
       bindtap="handleCertification"
@@ -108,6 +120,23 @@
       </view>
       <view class="certification-badge">
        <text class="badge-text {{userInfo.certificationStatus === 'approved' ? 'certified' : (userInfo.certificationStatus === 'pending' ? 'pending' : 'uncertified')}}">{{certificationStatusText}}</text>
+      </view>
+      <text class="menu-arrow">></text>
+    </view>
+
+    <!-- 押金管理 - 仅电工角色显示 -->
+    <view
+      wx:if="{{currentRole === 'electrician'}}"
+      class="menu-item"
+      bindtap="navigateToDeposit"
+    >
+      <view class="menu-icon">💵</view>
+      <view class="menu-content">
+        <text class="menu-title">押金管理</text>
+        <text class="menu-desc">{{depositStatus === 'paid' ? '已缴纳押金' : (depositStatus === 'refunded' ? '已退款' : '未缴纳')}}</text>
+      </view>
+      <view class="certification-badge">
+        <text class="badge-text {{depositStatus === 'paid' ? 'certified' : (depositStatus === 'refunding' ? 'pending' : 'uncertified')}}">{{depositStatus === 'paid' ? '已缴纳' : (depositStatus === 'refunding' ? '退款中' : '未缴纳')}}</text>
       </view>
       <text class="menu-arrow">></text>
     </view>
@@ -140,6 +169,8 @@
       </view>
       <text class="menu-arrow">></text>
     </view>
+
+    
   </view>
 
   <!-- 退出登录 -->

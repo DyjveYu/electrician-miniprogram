@@ -17,7 +17,7 @@ Page({
     isLogging: false,
     showTestTip: false,
     testCode: '',
-    selectedRole: 'user', // 默认选择电工角色 user
+    selectedRole: 'electrician', // 默认选择电工角色 user / electrician
     isAgreed: false, // 是否同意协议
 
     // 弹窗相关
@@ -71,7 +71,7 @@ Page({
   selectRole(e) {
     const role = e.currentTarget.dataset.role;
     console.log('选择角色:', role);
-    /*临时功能 1月6日
+    /*临时功能 1月6日 
     if (role === 'user') {
       wx.showToast({
         title: '功能开发中，敬请期待',
@@ -80,7 +80,7 @@ Page({
       });
       return;
     }
-    */
+   */    
     this.setData({
       selectedRole: role
     });
@@ -269,9 +269,21 @@ Page({
       app.showToast('登录成功');
 
       // 延迟跳转，让用户看到成功提示
-      setTimeout(() => {
+      setTimeout(async () => {
         console.log('登录成功，准备跳转到首页');
         console.log('当前全局数据:', app.globalData);
+
+        // 电工角色首次登录引导认证
+        if (this.data.selectedRole === 'electrician') {
+          const hasCertification = await this.checkElectricianCertification();
+          if (!hasCertification) {
+            console.log('电工未认证，跳转到认证页');
+            wx.reLaunch({
+              url: '/pages/profile/certification/certification'
+            });
+            return;
+          }
+        }
 
         // 使用reLaunch确保完全重新加载首页
         wx.reLaunch({
@@ -301,6 +313,36 @@ Page({
         loginButtonText: '登录'
       });
     }
+  },
+
+  /**
+   * 检查电工是否已认证
+   */
+  checkElectricianCertification() {
+    return new Promise((resolve) => {
+      wx.request({
+        url: `${app.globalData.baseUrl}/electricians/certification/status`,
+        method: 'GET',
+        header: {
+          'Authorization': `Bearer ${app.globalData.token}`
+        },
+        success: (res) => {
+          const ok = res?.data?.success === true || res?.data?.code === 0 || res?.data?.code === 200;
+          if (ok) {
+            const data = res?.data?.data || {};
+            const cert = data.certification || (data.user_id || data.status ? data : null);
+            const status = cert?.status || data.status || 'none';
+            // 有已通过的认证记录才认为已认证
+            resolve(status === 'approved');
+          } else {
+            resolve(false);
+          }
+        },
+        fail: () => {
+          resolve(false);
+        }
+      });
+    });
   },
 
   /**

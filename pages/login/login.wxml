@@ -3,7 +3,7 @@
   <!-- 头部区域 -->
   <view class="header">
     <view class="logo">
-      <image class="logo" src="/images/icons/logo.png"></image>
+      <image class="logo" src="/images/icons/logo.png" mode="widthFix"></image>
       </view>
   </view>
 

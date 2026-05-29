@@ -1,0 +1,61 @@
+<!--pages/profile/deposit/deposit.wxml-->
+<view class="container">
+  <!-- 押金状态卡片 -->
+  <view class="deposit-card">
+    <view class="deposit-header">
+      <text class="deposit-title">电工押金</text>
+      <text class="deposit-amount">¥{{configuredAmount}}</text>
+    </view>
+    <view class="deposit-status">
+      <view class="status-badge {{depositInfo.status}}">
+        <text class="status-text">{{statusText}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 押金说明 -->
+  <view class="info-card">
+    <view class="info-title">押金说明</view>
+    <view class="info-content">
+      <text class="info-item">• 电工需缴纳{{configuredAmount}}元押金才能接单</text>
+      <text class="info-item">• 押金在电工无未结订单、无违约行为时，可申请全额无息退还，审核通过后1~3个工作日原路退回</text>
+      <text class="info-item">• 退回押金后将被移除接单资格</text>
+      <text class="info-item">• 注销账户前需先退回押金</text>
+    </view>
+  </view>
+
+  <!-- 押金详情 -->
+  <view class="detail-card" wx:if="{{depositInfo.status === 'paid'}}">
+    <view class="detail-title">押金详情</view>
+    <view class="detail-row">
+      <text class="detail-label">支付时间</text>
+      <text class="detail-value">{{depositInfo.paidAt || '-'}}</text>
+    </view>
+    <view class="detail-row">
+      <text class="detail-label">交易单号</text>
+      <text class="detail-value transaction-id">{{depositInfo.transactionId || '-'}}</text>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-section">
+    <button
+      wx:if="{{depositInfo.status === 'paid'}}"
+      class="btn refund-btn"
+      bindtap="handleRefund"
+      loading="{{refunding}}"
+    >退回押金</button>
+
+    <button
+      wx:if="{{!depositInfo.status || depositInfo.status === 'refunded' || depositInfo.status === 'pending'}}"
+      class="btn pay-btn"
+      bindtap="handlePay"
+      loading="{{paying}}"
+    >立即缴纳</button>
+  </view>
+
+  <!-- 退款提示 -->
+  <view class="tips-section" wx:if="{{depositInfo.status === 'paid'}}">
+    <text class="tips-text">退回押金后，您将无法继续接单。如需继续接单，请重新缴纳押金。</text>
+  </view>
+</view>

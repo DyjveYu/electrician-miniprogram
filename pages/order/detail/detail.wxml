@@ -21,6 +21,10 @@
         <text class="label">服务类型：</text>
         <text class="value">{{order.serviceTypeName}}</text>
       </view>
+      <view class="info-row" wx:if="{{order.electricityTypeName}}">
+        <text class="label">用电类型：</text>
+        <text class="value">{{order.electricityTypeName}}</text>
+      </view>
       <view class="info-row">
         <text class="label">问题描述</text>
         <text class="value">{{order.description}}</text>
@@ -52,7 +56,7 @@
           <text class="value amount">{{order.installFee}}元</text>
         </view>
       </block>
-      <block wx:elif="{{order.amount}}">
+      <block wx:elif="{{order.amount && order.status !== 'cancelled' && order.status !== 'closed'}}">
         <view class="info-row">
           <text class="label">预付款：</text>
           <text class="value amount">{{order.amount}}元</text>
@@ -67,7 +71,7 @@
       <view class="address-info">
         <view class="contact-row">
           <text class="contact-name">{{order.contactName}}</text>
-          <text class="contact-phone" bindtap="makePhoneCall" data-phone="{{order.contactPhone}}">{{order.contactPhone}}</text>
+          <text class="contact-phone" bindtap="makePhoneCall" data-phone="{{order.contactPhone}}">{{order.contactPhoneMasked}}</text>
         </view>
         <view class="address-detail">{{order.address}}</view>
       </view>
@@ -138,7 +142,7 @@
     <!-- 电工和用户双视角：维修内容（进行中/待评价/已完成/待支付/已结算） -->
     <view class="section card" wx:if="{{order.status === 'in_progress' || order.status === 'pending_review' || order.status === 'completed_settled' || order.status === 'pending_payment' || order.status === 'settled'}}">
       <view class="section-title">维修明细</view>
-       <view class="info-row" wx:if="{{order.amount}}">
+       <view class="info-row" wx:if="{{order.amount && order.status !== 'cancelled' && order.status !== 'closed'}}">
         <text class="label">预付款：</text>
         <text class="value">{{order.amount}}元</text>
       </view>
@@ -285,14 +289,23 @@
  
     <!-- 右侧操作按钮区域 -->
     <view class="action-area">
-      <!-- 待接单状态 -->
+      <!-- 待接单状态（电工视角） -->
       <block wx:if="{{order.status === 'pending'}}">
-        <button 
+        <!-- 电工可见：接单按钮 -->
+        <button
           wx:if="{{order.canAccept}}"
           class="main-action-btn primary"
           bindtap="acceptOrder"
         >
           接单
+        </button>
+        <!-- 用户可见：已付款时显示取消按钮 -->
+        <button
+          wx:if="{{order.canCancel && currentRole === 'user'}}"
+          class="service-btn"
+          bindtap="cancelOrder"
+        >
+          <text class="service-text">取消订单</text>
         </button>
       </block>
 

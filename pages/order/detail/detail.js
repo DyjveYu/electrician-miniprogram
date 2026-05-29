@@ -1,4 +1,5 @@
 // pages/order/detail/detail.js
+const app = getApp();
 const MAX_FINAL_AMOUNT = 99999999.99; // 数据库 decimal(10,2) 最大支持 8 位整数 + 2 小数
 const { getOrderStatusText } = require('../../../utils/util');
 Page({
@@ -43,6 +44,10 @@ Page({
   },
 
   onShow() {
+    // 检查是否被冻结
+    if (app.checkFrozenAndRedirect()) {
+      return;
+    }
     // 页面显示时刷新数据；避免与onLoad的首次显示重复触发
     if (!this._firstShowSkipped) {
       this._firstShowSkipped = true;
@@ -81,18 +86,19 @@ Page({
           // 兼容后端返回结构：{ data: { order: {...} } }
           const raw = res?.data?.data?.order || res?.data?.data || {};
           const normalizedStatus = raw.status === 'confirmed' ? 'in_progress' : raw.status;
-          const prepayAmount = (raw.serviceType && raw.serviceType.prepay_amount) ||
-            raw.prepay_amount ||
+          const prepayAmount = raw.prepay_amount ||
+            (raw.serviceType && raw.serviceType.prepay_amount) ||
             raw.estimated_amount ||
             raw.amount ||
             30;
           const repairAmount = raw.final_amount ?? raw.repair_amount ?? raw.amount ?? raw.estimated_amount ?? '';
           const prefillUpdateAmount = repairAmount;
           const rawElectrician = raw.electrician || {};
+          const certRealName = rawElectrician.certification && rawElectrician.certification.real_name;
           const normalizedElectrician = rawElectrician && typeof rawElectrician === 'object'
             ? {
               ...rawElectrician,
-              name: rawElectrician.name || rawElectrician.nickname || rawElectrician.nickName || ''
+              name: (certRealName && certRealName.length >= 1) ? certRealName.slice(0, 1) + '工' : (rawElectrician.nickname || rawElectrician.nickName || '')
             }
             : null;
           const normalizedReview = raw.review && typeof raw.review === 'object'
@@ -101,24 +107,50 @@ Page({
               content: raw.review.content || ''
             }
             : null;
+          // 图片URL归一化：相对路径拼接 imageBaseUrl
+          const normalizeImageUrl = (url) => {
+            const rawUrl = url;
+            console.log('[detail] 图片归一化前:', rawUrl);
+            if (!url) {
+              console.log('[detail] 图片归一化后: (空)');
+              return '';
+            }
+            if (/^https?:\/\//.test(url)) {
+              console.log('[detail] 图片归一化后: (已是完整URL) ->', url);
+              return url;
+            }
+            if (url.startsWith('/')) {
+              const result = app.globalData.imageBaseUrl + url;
+              console.log('[detail] 图片归一化后: (相对路径拼接) ->', result, '| imageBaseUrl:', app.globalData.imageBaseUrl);
+              return result;
+            }
+            const m = url.match(/\/uploads\/.+$/);
+            const result = app.globalData.imageBaseUrl + (m ? m[0] : '/' + url);
+            console.log('[detail] 图片归一化后: (畸形URL提取) ->', result, '| 匹配:', m ? m[0] : '无');
+            return result;
+          };
+
           const order = {
             ...raw,
             review: normalizedReview,
             electrician: normalizedElectrician,
             // 字段名映射，兼容后端字段
             orderNumber: raw.orderNumber || raw.order_no,
-            createTime: raw.createTime || raw.created_at,
+            createTime: this.formatOrderTime(raw.createTime || raw.created_at),
             serviceTypeName: raw.serviceTypeName || (raw.serviceType && raw.serviceType.name) || '',
             contactName: raw.contactName || raw.contact_name,
             contactPhone: raw.contactPhone || raw.contact_phone,
+            contactPhoneMasked: this.maskPhone(raw.contactPhone || raw.contact_phone),
             address: raw.address || raw.service_address,
-            images: Array.isArray(raw.images) ? raw.images : [],
+            images: Array.isArray(raw.images) ? raw.images.map(normalizeImageUrl) : [],
             workContent: raw.workContent || raw.repair_content || '',
-            workImages: Array.isArray(raw.workImages) ? raw.workImages : (Array.isArray(raw.repair_images) ? raw.repair_images : []),
+            workImages: Array.isArray(raw.workImages) ? raw.workImages.map(normalizeImageUrl) : (Array.isArray(raw.repair_images) ? raw.repair_images.map(normalizeImageUrl) : []),
             // 优先从 serviceType 获取预付款金额，其次从订单字段
             amount: prepayAmount,
             repairAmount,
-            prefillUpdateAmount
+            prefillUpdateAmount,
+            // 用电类型映射
+            electricityTypeName: raw.electricityTypeName || (raw.electricity_type === 'industrial' ? '工业用电' : raw.electricity_type === 'residential' ? '居民用电' : '')
           };
 
           // 计算“维修安装费”合计（仅在进行中/待评价/已完成展示）
@@ -216,9 +248,18 @@ Page({
   // 取消订单
   cancelOrder() {
     const that = this;
+    const order = this.data.order;
+    const isPaid = order.status === 'pending'; // 已付款待接单状态
+
+    // 根据订单状态显示不同提示
+    let content = '确定要取消这个订单吗？';
+    if (isPaid) {
+      content = '取消订单后将原路退回预付款，是否继续？';
+    }
+
     wx.showModal({
       title: '确认取消',
-      content: '确定要取消这个订单吗？',
+      content: content,
       success(res) {
         if (res.confirm) {
           that.performCancelOrder();
@@ -230,6 +271,11 @@ Page({
   // 执行取消订单
   performCancelOrder() {
     const app = getApp();
+    const order = this.data.order;
+    const isPaid = order.status === 'pending';
+
+    // 根据是否已付款设置取消原因
+    const cancelReason = isPaid ? '用户取消已支付订单' : '用户取消未支付订单';
 
     wx.request({
       url: `${app.globalData.baseUrl}/orders/${this.data.orderId}/cancel`,
@@ -237,14 +283,16 @@ Page({
       header: {
         'Authorization': `Bearer ${app.globalData.token}`
       },
-      data: {
-        cancel_reason: '用户取消预付款'
-      },
+      data: { cancel_reason: cancelReason },
       success: (res) => {
         const code = res?.data?.code;
         const ok = code === 0 || code === 200 || res.statusCode === 200 || res?.data?.success === true;
         if (ok) {
-          wx.showToast({ title: '订单已取消', icon: 'success' });
+          if (isPaid) {
+            wx.showToast({ title: '订单已取消，退款将原路返回', icon: 'success' });
+          } else {
+            wx.showToast({ title: '订单已取消', icon: 'success' });
+          }
           setTimeout(() => {
             wx.switchTab({ url: '/pages/order/list/list' });
           }, 1500);
@@ -261,6 +309,26 @@ Page({
   // 接单（电工）
   acceptOrder() {
     const app = getApp();
+
+    // 检查账号是否被冻结
+    if (app.globalData.userInfo && app.globalData.userInfo.status === 'banned') {
+      wx.showToast({
+        title: '您的账号已被冻结，无法接单',
+        icon: 'none'
+      });
+      return;
+    }
+
+    // 夜间接单安全提示（22:00-次日05:00）
+    const hour = new Date().getHours();
+    if (hour >= 22 || hour < 5) {
+      wx.showModal({
+        title: '安全提示',
+        content: '如遇到危险，请随时报警处理。',
+        showCancel: false,
+        confirmText: '我已知晓'
+      });
+    }
 
     wx.showModal({
       title: '确认接单',
@@ -764,5 +832,27 @@ Page({
   formatTime(timestamp) {
     const date = new Date(timestamp);
     return date.toLocaleString();
+  },
+
+  // 格式化订单时间
+  formatOrderTime(time) {
+    if (!time) return '';
+    const date = new Date(time);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hour = String(date.getHours()).padStart(2, '0');
+    const minute = String(date.getMinutes()).padStart(2, '0');
+    const second = String(date.getSeconds()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+  },
+
+  // 手机号脱敏：138****5678
+  maskPhone(phone) {
+    if (!phone || typeof phone !== 'string') return '';
+    if (phone.length >= 11) {
+      return phone.slice(0, 3) + '****' + phone.slice(-4);
+    }
+    return phone;
   }
 });

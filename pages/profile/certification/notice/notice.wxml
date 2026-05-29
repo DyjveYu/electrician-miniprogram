@@ -1,0 +1,14 @@
+<!-- pages/profile/certification/notice/notice.wxml -->
+<view class="container">
+  <view class="header">
+    <view class="title">{{noticeTitle}}</view>
+  </view>
+
+  <view class="notice-content">
+    <text class="content-text">{{noticeContent}}</text>
+  </view>
+
+  <view class="bottom-bar">
+    <button class="confirm-btn" bindtap="goBack">我已知晓</button>
+  </view>
+</view>

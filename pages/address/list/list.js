@@ -1,4 +1,5 @@
 // pages/address/list/list.js
+const app = getApp();
 Page({
   data: {
     addresses: [],
@@ -12,7 +13,10 @@ Page({
   },
 
   onShow() {
-    //this.loadAddresses();
+    // 检查是否被冻结
+    if (app.checkFrozenAndRedirect()) {
+      return;
+    }
     // 延迟一点时间以防刚保存完未能查到最新数据
     setTimeout(() => {
       this.loadAddresses();
@@ -122,9 +126,11 @@ Page({
         'Authorization': `Bearer ${app.globalData.token}`
       },
       success: (res) => {
-        if (res.data.code === 0) {
+        if (res.data.code === 0 || res.data.code === 200) {
+          // 先在前端移除该地址，确保立即更新界面
+          const addresses = this.data.addresses.filter(item => item.id !== addressId);
+          this.setData({ addresses });
           wx.showToast({ title: '删除成功', icon: 'success' });
-          this.loadAddresses();
         } else {
           wx.showToast({ title: res.data.message || '删除失败', icon: 'none' });
         }

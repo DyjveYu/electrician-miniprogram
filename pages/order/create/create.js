@@ -24,6 +24,28 @@ function formatServiceTypes(list = []) {
     }));
 }
 
+// 根据当前时间计算时段上门费
+function calculateCurrentPrepayAmount(feeList = []) {
+  if (!Array.isArray(feeList) || feeList.length === 0) {
+    return 20; // 默认值
+  }
+  const hour = new Date().getHours();
+  for (const fee of feeList) {
+    if (fee.period_key === 'night') {
+      // 夜间跨天：22点-次日5点
+      if (hour >= fee.start_hour || hour < fee.end_hour) {
+        return Number(fee.amount) || 20;
+      }
+    } else {
+      if (hour >= fee.start_hour && hour < fee.end_hour) {
+        return Number(fee.amount) || 20;
+      }
+    }
+  }
+  // 兜底
+  return 20;
+}
+
 Page({
   data: {
     serviceTypes: [],              // 从后端或回退到默认值
@@ -43,11 +65,12 @@ Page({
     latitude: '',
     longitude: '',
     descriptionTitle: '故障描述',
-    // 预付金额（默认30.00，如服务类型有配置则覆盖；测试阶段0.01）
-    prepayAmount: '0.01',
+    // 预付金额（默认30.00，如服务类型有配置则覆盖；测试阶段0.10）
+    prepayAmount: '30.00',
     canSubmit: false,
     submitting: false,
-    agreePrepayTerms: false
+    agreePrepayTerms: false,
+    electricityType: 'residential'
   },
 
   onLoad() {
@@ -73,6 +96,11 @@ Page({
   },
 
   onShow() {
+    // 检查是否被冻结
+    const app = getApp();
+    if (app.checkFrozenAndRedirect()) {
+      return;
+    }
     // 如果地址弹层处于打开状态（例如从新增/编辑地址页返回），刷新地址列表
     if (this.data.showAddressSheet) {
       this.loadAddresses();
@@ -93,45 +121,66 @@ Page({
   // 尝试从后端加载服务类型，失败则回退到默认数组
   loadServiceTypes() {
     const app = getApp();
-    const url = `${app.globalData.baseUrl}/system/service-types`;
-    console.log('加载服务类型，URL=', url);
+    const serviceTypesUrl = `${app.globalData.baseUrl}/system/service-types`;
+    const timePeriodFeesUrl = `${app.globalData.baseUrl}/system/time-period-fees`;
+    console.log('加载服务类型，URL=', serviceTypesUrl);
 
-    wx.request({
-      url,
-      method: 'GET',
-      success: (res) => {
-        // 兼容后端两种风格： code === 0 / code === 200
-        const ok = res && res.data && (res.data.code === 0 || res.data.code === 200);
-        if (ok && Array.isArray(res.data.data) && res.data.data.length > 0) {
-          const formatted = formatServiceTypes(res.data.data);
-          if (formatted.length > 0) {
-            console.log('从后端加载到服务类型：', formatted);
-            this.setData({ serviceTypes: formatted });
-            const st = formatted[0] || {};
-            const amount = (st.prepay_amount != null) ? Number(st.prepay_amount).toFixed(2) : this.data.prepayAmount;
-            this.setData({ prepayAmount: amount });
-          } else {
-            console.warn('后端返回的服务类型被过滤后为空，回退到默认值', res && res.data);
-            this.setData({ serviceTypes: DEFAULT_SERVICE_TYPES });
-            const st = (DEFAULT_SERVICE_TYPES || [])[0] || {};
-            const amount = (st.prepay_amount != null) ? Number(st.prepay_amount).toFixed(2) : this.data.prepayAmount;
-            this.setData({ prepayAmount: amount });
-          }
-        } else {
-          console.warn('后端返回的 service-types 格式不符合预期，回退到默认值', res && res.data);
-          this.setData({ serviceTypes: DEFAULT_SERVICE_TYPES });
-          const st = (DEFAULT_SERVICE_TYPES || [])[0] || {};
-          const amount = (st.prepay_amount != null) ? Number(st.prepay_amount).toFixed(2) : this.data.prepayAmount;
-          this.setData({ prepayAmount: amount });
-        }
-      },
-      fail: (err) => {
-        console.warn('获取 service-types 失败，使用默认值。错误：', err);
-        this.setData({ serviceTypes: DEFAULT_SERVICE_TYPES });
-        const st = (DEFAULT_SERVICE_TYPES || [])[0] || {};
-        const amount = (st.prepay_amount != null) ? Number(st.prepay_amount).toFixed(2) : this.data.prepayAmount;
-        this.setData({ prepayAmount: amount });
+    // 并行加载服务类型和时段费率
+    Promise.all([
+      new Promise((resolve, reject) => {
+        wx.request({
+          url: serviceTypesUrl,
+          method: 'GET',
+          success: (res) => resolve(res),
+          fail: (err) => reject(err)
+        });
+      }),
+      new Promise((resolve, reject) => {
+        wx.request({
+          url: timePeriodFeesUrl,
+          method: 'GET',
+          success: (res) => resolve(res),
+          fail: (err) => reject(err)
+        });
+      })
+    ]).then(([serviceTypesRes, timePeriodFeesRes]) => {
+      // 处理时段费率，计算当前时段费用
+      let prepayAmount = this.data.prepayAmount;
+      const ok = timePeriodFeesRes && timePeriodFeesRes.data && (timePeriodFeesRes.data.code === 0 || timePeriodFeesRes.data.code === 200);
+      if (ok && Array.isArray(timePeriodFeesRes.data.data.fees)) {
+        prepayAmount = calculateCurrentPrepayAmount(timePeriodFeesRes.data.data.fees).toFixed(2);
+        console.log('当前时段费率:', prepayAmount);
       }
+
+      // 处理服务类型
+      const serviceOk = serviceTypesRes && serviceTypesRes.data && (serviceTypesRes.data.code === 0 || serviceTypesRes.data.code === 200);
+      if (serviceOk && Array.isArray(serviceTypesRes.data.data) && serviceTypesRes.data.data.length > 0) {
+        const formatted = formatServiceTypes(serviceTypesRes.data.data);
+        if (formatted.length > 0) {
+          console.log('从后端加载到服务类型：', formatted);
+          this.setData({
+            serviceTypes: formatted,
+            prepayAmount
+          });
+        } else {
+          console.warn('后端返回的服务类型被过滤后为空，回退到默认值', serviceTypesRes && serviceTypesRes.data);
+          this.setData({
+            serviceTypes: DEFAULT_SERVICE_TYPES,
+            prepayAmount
+          });
+        }
+      } else {
+        console.warn('后端返回的 service-types 格式不符合预期，回退到默认值', serviceTypesRes && serviceTypesRes.data);
+        this.setData({
+          serviceTypes: DEFAULT_SERVICE_TYPES,
+          prepayAmount
+        });
+      }
+    }).catch((err) => {
+      console.warn('加载数据失败，使用默认值。错误：', err);
+      this.setData({
+        serviceTypes: DEFAULT_SERVICE_TYPES
+      });
     });
   },
 
@@ -156,7 +205,7 @@ Page({
     this.setData({
       selectedServiceTypeId: selected.id,
       selectedServiceType: selected,
-      prepayAmount: (selected.prepay_amount != null) ? Number(selected.prepay_amount).toFixed(2) : this.data.prepayAmount,
+      // prepayAmount 不再随服务类型变化，由时段费率决定
       descriptionTitle: this.getDescriptionTitle(selected.name)
     });
     this.updateSubmitEnable();
@@ -185,6 +234,8 @@ Page({
     }
     wx.chooseImage({
       count: remaining,
+      sizeType: ['compressed'],  // ✅ 自动压缩
+      sourceType: ['album', 'camera'], // 允许相册和拍照
       success: (res) => {
         const next = [...current, ...(res.tempFilePaths || [])].slice(0, 5);
         this.setData({ images: next });
@@ -283,6 +334,16 @@ Page({
     this.updateSubmitEnable();
   },
 
+  // 用电类型选择变更
+  onElectricityTypeChange(e) {
+    const value = e.detail.value;
+    console.log('用电类型变更:', value);
+    this.setData({
+      electricityType: value
+    });
+    this.updateSubmitEnable();
+  },
+
 
   // 表单验证
   validateForm() {
@@ -298,6 +359,10 @@ Page({
       wx.showToast({ title: '请选择服务地址', icon: 'none' });
       return false;
     }
+    if (!this.data.electricityType) {
+      wx.showToast({ title: '请选择用电类型', icon: 'none' });
+      return false;
+    }
     // 联系人手机号若存在则校验；允许为空（地址中已包含）
     if (this.data.contactPhone && !/^1[3-9]\d{9}$/.test(this.data.contactPhone)) {
       wx.showToast({ title: '联系人手机号格式不正确', icon: 'none' });
@@ -310,13 +375,60 @@ Page({
     return true;
   },
 
+  // 上传单张图片到服务器，返回相对路径
+  uploadImage(filePath) {
+    return new Promise((resolve, reject) => {
+      const app = getApp();
+      wx.uploadFile({
+        url: `${app.globalData.baseUrl}/upload/order`,
+        filePath,
+        name: 'order_image',
+        header: {
+          'Authorization': `Bearer ${app.globalData.token}`
+        },
+        success: (res) => {
+          try {
+            const data = JSON.parse(res.data);
+            if ((data.code === 0 || data.code === 200) && data.data && data.data.url) {
+              resolve(data.data.url);
+            } else {
+              reject(new Error(data.message || '上传失败'));
+            }
+          } catch (e) {
+            reject(new Error('解析响应失败'));
+          }
+        },
+        fail: (err) => {
+          reject(new Error('网络错误'));
+        }
+      });
+    });
+  },
+
   // 提交订单（字段名与后端保持一致）
-  submitOrder() {
+  async submitOrder() {
     if (!this.validateForm()) return;
     if (this.data.submitting) return;
 
     this.setData({ submitting: true });
     const app = getApp();
+
+    // 步骤1：上传图片到服务器
+    let imageUrls = [];
+    const localImages = this.data.images || [];
+    if (localImages.length > 0) {
+      wx.showLoading({ title: '上传图片中...', mask: true });
+      try {
+        const uploadPromises = localImages.map(p => this.uploadImage(p));
+        imageUrls = await Promise.all(uploadPromises);
+        wx.hideLoading();
+      } catch (err) {
+        wx.hideLoading();
+        wx.showToast({ title: err.message || '图片上传失败', icon: 'none' });
+        this.setData({ submitting: false });
+        return;
+      }
+    }
 
     const payload = {
       service_type_id: this.data.selectedServiceType.id,
@@ -327,9 +439,9 @@ Page({
       service_address: this.data.selectedAddressStr,
       latitude: this.data.latitude,
       longitude: this.data.longitude,
-      images: this.data.images || [],
-      // 添加地址ID，用于关联省市区信息
-      address_id: this.data.selectedAddress?.id || null
+      images: imageUrls,
+      address_id: this.data.selectedAddress?.id || null,
+      electricity_type: this.data.electricityType
     };
 
     console.log('提交的订单 payload:', payload);

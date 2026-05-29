@@ -57,8 +57,9 @@ Page({
         
         // 如果是相对路径，拼接域名
         const app = getApp();
-        const baseUrl = app.globalData.baseUrl.replace('/api', '');
-        const fullUrl = baseUrl + (path.startsWith('/') ? path : '/' + path);
+        const imageBaseUrl = app.globalData.imageBaseUrl; // 从全局配置获取图片基础URL
+        const normalizedPath = path.startsWith('/') ? path : '/' + path; // 确保路径以/开头
+        const fullUrl = imageBaseUrl + normalizedPath;// 拼接完整URL
         console.log('🔥 拼接完整URL:', path, '→', fullUrl);
         return fullUrl;
     },
@@ -127,14 +128,16 @@ Page({
             return;
         }
 
-        wx.chooseMedia({
+        // 🔥 [2026-05-06] 修改：改用 wx.chooseImage，支持官方自动压缩
+        wx.chooseImage({
             count: 1,
-            mediaType: ['image'],
+            sizeType: ['compressed'],  // ✅ 官方自动压缩
             sourceType: ['album', 'camera'],
             success: (res) => {
-                const tempFilePath = res.tempFiles[0].tempFilePath;
+                const tempFilePath = res.tempFilePaths[0];
                 console.log(`🔥 选择图片成功（${type === 'front' ? '正面' : '背面'}）:`, tempFilePath);
-                
+                console.log(`🔥 图片大小已由微信官方自动压缩`);
+
                 // 🔥 只设置本地路径，不上传到服务器
                 if (type === 'front') {
                     this.setData({
@@ -147,9 +150,13 @@ Page({
                         displayBack: tempFilePath
                     });
                 }
-                
+
                 this.checkStatus();
                 console.log('🔥 本地图片已设置，等待用户点击确认');
+            },
+            fail: (err) => {
+                console.error('选择图片失败:', err);
+                wx.showToast({ title: '选择图片失败', icon: 'none' });
             }
         });
     },

@@ -247,6 +247,28 @@
   border: none;
 }
 .footer-btn.primary { background: #0F9D58; color: #fff; }
+
+/* 用电类型单选组样式 */
+.electricity-type-group {
+  display: flex;
+  align-items: center;
+  padding: 10rpx 0;
+}
+
+.electricity-type-item {
+  display: flex;
+  align-items: center;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.electricity-type-item radio {
+  margin-right: 8rpx;
+}
+
+.electricity-type-gap {
+  width: 60rpx;
+}
 .footer-btn.secondary { background: #e9f5ee; color: #0F9D58; }
 
 /* 时间选择布局 */

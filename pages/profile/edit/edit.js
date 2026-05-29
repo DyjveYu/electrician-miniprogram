@@ -18,10 +18,25 @@ Page({
   loadUserInfo() {
     const app = getApp();
     if (app.globalData.userInfo) {
+      // 头像URL归一化
+      let avatar = app.globalData.userInfo.avatar || '';
+      if (avatar) {
+        if (/^https?:\/\//.test(avatar)) {
+          // 标准完整URL，直接使用
+        } else if (avatar.startsWith('/')) {
+          // 相对路径，拼接 imageBaseUrl
+          avatar = app.globalData.imageBaseUrl + avatar;
+        } else {
+          // 畸形URL（如 https:/.51zoon.com/api/...），提取上传路径重组
+          const m = avatar.match(/\/uploads\/.+$/);
+          avatar = app.globalData.imageBaseUrl + (m ? m[0] : '/' + avatar);
+        }
+      }
+
       this.setData({
         userInfo: {
           nickname: app.globalData.userInfo.nickname || '',
-          avatar: app.globalData.userInfo.avatar || '',
+          avatar,
           phone: app.globalData.userInfo.phone || ''
         }
       });
@@ -35,18 +50,11 @@ Page({
     });
   },
 
-  // 选择头像
-  chooseAvatar() {
-    const that = this;
-    wx.chooseImage({
-      count: 1,
-      sizeType: ['compressed'],
-      sourceType: ['album', 'camera'],
-      success(res) {
-        const tempFilePath = res.tempFilePaths[0];
-        that.uploadAvatar(tempFilePath);
-      }
-    });
+  // 选择头像（微信官方推荐 open-type="chooseAvatar" 方案）
+  onChooseAvatar(e) {
+    const avatarUrl = e.detail.avatarUrl;
+    if (!avatarUrl) return;
+    this.uploadAvatar(avatarUrl);
   },
 
   // 上传头像
@@ -99,7 +107,7 @@ uploadAvatar(filePath) {
 
   const app = getApp();
   wx.uploadFile({
-    url: `${app.globalData.cloudUrl}/upload/avatar`,
+    url: `${app.globalData.baseUrl}/upload/avatar`,
     filePath,
     name: 'avatar',
     header: {
@@ -120,10 +128,9 @@ uploadAvatar(filePath) {
       }
 
       if ((data.code === 0 || data.code === 200) && data.data && data.data.url) {
-        const baseUrlWithoutApi = app.globalData.baseUrl.replace('/api', '');
         const fullAvatarUrl = data.data.url.startsWith('http')
           ? data.data.url
-          : `${baseUrlWithoutApi}${data.data.url}`;
+          : `${app.globalData.imageBaseUrl}${data.data.url}`;
       
         console.log('完整头像URL:', fullAvatarUrl);
       
@@ -168,16 +175,10 @@ uploadAvatar(filePath) {
     
     // 如果有头像，则添加到请求数据中
     if (this.data.userInfo.avatar) {
-      // 确保头像URL是完整的URL，如果是相对路径，则添加baseUrl前缀
       let avatarUrl = this.data.userInfo.avatar;
-      if (avatarUrl && !avatarUrl.startsWith('http')) {
-        // 移除开头的斜杠，避免重复
-        if (avatarUrl.startsWith('/')) {
-          avatarUrl = avatarUrl.substring(1);
-        }
-        // 构建完整URL
-        const baseUrlWithoutApi = app.globalData.baseUrl.replace('/api', '');
-        avatarUrl = `${baseUrlWithoutApi}/${avatarUrl}`;
+      // 相对路径则用 imageBaseUrl 拼接完整URL
+      if (avatarUrl && avatarUrl.startsWith('/')) {
+        avatarUrl = `${app.globalData.imageBaseUrl}${avatarUrl}`;
       }
       requestData.avatar = avatarUrl;
       console.log('保存头像URL:', avatarUrl);

@@ -7,14 +7,14 @@
     <view class="subtitle">请保证证件信息清晰可见</view>
   </view>
 
-  <!-- 调试信息 -->
+  <!-- 调试信息
   <view style="padding: 20rpx; background: #f0f0f0; margin: 20rpx; font-size: 24rpx;">
     <text>🔥 调试:\n</text>
     <text>存储路径: {{certificatePath}}\n</text>
     <text>显示路径: {{displayPath}}\n</text>
     <text>是否本地: {{certificatePath.includes('wxfile://') ? '是' : '否'}}\n</text>
     <text>是否相对: {{certificatePath.startsWith('/uploads/') ? '是' : '否'}}</text>
-  </view>
+  </view> -->
 
   <view class="upload-section">
     <view class="upload-card" bindtap="chooseImage">

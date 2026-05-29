@@ -23,12 +23,12 @@
   <!-- 基本信息 -->
   <view class="section">
     <view class="section-title">基本信息</view>
-    
+   
     <view class="form-item">
       <text class="label">手机号</text>
       <text class="value readonly">{{userInfo.phone}}</text>
     </view>
-    
+     <!-- 
     <view class="form-item">
       <text class="label">昵称</text>
       <input 
@@ -38,7 +38,7 @@
         bindinput="onNicknameInput"
         maxlength="20"
       />
-    </view>
+    </view>-->
   </view>
 
   <!-- 保存按钮 -->
