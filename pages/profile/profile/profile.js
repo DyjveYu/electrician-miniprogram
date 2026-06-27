@@ -7,6 +7,11 @@ Page({
     isFrozen: false,
     unfreezing: false,
     depositStatus: null,
+    isPartner: false,
+    enterpriseCertStatus: '',
+    enterpriseCertStatusText: '',
+    enterpriseCompanyName: '',
+    displayName: '',
     menuItems: [
       {
         id: 'address',
@@ -180,7 +185,7 @@ loadUserInfo() {
           stats: {
             totalOrders: stats.total_orders || 0,
             completedOrders: stats.completed_orders || 0,
-            totalAmount: app.globalData.currentRole === 'user' ? (stats.total_spent || 0) : (stats.total_earned || 0),
+            totalAmount: (app.globalData.currentRole === 'user' || app.globalData.currentRole === 'enterprise') ? (stats.total_spent || 0) : (stats.total_earned || 0),
             rating: 0
           }
         });
@@ -193,7 +198,16 @@ loadUserInfo() {
         if (this.data.currentRole === 'electrician') {
           this.loadWalletInfo();
           this.loadDepositStatus();
+          this.loadPartnerStatus();
         }
+
+        // 如果用户处于企业角色，加载企业认证状态
+        if (this.data.currentRole === 'enterprise') {
+          this.loadEnterpriseCertStatus();
+        }
+
+        // 更新显示名称
+        this.updateDisplayName();
       } else if (data && data.code === 401) {
         // token无效
         app.logout();
@@ -209,6 +223,83 @@ loadUserInfo() {
     }
   });
 },
+
+  // 计算显示名称
+  updateDisplayName() {
+    const { currentRole, userInfo, enterpriseCompanyName } = this.data;
+    const phone = (userInfo && userInfo.phone && userInfo.phone.length >= 4) ? userInfo.phone.slice(-4) : '';
+    let name = '';
+
+    if (currentRole === 'enterprise') {
+      name = enterpriseCompanyName || '企业' + phone;
+    } else if (currentRole === 'electrician') {
+      name = (userInfo && userInfo.isElectrician && userInfo.real_name) || '电工' + phone;
+    } else {
+      name = '用户' + phone;
+    }
+
+    this.setData({ displayName: name });
+  },
+
+  // 加载企业认证状态
+  loadEnterpriseCertStatus() {
+    const app = getApp();
+    if (!app.globalData.token) return;
+
+    wx.request({
+      url: `${app.globalData.baseUrl}/miniprogram/enterprise/certification`,
+      method: 'GET',
+      header: { 'Authorization': `Bearer ${app.globalData.token}` },
+      success: (res) => {
+        const ok = res?.data?.success === true || res?.data?.code === 0 || res?.data?.code === 200;
+        if (ok) {
+          const data = res?.data?.data || {};
+          if (data && data.certStatus) {
+            const statusMap = {
+              pending: '认证中',
+              approved: '已认证'
+            };
+            this.setData({
+              enterpriseCertStatus: data.certStatus,
+              enterpriseCertStatusText: statusMap[data.certStatus] || '未认证',
+              enterpriseCompanyName: data.companyName || ''
+            }, () => {
+              this.updateDisplayName();
+            });
+          } else {
+            this.setData({
+              enterpriseCertStatus: '',
+              enterpriseCertStatusText: '未认证',
+              enterpriseCompanyName: ''
+            }, () => {
+              this.updateDisplayName();
+            });
+          }
+        }
+      },
+      fail: () => {
+        console.log('获取企业认证状态失败');
+        this.updateDisplayName();
+      }
+    });
+  },
+
+  // 导航到下单页面（企业用户）
+  navigateToCreateOrder() {
+    wx.navigateTo({
+      url: '/pages/order/create/create'
+    });
+  },
+
+  // 处理企业认证入口点击
+  handleEnterpriseCertification() {
+    const status = this.data.enterpriseCertStatus;
+    if (status === 'approved') {
+      wx.navigateTo({ url: '/pages/enterprise/certification/certification?mode=view' });
+    } else {
+      wx.navigateTo({ url: '/pages/enterprise/certification/certification?mode=apply' });
+    }
+  },
 
   // 加载钱包信息
   loadWalletInfo() {
@@ -385,6 +476,36 @@ loadUserInfo() {
     wx.showToast({
       title: '功能开发中',
       icon: 'none'
+    });
+  },
+
+  // 检查合作伙伴状态
+  loadPartnerStatus() {
+    const app = getApp();
+    if (!app.globalData.token) return;
+
+    wx.request({
+      url: `${app.globalData.baseUrl}/partner/stats`,
+      method: 'GET',
+      header: { 'Authorization': `Bearer ${app.globalData.token}` },
+      success: (res) => {
+        // 200 表示是活跃合作伙伴，403 表示不是
+        if (res.data && res.data.code === 200) {
+          this.setData({ isPartner: true });
+        } else {
+          this.setData({ isPartner: false });
+        }
+      },
+      fail: () => {
+        this.setData({ isPartner: false });
+      }
+    });
+  },
+
+  // 导航到合作伙伴统计页
+  navigateToPartner() {
+    wx.navigateTo({
+      url: '/pages/partner/partner'
     });
   }
 });

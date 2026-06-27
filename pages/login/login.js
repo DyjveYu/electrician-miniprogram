@@ -17,7 +17,7 @@ Page({
     isLogging: false,
     showTestTip: false,
     testCode: '',
-    selectedRole: 'electrician', // 默认选择电工角色 user / electrician
+    selectedRole: 'user', // 默认选择"我要找电工"
     isAgreed: false, // 是否同意协议
 
     // 弹窗相关
@@ -71,8 +71,9 @@ Page({
   selectRole(e) {
     const role = e.currentTarget.dataset.role;
     console.log('选择角色:', role);
-    /*临时功能 1月6日 
-    if (role === 'user') {
+
+    // "我要学电工"弹出提示
+    if (role === 'learn') {
       wx.showToast({
         title: '功能开发中，敬请期待',
         icon: 'none',
@@ -80,7 +81,7 @@ Page({
       });
       return;
     }
-   */    
+
     this.setData({
       selectedRole: role
     });
@@ -266,6 +267,11 @@ Page({
       // 保存登录信息
       app.login(res.data.user, res.data.token);
 
+      // 保存企业认证信息到 globalData
+      if (res.data.enterpriseCertification) {
+        app.globalData.enterpriseCertification = res.data.enterpriseCertification;
+      }
+
       app.showToast('登录成功');
 
       // 延迟跳转，让用户看到成功提示
@@ -280,6 +286,18 @@ Page({
             console.log('电工未认证，跳转到认证页');
             wx.reLaunch({
               url: '/pages/profile/certification/certification'
+            });
+            return;
+          }
+        }
+
+        // 企业角色首次登录引导认证
+        if (this.data.selectedRole === 'enterprise') {
+          const entCert = res.data.enterpriseCertification;
+          if (!entCert || entCert.certStatus !== 'approved') {
+            console.log('企业未认证，跳转到企业认证页');
+            wx.reLaunch({
+              url: '/pages/enterprise/certification/certification'
             });
             return;
           }

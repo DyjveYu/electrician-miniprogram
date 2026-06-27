@@ -1,4 +1,122 @@
 <view class="page-container">
+  <!-- 企业用户：下单模式选择 -->
+  <view class="form-section" wx:if="{{userType === 'enterprise'}}">
+    <view class="section-title">选择下单类型</view>
+    <view class="mode-selector">
+      <view class="mode-option {{orderMode === 'quick' ? 'active' : ''}}" bindtap="switchOrderMode" data-mode="quick">
+            <text class="mode-label">单日快修</text>
+        <text class="mode-desc">即时上门维修服务</text>
+      </view>
+      <view class="mode-option {{orderMode === 'project' ? 'active' : ''}}" bindtap="switchOrderMode" data-mode="project">
+             <text class="mode-label">多日工程</text>
+        <text class="mode-desc">长期项目，多电工协作</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 多日工程表单 -->
+  <block wx:if="{{userType === 'enterprise' && orderMode === 'project'}}">
+    <!-- 工程描述 -->
+    <view class="form-section">
+      <view class="section-title">工程描述</view>
+      <textarea placeholder="请描述工程内容，如：机柜装配、配电盘组装、线路巡检、设备维保等" value="{{description}}" bindinput="onDescriptionInput" maxlength="500" class="desc-textarea" />
+      <!-- 语音输入按钮 -->
+      <view class="voice-btn {{isRecording ? 'voice-btn-recording' : ''}}" catchtap="onMicTap">
+        <text class="voice-btn-icon">🎤</text>
+        <text class="voice-btn-text">{{isRecording ? '录音中…' : '语音输入'}}</text>
+      </view>
+    </view>
+
+    <!-- 需要电工人数 -->
+    <view class="form-section">
+      <view class="section-title">需要电工人数</view>
+      <picker mode="selector" range="{{projRequiredRange}}" value="{{projRequiredCount - 2}}" bindchange="onProjCountChange">
+        <view class="picker-display">{{projRequiredCount}} 人</view>
+      </picker>
+    </view>
+
+    <!-- 工程时间 -->
+    <view class="form-section">
+      <view class="section-title">工程起止时间</view>
+      <view class="time-row">
+        <view class="time-item">
+          <text class="time-label">开始日期</text>
+          <picker mode="date" value="{{projStartDate}}" end="2099-12-31" bindchange="onProjDateChange" data-field="projStartDate">
+            <view class="picker-display {{projStartDate ? '' : 'placeholder'}}">{{projStartDate || '请选择日期'}}</view>
+          </picker>
+        </view>
+        <view class="time-item">
+          <text class="time-label">开始时间</text>
+          <picker mode="time" value="{{projStartTime}}" bindchange="onProjDateChange" data-field="projStartTime">
+            <view class="picker-display {{projStartTime ? '' : 'placeholder'}}">{{projStartTime || '请选择时间'}}</view>
+          </picker>
+        </view>
+      </view>
+      <view class="time-row">
+        <view class="time-item">
+          <text class="time-label">结束日期</text>
+          <picker mode="date" value="{{projEndDate}}" end="2099-12-31" bindchange="onProjDateChange" data-field="projEndDate">
+            <view class="picker-display {{projEndDate ? '' : 'placeholder'}}">{{projEndDate || '请选择日期'}}</view>
+          </picker>
+        </view>
+        <view class="time-item">
+          <text class="time-label">结束时间</text>
+          <picker mode="time" value="{{projEndTime}}" bindchange="onProjDateChange" data-field="projEndTime">
+            <view class="picker-display {{projEndTime ? '' : 'placeholder'}}">{{projEndTime || '请选择时间'}}</view>
+          </picker>
+        </view>
+      </view>
+    </view>
+
+    <!-- 电工持证要求（多选） -->
+    <view class="form-section">
+      <view class="section-title">电工持证要求（可多选）</view>
+      <checkbox-group bindchange="onProjCertChange">
+        <label class="cert-radio"><checkbox value="low_voltage" checked="{{projCertLowChecked}}" />低压电工证</label>
+        <label class="cert-radio"><checkbox value="high_voltage" checked="{{projCertHighChecked}}" />高压电工证</label>
+      </checkbox-group>
+    </view>
+
+    <!-- 工单总费用 -->
+    <view class="form-section">
+      <view class="section-title">工单总费用（含15%平台使用费）</view>
+      <view class="amount-input-box">
+        <text class="amount-currency">¥</text>
+        <input class="amount-input" type="digit" placeholder="请输入总费用" value="{{projTotalAmount}}" bindinput="onProjAmountInput" />
+      </view>
+      <view class="fee-hint" wx:if="{{projElectricianFee}}">
+        每位电工应得：<text class="fee-num">¥{{projElectricianFee}}</text>（总费用×85%÷{{projRequiredCount}}人）
+      </view>
+    </view>
+
+    <!-- 工单地址 -->
+    <view class="form-section">
+      <view class="section-title">工单地址（须与企业认证区一致）</view>
+      <picker mode="region" value="{{projectRegion}}" bindchange="onProjectRegionChange">
+        <view class="picker-display {{projectRegion[0] ? '' : 'placeholder'}}">
+          {{projectRegion[0] ? projectRegion[0] + ' ' + projectRegion[1] + ' ' + projectRegion[2] : '请选择省市区'}}
+        </view>
+      </picker>
+      <input class="form-input" placeholder="详细地址（街道、门牌号等）" value="{{projectAddressDetail}}" bindinput="onProjectAddressInput" maxlength="200" />
+      <text class="fee-hint" wx:if="{{enterpriseCertDistrict}}">企业认证区：{{enterpriseCertDistrict}}</text>
+    </view>
+
+    <!-- 联系电话 -->
+    <view class="form-section">
+      <view class="section-title">联系电话</view>
+      <input class="form-input" type="number" maxlength="11" placeholder="请输入联系电话" value="{{contactPhone}}" bindinput="onContactPhoneInput" />
+    </view>
+
+    <!-- 提交按钮 -->
+    <view class="form-section">
+      <button class="submit-btn {{canSubmit ? '' : 'disabled'}}" bindtap="submitProjectOrder" disabled="{{!canSubmit || projectSubmitting}}">
+        {{projectSubmitting ? '提交中...' : '提交多日工程（¥' + (projTotalAmount || '0') + '）'}}
+      </button>
+    </view>
+  </block>
+
+  <!-- 单日快修 / 个人用户表单 -->
+  <block wx:if="{{orderMode === 'quick'}}">
   <!-- 服务类型 -->
   <view class="form-section">
     <view class="section-title">选择服务类型</view>
@@ -21,6 +139,11 @@
               bindinput="onDescriptionInput" 
               maxlength="150"
               class="desc-textarea"/>
+    <!-- 语音输入按钮：白底长方形 -->
+    <view class="voice-btn {{isRecording ? 'voice-btn-recording' : ''}}" catchtap="onMicTap">
+      <text class="voice-btn-icon">🎤</text>
+      <text class="voice-btn-text">{{isRecording ? '录音中…' : '语音输入'}}</text>
+    </view>
   </view>
 
   <!-- 上传图片 -->
@@ -34,11 +157,41 @@
     </view>
   </view>
 
-  <!-- 服务地址 -->
+  <!-- 定向下单 -->
   <view class="form-section">
-  <view class="section-title">服务地址</view>
+    <view class="directed-row">
+      <text class="directed-label">定向下单</text>
+      <switch checked="{{isDirected}}" bindchange="onDirectedToggle" color="#0F9D58"/>
+    </view>
+    <view wx:if="{{isDirected}}" class="directed-detail">
+      <view class="workno-search">
+        <input placeholder="输入电工工号（如 37020010）"
+               value="{{workNo}}"
+               bindinput="onWorkNoInput"
+               maxlength="8"
+               type="number"
+               class="workno-input"/>
+        <button size="mini"
+                type="primary"
+                bindtap="searchElectrician"
+                loading="{{searchingElectrician}}"
+                disabled="{{workNo.length < 8}}">搜索</button>
+      </view>
+      <view wx:if="{{searchedElectrician}}" class="electrician-card">
+        <text class="electrician-name">{{searchedElectrician.name}}</text>
+        <text class="electrician-wn">工号 {{searchedElectrician.workNo}}</text>
+      </view>
+      <view wx:elif="{{searchEmpty}}" class="search-empty">未找到该工号对应的电工</view>
+      <view wx:if="{{searchedElectrician}}" class="directed-hint">
+        <text>定向下单无需选择服务地址，工单将直接分配给该电工</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 服务地址（非定向时展示） -->
+  <view class="form-section" wx:if="{{!isDirected}}">
+    <view class="section-title">服务地址</view>
     <view class="form-item" bindtap="openAddressSheet">
-     
       <view class="value">
         <text wx:if="{{selectedAddressStr}}">{{selectedAddressStr}}</text>
         <text wx:else class="placeholder">点击选择地址</text>
@@ -60,14 +213,10 @@
         <text>工业用电</text>
       </label>
     </radio-group>
-    <view class="electricity-tip" wx:if="{{electricityType === 'industrial'}}">
-
-   
-    </view>
   </view>
 
   <!-- 复选框 -->
-    <view class="form-section">
+  <view class="form-section">
     <view class="terms-row">
       <checkbox-group bindchange="onAgreeChange">
         <label class="terms-label">
@@ -107,6 +256,41 @@
     </scroll-view>
     <view class="sheet-footer">
       <button class="footer-btn primary" bindtap="addAddress">服务地址</button>
+    </view>
+  </view>
+
+</block>
+
+  <!-- 语音录音弹出层（单日快修 & 多日工程共用） -->
+  <view class="record-mask" wx:if="{{showRecordPanel}}" catchtap="noop">
+    <view class="record-panel" catchtouchmove="true">
+
+      <!-- 顶部：标题 + 关闭按钮 -->
+      <view class="record-header">
+        <text class="record-title">语音输入</text>
+        <view class="record-close" catchtap="onRecordClose">×</view>
+      </view>
+
+      <!-- 波形动画 -->
+      <view class="wave-box">
+        <view class="wave-bar"
+              wx:for="{{waveBars}}"
+              wx:key="index"
+              style="height: {{item}}rpx;"></view>
+      </view>
+
+      <!-- 实时识别文字展示区 -->
+      <view class="record-result-box">
+        <text class="record-result-text" wx:if="{{realtimeText}}">{{realtimeText}}</text>
+        <text class="record-result-placeholder" wx:else>正在识别，请说话…</text>
+      </view>
+
+      <!-- 底部按钮 -->
+      <view class="record-actions">
+        <button class="record-cancel-btn" catchtap="onRecordClose">取消</button>
+        <button class="record-confirm-btn" catchtap="onRecordConfirm">结束并输入文字</button>
+      </view>
+
     </view>
   </view>
 

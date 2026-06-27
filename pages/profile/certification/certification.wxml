@@ -51,7 +51,7 @@
 
     <view class="form-group">
       <view class="form-label">电工证号</view>
-      <input class="form-input" placeholder="请输入电工证编号" value="{{formData.certificateNumber}}" data-field="certificateNumber" bindinput="onInputChange" disabled="{{mode === 'view' && certificationStatus !== 'approved'}}" />
+      <input class="form-input" placeholder="输入身份证号后自动生成" value="{{formData.certificateNumber}}" disabled />
     </view>
 
     <view class="form-group">

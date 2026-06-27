@@ -1,0 +1,42 @@
+<!--pages/enterprise/electrician-review/electrician-review.wxml-->
+<view class="container">
+  <view class="review-card">
+    <view class="card-title">评价企业</view>
+    <view class="card-desc">请对本次多日工程的用工企业进行评价</view>
+
+    <!-- 星级评分 -->
+    <view class="rating-section">
+      <text class="rating-label">评分</text>
+      <view class="rating-stars">
+        <block wx:for="{{[1,2,3,4,5]}}" wx:for-item="star" wx:key="star">
+          <view
+            class="star {{star <= rating ? 'active' : ''}}"
+            data-value="{{star}}"
+            bindtap="setRating"
+          >★</view>
+        </block>
+      </view>
+    </view>
+
+    <!-- 评价内容 -->
+    <view class="comment-section">
+      <text class="comment-label">评价内容（选填）</text>
+      <textarea
+        class="comment-input"
+        placeholder="分享您的服务体验..."
+        value="{{comment}}"
+        bindinput="onCommentInput"
+        maxlength="500"
+      ></textarea>
+    </view>
+
+    <!-- 提交按钮 -->
+    <button
+      class="submit-btn {{submitting ? 'disabled' : ''}}"
+      bindtap="submitReview"
+      disabled="{{submitting}}"
+    >
+      {{submitting ? '提交中...' : '提交评价'}}
+    </button>
+  </view>
+</view>

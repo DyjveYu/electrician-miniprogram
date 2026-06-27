@@ -1,0 +1,77 @@
+<!--pages/enterprise/project-review/project-review.wxml-->
+<view class="container">
+  <view wx:if="{{!loading && electricians.length > 0}}" class="content-wrapper">
+
+    <!-- 工单状态提示 -->
+    <view class="status-bar">
+      <text class="status-label">工单状态：</text>
+      <text class="status-value">{{orderStatus}}</text>
+    </view>
+
+    <!-- 电工列表 -->
+    <view class="electrician-card" wx:for="{{electricians}}" wx:key="electricianId">
+      <!-- 电工信息头 -->
+      <view class="card-header">
+        <view class="electrician-info">
+          <text class="name">{{item.name}}</text>
+          <text class="workno">工号：{{item.workNo}}</text>
+        </view>
+        <view class="status-tag {{item.status}}">
+          <text>{{item.statusText}}</text>
+        </view>
+      </view>
+
+      <!-- 待评价：显示评分和评论输入 -->
+      <view class="review-form" wx:if="{{item.status === 'pending_review' || item.status === 'pending_second_review'}}">
+        <view class="rating-section">
+          <text class="rating-label">评分：</text>
+          <view class="rating-stars">
+            <block wx:for="{{[1,2,3,4,5]}}" wx:for-item="star" wx:key="star">
+              <view
+                class="star {{star <= ratings[item.electricianId] ? 'active' : ''}}"
+                data-id="{{item.electricianId}}"
+                data-value="{{star}}"
+                bindtap="setRating"
+              >★</view>
+            </block>
+          </view>
+        </view>
+        <textarea
+          class="comment-input"
+          placeholder="填写评价内容（选填）"
+          value="{{comments[item.electricianId]}}"
+          data-id="{{item.electricianId}}"
+          bindinput="onCommentInput"
+          maxlength="500"
+        ></textarea>
+        <button
+          class="submit-btn {{submitting[item.electricianId] ? 'disabled' : ''}}"
+          data-id="{{item.electricianId}}"
+          bindtap="submitReview"
+          disabled="{{submitting[item.electricianId]}}"
+        >
+          {{submitting[item.electricianId] ? '提交中...' : '提交评价'}}
+        </button>
+      </view>
+
+      <!-- 已评价：显示结果 -->
+      <view class="review-done" wx:else>
+        <text class="done-text">
+          {{item.status === 'completed_settled' ? '✓ 五星评价，已结算' : '✗ 未结算'}}
+        </text>
+      </view>
+    </view>
+
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{!loading && electricians.length === 0}}">
+    <text class="empty-icon">📋</text>
+    <text class="empty-text">暂无电工信息</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

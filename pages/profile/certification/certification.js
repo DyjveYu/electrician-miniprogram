@@ -216,9 +216,17 @@ Page({
     const { field } = e.currentTarget.dataset;
     const { value } = e.detail;
 
-    this.setData({
-      [`formData.${field}`]: value
-    });
+    if (field === 'idCard') {
+      // 自动生成电工证号：T + 身份证号
+      this.setData({
+        'formData.idCard': value,
+        'formData.certificateNumber': value ? 'T' + value : ''
+      });
+    } else {
+      this.setData({
+        [`formData.${field}`]: value
+      });
+    }
 
     this.checkFormValid();
   },

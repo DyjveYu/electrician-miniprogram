@@ -1,5 +1,5 @@
 {
-  "libVersion": "3.10.1",
+  "libVersion": "3.10.3",
   "projectname": "electrician-miniprogram",
   "condition": {
     "miniprogram": {

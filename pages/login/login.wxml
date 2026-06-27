@@ -9,18 +9,14 @@
 
   <!-- 登录表单 -->
   <view class="login-form">
-    <view class="form-title">数字赋能电工，服务贴心到家</view>
-    
+    <view class="form-title">找电工 上着安</view>
+    <view class="form-title">专业电工平台 服务千家万户</view>
     <!-- 角色选择 -->
     <view class="role-selector">
       <view class="role-option {{selectedRole === 'user' ? 'active' : ''}}" bindtap="selectRole" data-role="user">
-        <view class="role-icon">👤</view>
-        <text class="role-text">我是用户</text>
+        <text class="role-text">我要找电工</text>
       </view>
-      <view class="role-option {{selectedRole === 'electrician' ? 'active' : ''}}" bindtap="selectRole" data-role="electrician">
-        <view class="role-icon">⚡</view>
-        <text class="role-text">我是电工</text>
-      </view>
+      
     </view>
     
     <!-- 手机号输入 -->
@@ -87,6 +83,18 @@
       </view>
     </view>
   </view>
+
+  <view class="role-selector role-selector-inline">
+      <view class="role-option {{selectedRole === 'electrician' ? 'active' : ''}}" bindtap="selectRole" data-role="electrician">
+        <text class="role-text">我是电工</text>
+      </view>
+      <view class="role-option {{selectedRole === 'enterprise' ? 'active' : ''}}" bindtap="selectRole" data-role="enterprise">
+        <text class="role-text">我是企业</text>
+      </view>
+      <view class="role-option" bindtap="selectRole" data-role="learn">
+        <text class="role-text">我要学电工</text>
+      </view>
+    </view>
   </view>
 
 
@@ -96,8 +104,7 @@
 
   <!-- 底部信息 -->
   <view class="footer">
-    <view class="footer-text">客服电话：400-123-4567</view>
-    <view class="footer-text">工作时间：9:00-18:00</view>
+  
   </view>
 </view>
 

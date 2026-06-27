@@ -1,0 +1,190 @@
+/* pages/enterprise/project-review/project-review.wxss */
+.container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding-bottom: 40rpx;
+}
+
+.content-wrapper {
+  padding: 20rpx;
+}
+
+/* 工单状态条 */
+.status-bar {
+  background-color: #fff;
+  border-radius: 12rpx;
+  padding: 24rpx 32rpx;
+  margin-bottom: 20rpx;
+  display: flex;
+  align-items: center;
+}
+
+.status-label {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.status-value {
+  font-size: 28rpx;
+  color: #ff6b00;
+  font-weight: 600;
+}
+
+/* 电工卡片 */
+.electrician-card {
+  background-color: #fff;
+  border-radius: 16rpx;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.06);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.electrician-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.workno {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 状态标签 */
+.status-tag {
+  padding: 8rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+}
+
+.status-tag.pending_review {
+  background-color: #fff3e0;
+  color: #e65100;
+}
+
+.status-tag.pending_second_review {
+  background-color: #fce4ec;
+  color: #c62828;
+}
+
+.status-tag.completed_settled {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-tag.completed_unsettle {
+  background-color: #f5f5f5;
+  color: #757575;
+}
+
+/* 评价表单 */
+.review-form {
+  padding-top: 10rpx;
+}
+
+.rating-section {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.rating-label {
+  font-size: 28rpx;
+  color: #333;
+  margin-right: 16rpx;
+}
+
+.rating-stars {
+  display: flex;
+}
+
+.star {
+  font-size: 48rpx;
+  color: #ddd;
+  margin-right: 6rpx;
+  transition: color 0.2s;
+}
+
+.star.active {
+  color: #ffb300;
+}
+
+.comment-input {
+  width: 100%;
+  min-height: 120rpx;
+  background-color: #f9f9f9;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  margin-bottom: 20rpx;
+  box-sizing: border-box;
+}
+
+.submit-btn {
+  width: 100%;
+  background-color: #1989fa;
+  color: #fff;
+  font-size: 30rpx;
+  border-radius: 12rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+}
+
+.submit-btn.disabled {
+  opacity: 0.6;
+}
+
+/* 已评价结果 */
+.review-done {
+  padding: 16rpx 0;
+  text-align: center;
+}
+
+.done-text {
+  font-size: 28rpx;
+  color: #666;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 200rpx 0;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 加载状态 */
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 200rpx 0;
+  font-size: 28rpx;
+  color: #999;
+}

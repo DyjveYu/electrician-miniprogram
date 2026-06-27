@@ -3,16 +3,17 @@ App({
   globalData: {
     userInfo: null,
     token: null,
-    //baseUrl: 'https://electrician.mijutime.com/api', // 阿里云 API地址
-    //baseUrl: 'http://localhost:3000/api', // 本地开发环境API地址
-    baseUrl: 'https://api.51zoon.com/api',  
+    baseUrl: 'https://electrician.mijutime.com/api', // 阿里云 API地址；测试环境
+    //baseUrl: 'http://192.168.1.5:3000/api', // ⭐本地开发环境API地址
+    //baseUrl: 'http://localhost:3000/api', // ⭐本地开发环境API地址
+    //baseUrl: 'https://api.51zoon.com/api',  // ⭐ 
     imageBaseUrl: 'https://api.51zoon.com',     // 用于拼接图片URL
     isLogin: false,
     currentRole: 'user', // user | electrician
     systemInfo: null,
     location: null,
-    paymentMethod: 'wechat', // 支付方式全局配置：生产默认微信支付 wechat ；开发可自动走测试支付test
-    mchId: '1103388382' // ⭐ 添加你的商户号
+    paymentMethod: 'wechat', //  ⭐ 支付方式全局配置：生产默认微信支付 wechat ；开发可自动走测试支付 test
+    mchId: '1103388382' //  添加你的商户号
   },
 
   onLaunch() {
@@ -346,7 +347,6 @@ App({
     }
     return false;
   },
-
   /**
    * 更新全局用户状态（用于同步最新的冻结状态）
    */
