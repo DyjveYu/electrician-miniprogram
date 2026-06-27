@@ -3,10 +3,10 @@ App({
   globalData: {
     userInfo: null,
     token: null,
-    //baseUrl: 'https://electrician.mijutime.com/api', // 阿里云 API地址；测试环境
+    baseUrl: 'https://electrician.mijutime.com/api', // 阿里云 API地址；测试环境
     //baseUrl: 'http://192.168.1.5:3000/api', // ⭐本地开发环境API地址
     //baseUrl: 'http://localhost:3000/api', // ⭐本地开发环境API地址
-    baseUrl: 'https://api.51zoon.com/api',  // ⭐ 
+    //baseUrl: 'https://api.51zoon.com/api',  // ⭐ 
     imageBaseUrl: 'https://api.51zoon.com',     // 用于拼接图片URL
     isLogin: false,
     currentRole: 'user', // user | electrician

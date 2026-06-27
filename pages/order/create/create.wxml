@@ -259,7 +259,9 @@
     </view>
   </view>
 
-  <!-- 语音录音弹出层 -->
+</block>
+
+  <!-- 语音录音弹出层（单日快修 & 多日工程共用） -->
   <view class="record-mask" wx:if="{{showRecordPanel}}" catchtap="noop">
     <view class="record-panel" catchtouchmove="true">
 
@@ -291,7 +293,5 @@
 
     </view>
   </view>
-
-</block>
 
 </view>
