@@ -117,7 +117,7 @@
 
 .label {
   color: #666;
-  width: 170rpx;
+  width: 200rpx;
   flex-shrink: 0;
 }
 
@@ -655,4 +655,73 @@
   padding: 100rpx 0;
   font-size: 28rpx;
   color: #999;
+}
+
+/* 多日工程：已招募电工列表 */
+.electrician-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.electrician-item:last-child {
+  border-bottom: none;
+}
+
+.electrician-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.electrician-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.electrician-workno {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.electrician-phone-icon {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e8f5e9;
+  border-radius: 50%;
+}
+
+.phone-icon {
+  font-size: 36rpx;
+}
+
+/* 多日工程：企业端招募中静态提示 */
+.recruiting-hint {
+  margin: 0 20rpx 20rpx 20rpx;
+  padding: 24rpx 32rpx;
+  background-color: #fff8e1;
+  border-left: 6rpx solid #ffa000;
+  border-radius: 8rpx;
+}
+
+.hint-text {
+  font-size: 26rpx;
+  color: #e65100;
+  line-height: 1.6;
+}
+
+/* 退单按钮（危险操作） */
+.main-action-btn.danger {
+  background-color: #f56c6c;
+  color: #fff;
+}
+
+.main-action-btn.danger:active {
+  background-color: #e54848;
 }

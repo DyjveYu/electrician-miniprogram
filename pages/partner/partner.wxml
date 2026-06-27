@@ -1,0 +1,68 @@
+<!-- pages/partner/partner.wxml -->
+<view class="container">
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading-wrap">
+    <text>加载中...</text>
+  </view>
+
+  <block wx:else>
+    <!-- 合作伙伴信息卡片 -->
+    <view class="partner-card">
+      <view class="partner-name">{{partnerInfo.name}}</view>
+      <view class="partner-rate">提成比例：{{partnerInfo.commissionRate}}%</view>
+      <view class="partner-areas">
+        <text class="area-label">负责区域：</text>
+        <block wx:for="{{partnerInfo.areas}}" wx:key="index">
+          <text class="area-tag">{{item.province}}{{item.city}}{{item.district}}</text>
+        </block>
+      </view>
+    </view>
+
+    <!-- 月份选择 + 统计 -->
+    <view class="stats-section">
+      <view class="section-header">
+        <view class="section-title">数据统计</view>
+        <picker wx:if="{{months.length > 0}}" mode="selector" range="{{months}}" value="{{selectedIndex}}" bindchange="onMonthChange">
+          <view class="month-picker">{{selectedMonth || '选择月份'}} ▾</view>
+        </picker>
+      </view>
+      <view wx:if="{{!current}}" class="empty-tip">暂无统计数据</view>
+      <block wx:else>
+        <view class="stats-grid">
+          <view class="stat-card">
+            <text class="stat-num">{{current.totalElectricians}}</text>
+            <text class="stat-label">区域电工人数</text>
+          </view>
+          <view class="stat-card">
+            <text class="stat-num">{{current.totalOrders}}</text>
+            <text class="stat-label">当月接单数</text>
+          </view>
+          <view class="stat-card">
+            <text class="stat-num">¥{{current.totalAmount}}</text>
+            <text class="stat-label">当月总金额</text>
+          </view>
+          <view class="stat-card highlight">
+            <text class="stat-num">¥{{current.totalCommission}}</text>
+            <text class="stat-label">当月提成金额</text>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <!-- 电工列表 -->
+    <view class="electrician-section">
+      <view class="section-title">区域电工列表（{{electricians.length}}人）</view>
+      <view wx:if="{{electricians.length === 0}}" class="empty-tip">暂无电工</view>
+      <view wx:for="{{electricians}}" wx:key="index" class="electrician-item">
+        <view class="elec-info">
+          <text class="elec-name">{{item.name}}</text>
+          <text class="elec-district">{{item.district}}</text>
+        </view>
+        <view class="elec-detail">
+          <text class="elec-phone">{{item.phone}}</text>
+          <text class="elec-wn">工号 {{item.workNo}}</text>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

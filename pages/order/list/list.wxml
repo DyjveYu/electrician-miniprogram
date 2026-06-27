@@ -22,9 +22,9 @@
           <text class="info-label">订单编号:</text>
           <text class="info-value">{{item.orderNumber || item.order_no}}</text>
         </view>
-        <view class="info-item">
-          <text class="info-label">服务类型:</text>
-          <text class="info-value">{{item.title || item.serviceTypeName || item.serviceType.name}}</text>
+        <view class="info-item" wx:if="{{item.orderTypeText}}">
+          <text class="info-label">订单类型:</text>
+          <text class="info-value">{{item.orderTypeText}}</text>
         </view>
         <view class="info-item">
           <text class="info-label">用电类型:</text>
@@ -38,14 +38,22 @@
           <text class="info-label">下单时间:</text>
           <text class="info-value">{{item.createTime || item.created_at}}</text>
         </view>
-        <view class="info-item" wx:if="{{item.has_paid_prepay && item.status !== 'cancelled' && item.status !== 'closed'}}">
-          <text class="info-label">预付款:</text>
-          <text class="info-value price">{{item.prepay_amount}}元</text>
+        <!-- 企业多日工程：显示工单总费用（同详情页逻辑） -->
+        <view class="info-item" wx:if="{{item.order_type === 'enterprise_project' && item.totalAmount && item.status !== 'cancelled' && item.status !== 'closed'}}">
+          <text class="info-label">工单总费用:</text>
+          <text class="info-value price">{{item.totalAmount}}元</text>
         </view>
-        <view class="info-item" wx:if="{{item.has_paid_repair}}">
-          <text class="info-label">维修款:</text>
-          <text class="info-value price">{{item.final_amount}}元</text>
-        </view>
+        <!-- 非多日工程：按原逻辑显示预付款/维修款 -->
+        <block wx:else>
+          <view class="info-item" wx:if="{{item.has_paid_prepay && item.status !== 'cancelled' && item.status !== 'closed'}}">
+            <text class="info-label">预付款:</text>
+            <text class="info-value price">{{item.prepay_amount}}元</text>
+          </view>
+          <view class="info-item" wx:if="{{item.has_paid_repair}}">
+            <text class="info-label">维修款:</text>
+            <text class="info-value price">{{item.final_amount}}元</text>
+          </view>
+        </block>
       </view>
 
     </view>

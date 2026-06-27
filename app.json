@@ -22,8 +22,18 @@
     "pages/message/list/list",
     "pages/message/detail/detail",
     "pages/service-types/service-types",
-    "pages/wallet/withdraw/withdraw"
+    "pages/wallet/withdraw/withdraw",
+    "pages/partner/partner",
+    "pages/enterprise/certification/certification",
+    "pages/enterprise/project-review/project-review",
+    "pages/enterprise/electrician-review/electrician-review"
   ],
+  "plugins": {
+    "WechatSI": {
+      "version": "0.3.7",
+      "provider": "wx069ba97219f66d99"
+    }
+  },
   "requiredPrivateInfos": [
     "getLocation",
     "chooseLocation"

@@ -23,6 +23,9 @@ Page({
         this.setData({ currentTab: tabIndex });
       }
     }
+    this.setData({
+      currentRole: app.globalData.currentRole || 'user'
+    });
     this.loadOrders();
   },
 
@@ -31,6 +34,10 @@ Page({
     if (app.checkFrozenAndRedirect()) {
       return;
     }
+    // 更新当前角色
+    this.setData({
+      currentRole: app.globalData.currentRole || 'user'
+    });
     // 页面显示时刷新数据
     this.refreshOrders();
   },
@@ -95,7 +102,27 @@ Page({
           const newOrders = res.data.data.list || [];
           const normalizedOrders = newOrders.map(o => {
             const display = mapOrderToDisplayStatus(o);
-            
+            const appRole = app.globalData.currentRole || 'user';
+
+            // 计算工单总费用（同详情页逻辑）
+            // 注意：列表接口返回 snake_case 字段（如 proj_total_amount），详情接口返回 camelCase（如 projTotalAmount）
+            const isProject = o.order_type === 'enterprise_project';
+            const prepay = Number(o.prepay_amount || o.amount || 0);
+            const repair = Number(o.final_amount || o.repair_amount || 0);
+            const orderStatus = o.status;
+
+            let totalAmount = null;
+            if (isProject && o.proj_total_amount) {
+              // 多日工程：企业和电工看到实际到账金额（扣除15%平台费），同详情页
+              totalAmount = (appRole === 'enterprise' || appRole === 'electrician') ? (Number(o.proj_total_amount) * 0.85).toFixed(2) : Number(o.proj_total_amount).toFixed(2);
+            } else if (['in_progress', 'pending_review', 'completed_settled', 'pending_repair_payment'].includes(orderStatus) && (prepay > 0 || repair > 0)) {
+              // 维修安装费合计：预付款 + 维修款，同详情页 installFee
+              totalAmount = (prepay + repair).toFixed(2);
+            } else if (prepay > 0) {
+              // 仅预付款
+              totalAmount = prepay.toFixed(2);
+            }
+
             return {
               ...o,
               statusText: display.text,
@@ -103,9 +130,11 @@ Page({
               orderNumber: o.orderNumber || o.order_no,
               createTime: this.formatOrderTime(o.createTime || o.created_at),
               serviceTypeName: o.title || o.serviceTypeName || (o.serviceType && o.serviceType.name) || '未知服务',
+              orderTypeText: this.getOrderTypeText(o.order_type || o.orderType),
               electricityTypeName: o.electricityTypeName || (o.electricity_type === 'industrial' ? '工业用电' : o.electricity_type === 'residential' ? '居民用电' : ''),
               // 确保有更新时间字段用于排序
               updatedAt: o.updated_at || o.updatedAt || o.updateTime || o.created_at || o.createTime,
+              totalAmount,
               ...this.computeActionFlags(o)
             };
           });
@@ -279,6 +308,16 @@ Page({
       canPay: (currentRole === 'user' && status === 'completed_settled' && !order.has_paid_repair),
       canReview: (currentRole === 'user' && status === 'completed_settled' && !order.has_review)
     };
+  },
+
+  // 工单类型映射（同详情页 getOrderTypeText）
+  getOrderTypeText(orderType) {
+    const map = {
+      enterprise_project: '企业多日工程',
+      enterprise_quick: '企业快修订单',
+      personal_quick: '个人快修订单'
+    };
+    return map[orderType] || orderType || '';
   },
 
   // 格式化相对时间（保留原方法，可能其他地方用到）

@@ -212,8 +212,10 @@ const getOrderStatusText = (status) => {
     'closed': '交易关闭',
     'pending_second_review': '可追评',
     'completed_unsettle': '非五星订单',
-    'settled': '已结算'
-
+    'settled': '已结算',
+    'recruiting': '招募中',
+    'full': '名额已满',
+    'reviewing': '评价中'
   };
   return statusMap[status] || '未知状态';
 };
@@ -293,6 +295,17 @@ const mapOrderToDisplayStatus = (order) => {
       return { code: 'completed', text: '已完成' };
     }
     return { code: 'pending_review', text: '待评价' };
+  }
+
+  // 多日工程专用状态
+  if (st === 'recruiting') {
+    return { code: 'recruiting', text: '招募中' };
+  }
+  if (st === 'full') {
+    return { code: 'full', text: '名额已满' };
+  }
+  if (st === 'reviewing') {
+    return { code: 'reviewing', text: '评价中' };
   }
 
   return { code: 'unknown', text: getOrderStatusText(st) };

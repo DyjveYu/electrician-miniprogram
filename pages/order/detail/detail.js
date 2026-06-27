@@ -150,7 +150,14 @@ Page({
             repairAmount,
             prefillUpdateAmount,
             // 用电类型映射
-            electricityTypeName: raw.electricityTypeName || (raw.electricity_type === 'industrial' ? '工业用电' : raw.electricity_type === 'residential' ? '居民用电' : '')
+            electricityTypeName: raw.electricityTypeName || (raw.electricity_type === 'industrial' ? '工业用电' : raw.electricity_type === 'residential' ? '居民用电' : ''),
+            // 多日工程：格式化工程时间（YYYY-MM-DD HH:mm）
+            projStartTimeShort: raw.projStartTime ? this.formatShortTime(raw.projStartTime) : '',
+            projEndTimeShort: raw.projEndTime ? this.formatShortTime(raw.projEndTime) : '',
+            // 多日工程：实际到账金额（扣除15%平台费）
+            projActualAmount: raw.projTotalAmount ? (Number(raw.projTotalAmount) * 0.85).toFixed(2) : null,
+            // 工单类型中文映射
+            orderTypeText: this.getOrderTypeText(raw.order_type || raw.orderType)
           };
 
           // 计算“维修安装费”合计（仅在进行中/待评价/已完成展示）
@@ -217,14 +224,23 @@ Page({
     const hasReview = !!(order.has_review || order.reviewed_at);
     // 基础权限
     const canCancel = st === 'pending' || st === 'pending_payment';
-    const canAccept = role === 'electrician' && st === 'pending';
+    const canAccept = role === 'electrician' && (st === 'pending' || st === 'recruiting') && !order.hasJoined;
+    const canWithdraw = role === 'electrician' && (st === 'recruiting' || st === 'full') && order.hasJoined;
     const canComplete = role === 'electrician' && st === 'in_progress';
-    const canConfirmAmount = role === 'user' && (st === 'pending_payment' || st === 'pending_repair_payment');
-    const canPay = role === 'user' && (st === 'pending_payment' || st === 'pending_repair_payment');
-    const canReview = role === 'user' && (st === 'pending_review' || st === 'pending_second_review');
+    const isPayer = role === 'user' || role === 'enterprise';
+    const canConfirmAmount = isPayer && (st === 'pending_payment' || st === 'pending_repair_payment');
+    const canPay = isPayer && (st === 'pending_payment' || st === 'pending_repair_payment');
+    const canReview = isPayer && (st === 'pending_review' || st === 'pending_second_review') && order.order_type !== 'enterprise_project';
     const canSubmitCompletedUpdate = role === 'electrician' && (st === 'accepted' || st === 'pending_repair_payment');
-    const canPayRepairFee = role === 'user' && st === 'pending_repair_payment';
-    return { canCancel, canAccept, canComplete, canConfirmAmount, canPay, canReview, canSubmitCompletedUpdate, canPayRepairFee };
+    const canPayRepairFee = isPayer && st === 'pending_repair_payment';
+    const canReviewProject = role === 'enterprise' && order.order_type === 'enterprise_project' && (st === 'reviewing' || st === 'pending_second_review');
+    // 电工资质评价企业：多日工程 + 已接单 + 未评价 + 主表在评价阶段
+    const canReviewEnterprise = role === 'electrician'
+      && order.order_type === 'enterprise_project'
+      && order.hasJoined
+      && !order.electricianReviewed
+      && ['reviewing', 'pending_second_review', 'completed_settled', 'completed_unsettle'].includes(st);
+    return { canCancel, canAccept, canWithdraw, canComplete, canConfirmAmount, canPay, canReview, canSubmitCompletedUpdate, canPayRepairFee, canReviewProject, canReviewEnterprise };
   },
 
   // 预览图片
@@ -324,7 +340,7 @@ Page({
     if (hour >= 22 || hour < 5) {
       wx.showModal({
         title: '安全提示',
-        content: '如遇到危险，请随时报警处理。',
+        content: '涉及夜间工作，如遇到危险，请随时报警处理。',
         showCancel: false,
         confirmText: '我已知晓'
       });
@@ -361,6 +377,52 @@ Page({
               }, 1500);
             } else {
               wx.showToast({ title: res?.data?.message || '接单失败', icon: 'none' });
+            }
+          },
+          fail: () => {
+            wx.hideLoading();
+            wx.showToast({ title: '网络错误，请重试', icon: 'none' });
+          }
+        });
+      }
+    });
+  },
+
+  // 退单（电工 - 多日工程）
+  withdrawOrder() {
+    const app = getApp();
+
+    wx.showModal({
+      title: '确认退单',
+      content: '确认退出此多日工程订单？',
+      confirmText: '退单',
+      success: (res) => {
+        if (!res.confirm) return;
+
+        wx.showLoading({ title: '退单中...' });
+        wx.request({
+          url: `${app.globalData.baseUrl}/orders/${this.data.orderId}/withdraw`,
+          method: 'POST',
+          header: {
+            'Authorization': `Bearer ${app.globalData.token}`
+          },
+          success: (res) => {
+            wx.hideLoading();
+            const code = res?.data?.code;
+            const ok = code === 0 || code === 200 || res.statusCode === 200 || res?.data?.success === true;
+            if (ok) {
+              wx.showToast({
+                title: '退单成功',
+                icon: 'success',
+                duration: 1500
+              });
+              setTimeout(() => {
+                wx.switchTab({
+                  url: '/pages/order/list/list'
+                });
+              }, 1500);
+            } else {
+              wx.showToast({ title: res?.data?.message || '退单失败', icon: 'none' });
             }
           },
           fail: () => {
@@ -585,6 +647,20 @@ Page({
       return false;
     }
     return true;
+  },
+
+  // 跳转到多日工程电工评价页（企业评价电工）
+  goToProjectReview() {
+    wx.navigateTo({
+      url: `/pages/enterprise/project-review/project-review?orderId=${this.data.orderId}`
+    });
+  },
+
+  // 跳转到多日工程评价企业页（电工评价企业）
+  goToElectricianReview() {
+    wx.navigateTo({
+      url: `/pages/enterprise/electrician-review/electrician-review?orderId=${this.data.orderId}`
+    });
   },
 
   // 去支付 - 直接调用微信支付
@@ -845,6 +921,28 @@ Page({
     const minute = String(date.getMinutes()).padStart(2, '0');
     const second = String(date.getSeconds()).padStart(2, '0');
     return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+  },
+
+  // 格式化短时间（无秒）：YYYY-MM-DD HH:mm
+  formatShortTime(time) {
+    if (!time) return '';
+    const date = new Date(time);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hour = String(date.getHours()).padStart(2, '0');
+    const minute = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hour}:${minute}`;
+  },
+
+  // 工单类型映射
+  getOrderTypeText(orderType) {
+    const map = {
+      enterprise_project: '企业多日工程',
+      enterprise_quick: '企业快修订单',
+      personal_quick: '个人快修订单'
+    };
+    return map[orderType] || orderType || '';
   },
 
   // 手机号脱敏：138****5678

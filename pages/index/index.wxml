@@ -9,8 +9,8 @@
     <text class="location-arrow"></text>
   </view>-->
 
-  <!-- 用户角色界面 -->
-  <view wx:if="{{currentRole === 'user'}}" class="user-content">
+  <!-- 用户/企业角色界面 -->
+  <view wx:if="{{currentRole === 'user' || currentRole === 'enterprise'}}" class="user-content">
     <!-- 主要服务卡片 -->
     <view class="service-card" bindtap="createOrder">
       <view class="service-icon">⚡</view>
@@ -88,11 +88,11 @@
               <text class="order-title">{{item.title}}</text>
               <text class="order-status status-{{item.status}}">{{item.statusText}}</text>
             </view>
-            
+
             <view class="order-details">
               <view class="detail-row">
-                <text class="detail-label">服务类型：</text>
-                <text class="detail-value">{{item.service_type || '电工服务'}}</text>
+                <text class="detail-label">工单类型：</text>
+                <text class="detail-value">{{item.orderTypeText || '电工服务'}}</text>
               </view>
               <view class="detail-row">
                 <text class="detail-label">发布时间：</text>
@@ -107,11 +107,11 @@
                 <text class="detail-value price">￥{{item.expected_price}}</text>
               </view>
             </view>
-            
+
             <view wx:if="{{item.description}}" class="order-description">
               <text class="description-text">{{item.description}}</text>
             </view>
-            
+
             <view class="order-actions">
               <button class="detail-btn" bindtap="viewOrderDetail" data-id="{{item.id}}">查看详情</button>
               <button class="take-order-btn" bindtap="takeOrder" data-id="{{item.id}}">接单</button>

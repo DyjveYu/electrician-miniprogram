@@ -74,20 +74,19 @@
 /* 角色选择器 */
 .role-selector {
   display: flex;
-  gap: 20rpx;
+  flex-direction: column;
+  gap: 16rpx;
   margin-bottom: 48rpx;
 }
 
 .role-option {
-  flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 32rpx 20rpx;
+  padding: 28rpx 20rpx;
   background-color: #f7f8fa;
   border: 2rpx solid #e5e7eb;
-  border-radius: 16rpx;
+  border-radius: 12rpx;
   transition: all 0.3s;
 }
 
@@ -96,19 +95,28 @@
   border-color: #0F9D58;
 }
 
-.role-icon {
-  font-size: 48rpx;
-  margin-bottom: 12rpx;
-}
-
 .role-text {
-  font-size: 28rpx;
+  font-size: 30rpx;
   color: #374151;
   font-weight: 500;
 }
 
 .role-option.active .role-text {
   color: #0F9D58;
+}
+
+/* 底部三按钮横向排列 */
+.role-selector-inline {
+  flex-direction: row;
+}
+
+.role-selector-inline .role-option {
+  flex: 1;
+  padding: 20rpx 12rpx;
+}
+
+.role-selector-inline .role-text {
+  font-size: 26rpx;
 }
 
 .form-group {

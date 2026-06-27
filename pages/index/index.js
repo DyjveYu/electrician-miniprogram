@@ -147,6 +147,52 @@ Page({
 
     // 加载数据
     this.loadData();
+
+    // 检测待评价企业多日工程工单（仅企业/电工角色）
+    if (currentRole === 'enterprise' || currentRole === 'electrician') {
+      this.checkPendingReview();
+    }
+  },
+
+  /**
+   * 检测待评价企业多日工程工单，弹框提醒
+   */
+  checkPendingReview() {
+    const app = getApp();
+    wx.request({
+      url: `${app.globalData.baseUrl}/orders/pending-review-check`,
+      method: 'GET',
+      header: { Authorization: `Bearer ${app.globalData.token}` },
+      success: (res) => {
+        const ok = res?.data?.code === 0 || res?.data?.code === 200 || res?.data?.success === true;
+        if (!ok) return;
+
+        const data = res.data.data || res.data;
+        if (data.hasPending && data.orderId) {
+          wx.showModal({
+            title: '工单已结束',
+            content: '工单已结束，请完成评价',
+            confirmText: '去评价',
+            cancelText: '稍后',
+            success: (modalRes) => {
+              if (modalRes.confirm) {
+                // 企业跳转评价页（评价多位电工），电工跳转评价企业页
+                const role = app.globalData.currentRole;
+                if (role === 'enterprise') {
+                  wx.navigateTo({
+                    url: `/pages/enterprise/project-review/project-review?orderId=${data.orderId}`
+                  });
+                } else if (role === 'electrician') {
+                  wx.navigateTo({
+                    url: `/pages/enterprise/electrician-review/electrician-review?orderId=${data.orderId}`
+                  });
+                }
+              }
+            }
+          });
+        }
+      }
+    });
   },
 
   /**
@@ -207,8 +253,7 @@ Page({
       const params = {
         page: 1,
         limit: 20,
-        my_orders: false, // 获取可接的订单
-        status: 'pending' // 只获取待接单的订单
+        my_orders: false // 获取可接的订单（后端默认返回 pending + recruiting）
       };
 
       console.log('[DEBUG] 请求参数:', params);
@@ -237,11 +282,25 @@ Page({
           return;
         }
 
+        const truncate = (str, maxLen = 12) => {
+          if (!str) return '';
+          return str.length > maxLen ? str.substring(0, maxLen) + '...' : str;
+        };
+
+        const orderTypeMap = {
+          enterprise_project: '企业多日工程',
+          enterprise_quick: '企业快修订单',
+          personal_quick: '个人快修订单'
+        };
+
         const formattedOrders = orders.map(order => {
           console.log('[DEBUG] 处理订单:', order.id, order.title);
           const normalizedStatus = order.status === 'confirmed' ? 'in_progress' : order.status;
           return {
             ...order,
+            title: truncate(order.title),
+            description: truncate(order.description),
+            orderTypeText: orderTypeMap[order.order_type] || order.order_type || '电工服务',
             status: normalizedStatus,
             statusText: getOrderStatusText(normalizedStatus),
             createdTime: formatTime(order.created_at),
@@ -404,9 +463,9 @@ Page({
     }
 
     // 检查用户角色
-    if (this.data.currentRole !== 'user') {
+    if (this.data.currentRole !== 'user' && this.data.currentRole !== 'enterprise') {
       wx.showToast({
-        title: '请切换到用户身份',
+        title: '请切换到用户或企业身份',
         icon: 'none'
       });
       return;

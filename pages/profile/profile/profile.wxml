@@ -19,14 +19,14 @@
         <image class="avatar" src="{{userInfo.avatar || '/assets/default-avatar.png'}}" />
        
         <view class="role-badge {{currentRole}}">
-          {{currentRole === 'electrician' ? '电工' : '用户'}}
+          {{currentRole === 'enterprise' ? '企业' : (currentRole === 'electrician' ? '电工' : '用户')}}
         </view>
       </view>
       
       <view class="user-info">
      
-         <text class="nickname">{{currentRole === 'user' ? '用户' + ((userInfo.phone && userInfo.phone.length >= 4) ? userInfo.phone.slice(-4) : '') : (userInfo.isElectrician ? (userInfo.real_name || userInfo.nickname) : '电工' + ((userInfo.phone && userInfo.phone.length >= 4) ? userInfo.phone.slice(-4) : ''))}}</text>
-          
+         <text class="nickname">{{displayName}}</text>
+        <text wx:if="{{currentRole === 'electrician' && electricianInfo && electricianInfo.work_no}}" class="work-no">工号：{{electricianInfo.work_no}}</text>
        <!-- 电工认证状态：对所有用户可见，用 certificationStatusText 显示当前状态 -->
  
       </view>
@@ -46,7 +46,7 @@
         <text class="stat-number">{{stats.rating || '0.0'}}</text>
         <text class="stat-label">评分</text>
       </view>
-      <view class="stat-item" wx:if="{{currentRole === 'user'}}">
+      <view class="stat-item" wx:if="{{currentRole === 'user' || currentRole === 'enterprise'}}">
         <text class="stat-number">¥{{stats.totalAmount || '0'}}</text>
         <text class="stat-label">总消费</text>
       </view>
@@ -78,6 +78,20 @@
 -->
   <!-- 菜单列表 -->
   <view class="menu-section">
+    <!-- 下单入口 - 仅企业角色显示 -->
+    <view
+      wx:if="{{currentRole === 'enterprise'}}"
+      class="menu-item"
+      bindtap="navigateToCreateOrder"
+    >
+      <view class="menu-icon">📋</view>
+      <view class="menu-content">
+        <text class="menu-title">我要下单</text>
+        <text class="menu-desc">单日快修，快速下单</text>
+      </view>
+      <text class="menu-arrow">></text>
+    </view>
+
     <!-- 地址管理 -->
     <view 
       class="menu-item"
@@ -158,7 +172,7 @@
       <text class="menu-arrow">></text>
     </view>
 
-    <view 
+    <view
       class="menu-item"
       bindtap="navigateToAbout"
     >
@@ -166,6 +180,37 @@
       <view class="menu-content">
         <text class="menu-title">关于我们</text>
         <text class="menu-desc">版本信息、联系方式</text>
+      </view>
+      <text class="menu-arrow">></text>
+    </view>
+
+    <!-- 企业认证入口 - 仅企业角色显示 -->
+    <view
+      wx:if="{{currentRole === 'enterprise'}}"
+      class="menu-item"
+      bindtap="handleEnterpriseCertification"
+    >
+      <view class="menu-icon">🏢</view>
+      <view class="menu-content">
+        <text class="menu-title">企业认证</text>
+        <text class="menu-desc">{{enterpriseCertStatusText || '申请企业认证'}}</text>
+      </view>
+      <view class="certification-badge" wx:if="{{enterpriseCertStatusText}}">
+        <text class="badge-text {{enterpriseCertStatus === 'approved' ? 'certified' : 'pending'}}">{{enterpriseCertStatusText}}</text>
+      </view>
+      <text class="menu-arrow">></text>
+    </view>
+
+    <!-- 合作伙伴入口 - 仅活跃合作伙伴显示 -->
+    <view
+      wx:if="{{isPartner}}"
+      class="menu-item partner-entry"
+      bindtap="navigateToPartner"
+    >
+      <view class="menu-icon">🤝</view>
+      <view class="menu-content">
+        <text class="menu-title">合作伙伴</text>
+        <text class="menu-desc">查看区域数据统计</text>
       </view>
       <text class="menu-arrow">></text>
     </view>
