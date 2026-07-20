@@ -108,7 +108,7 @@
     </view>
 
     <!-- 收入金额 - 仅电工角色显示 -->
-    <view 
+    <view
       wx:if="{{currentRole === 'electrician'}}"
       class="menu-item"
       bindtap="navigateToWallet"
@@ -117,6 +117,34 @@
       <view class="menu-content">
         <text class="menu-title">收入金额</text>
         <text class="menu-desc">可提现: ¥{{wallet.available_balance || '0.00'}}</text>
+      </view>
+      <text class="menu-arrow">></text>
+    </view>
+
+    <!-- 推荐达人 - 仅推荐达人角色显示 -->
+    <view
+      wx:if="{{isReferrer}}"
+      class="menu-item"
+      bindtap="navigateToReferrer"
+    >
+      <view class="menu-icon">📢</view>
+      <view class="menu-content">
+        <text class="menu-title">推荐达人</text>
+        <text class="menu-desc">分享链接赚取佣金</text>
+      </view>
+      <text class="menu-arrow">></text>
+    </view>
+
+    <!-- 佣金收入 - 推荐达人/合作伙伴显示 -->
+    <view
+      wx:if="{{isReferrer || isPartner}}"
+      class="menu-item"
+      bindtap="navigateToIncome"
+    >
+      <view class="menu-icon">💰</view>
+      <view class="menu-content">
+        <text class="menu-title">佣金收入</text>
+        <text class="menu-desc">查看佣金明细与提现</text>
       </view>
       <text class="menu-arrow">></text>
     </view>

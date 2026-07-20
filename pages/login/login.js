@@ -27,7 +27,9 @@ Page({
   },
 
   onLoad() {
-    console.log('登录页面加载');
+    // 从 app globalData 读取版本号
+    this.setData({ version: app.globalData.version });
+    console.log('登录页面加载，版本号:', this.data.version);
     console.log('初始 selectedRole:', this.data.selectedRole);
     this.checkTestEnvironment();
   },

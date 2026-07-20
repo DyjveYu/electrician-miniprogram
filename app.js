@@ -3,32 +3,81 @@ App({
   globalData: {
     userInfo: null,
     token: null,
-    baseUrl: 'https://electrician.mijutime.com/api', // 阿里云 API地址；测试环境
-    //baseUrl: 'http://192.168.1.5:3000/api', // ⭐本地开发环境API地址
-    //baseUrl: 'http://localhost:3000/api', // ⭐本地开发环境API地址
-    //baseUrl: 'https://api.51zoon.com/api',  // ⭐ 
+    version: 'v1.1.2', // ⭐小程序版本号，与 app.json 同步维护
+    //baseUrl: 'https://electrician.mijutime.com/api', // 阿里云 API地址；测试环境
+     // baseUrl: 'http://192.168.1.9:3000/api', // ⭐本地开发环境API地址
+    baseUrl: 'http://localhost:3000/api', // ⭐本地开发环境API地址
+    //baseUrl: 'https://api.51zoon.com/api',  // ⭐
     imageBaseUrl: 'https://api.51zoon.com',     // 用于拼接图片URL
     isLogin: false,
     currentRole: 'user', // user | electrician
     systemInfo: null,
     location: null,
-    paymentMethod: 'wechat', //  ⭐ 支付方式全局配置：生产默认微信支付 wechat ；开发可自动走测试支付 test
+    paymentMethod: 'test', //  ⭐ 支付方式全局配置：生产默认微信支付 wechat ；开发可自动走测试支付 test
     mchId: '1103388382' //  添加你的商户号
   },
 
-  onLaunch() {
-    console.log('小程序启动');
+  onLaunch(options) {
+    console.log('小程序启动', options);
 
     // 获取系统信息
     this.getSystemInfo();
 
     // 检查登录状态
     this.checkLoginStatus();
+
+    // 解析推荐人参数（从分享链接/二维码进入）
+    this._parseReferrer(options);
+
     // 位置权限不在启动阶段申请，避免重复弹窗；在真正需要定位的页面再调用
   },
 
-  onShow() {
-    console.log('小程序显示');
+  onShow(options) {
+    console.log('小程序显示', options);
+    // 每次显示时重新解析推荐人参数（覆盖旧会话的推荐人）
+    this._parseReferrer(options);
+  },
+
+  /**
+   * 解析推荐人参数：从分享链接或二维码中提取 referrer_id
+   * 当次会话有效，退出后失效
+   */
+  _parseReferrer(options) {
+    if (!options) {
+      console.log('[App _parseReferrer] options 为 null/undefined');
+      return;
+    }
+    console.log('[App _parseReferrer] options=', JSON.stringify(options));
+    let referrerId = null;
+
+    // 从 query 参数中获取（分享链接）
+    if (options.query && options.query.referrer_id) {
+      referrerId = options.query.referrer_id;
+    }
+    // 从 scene 参数中获取（二维码扫码），scene 需要 decodeURIComponent
+    if (options.scene) {
+      const sceneStr = decodeURIComponent(options.scene);
+      const match = sceneStr.match(/referrer_id=(\d+)/);
+      if (match) {
+        referrerId = match[1];
+      }
+    }
+
+    // 从 path 中提取（如 /pages/index/index?referrer_id=123）
+    if (!referrerId && options.path) {
+      const pathMatch = options.path.match(/referrer_id=(\d+)/);
+      if (pathMatch) {
+        referrerId = pathMatch[1];
+      }
+    }
+
+    if (referrerId) {
+      console.log('[App] 检测到推荐人ID:', referrerId);
+      wx.setStorageSync('referrer_id', referrerId);
+      this.globalData.referrerId = referrerId;
+    } else {
+      // 没有新的推荐人参数时不清除已有缓存（允许跨页面流转）
+    }
   },
 
   onHide() {

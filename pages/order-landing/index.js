@@ -1,4 +1,8 @@
-// pages/order/create/create.js
+// pages/order-landing/index.js — 分享/扫码独立落地页
+// 与 pages/order/create/create.js 功能一致，差异：
+//   - onLoad 先匿名登录，不跳登录页
+//   - submitOrder 提交后页面显示成功状态，不跳转支付页
+//   - 自动携带 referrer_id
 const plugin = requirePlugin('WechatSI')
 const manager = plugin.getRecordRecognitionManager()
 
@@ -42,6 +46,17 @@ function calculateCurrentPrepayAmount(feeList = []) {
 
 Page({
   data: {
+    // 匿名登录状态
+    token: '',
+    userId: null,
+    hasPhone: false,
+    referrerId: null,
+    loggedIn: false,
+    loginError: '',
+    // 提交成功状态
+    orderSubmitted: false,
+    submittedOrderNo: '',
+
     serviceTypes: [],
     selectedServiceTypeId: null,
     selectedServiceType: null,
@@ -75,9 +90,9 @@ Page({
     waveBars: [20, 35, 50, 65, 80, 65, 50, 35, 20],
     // 企业多日工程
     userType: 'user',
-    orderMode: 'quick',        // quick | project
+    orderMode: 'quick',
     projRequiredCount: 2,
-    projRequiredRange: Array.from({ length: 29 }, (_, i) => i + 2), // 2-30
+    projRequiredRange: Array.from({ length: 29 }, (_, i) => i + 2),
     projStartDate: '',
     projStartTime: '',
     projEndDate: '',
@@ -92,28 +107,30 @@ Page({
     projectSubmitting: false
   },
 
-  onLoad() {
-    const app = getApp();
-    if (!app.globalData.token || !app.globalData.userInfo) {
-      wx.showToast({ title: '请先登录', icon: 'none', duration: 1500 });
-      setTimeout(() => { wx.reLaunch({ url: '/pages/login/login' }); }, 1500);
-      return;
+  onLoad(options) {
+    // 解析推荐人 ID
+    let referrerId = null;
+    if (options && options.scene) {
+      const sceneStr = decodeURIComponent(options.scene);
+      const match = sceneStr.match(/(\d+)/);
+      if (match) referrerId = match[1];
     }
-    // 检查用户类型
-    const userType = app.globalData.currentRole || 'user';
-    this.setData({ userType });
-    // 企业用户加载认证信息（用于区校验）
-    if (userType === 'enterprise') {
-      this.loadEnterpriseCert();
+    if (options && options.referrer_id) {
+      referrerId = options.referrer_id;
     }
-    this.loadServiceTypes();
-    this.getUserInfo();
+    if (!referrerId) {
+      referrerId = wx.getStorageSync('referrer_id') || null;
+    }
+    this.setData({ referrerId });
+
+    // 初始化语音识别
     this._initVoice();
+
+    // 匿名登录后再加载服务类型
+    this._anonymousLogin();
   },
 
   onShow() {
-    const app = getApp();
-    if (app.checkFrozenAndRedirect()) return;
     if (this.data.showAddressSheet) this.loadAddresses();
   },
 
@@ -121,20 +138,61 @@ Page({
     clearInterval(this._waveTimer);
   },
 
-  // 空方法，防止弹层背景点击穿透
   noop() {},
 
-  // ─── 语音输入 ────────────────────────────────────────────
+  // ── 匿名登录 ──
+  async _anonymousLogin() {
+    wx.showLoading({ title: '加载中...' });
+    try {
+      const loginRes = await new Promise((resolve, reject) => {
+        wx.login({ success: resolve, fail: reject });
+      });
+      if (!loginRes.code) throw new Error('微信登录失败');
+
+      const res = await new Promise((resolve, reject) => {
+        wx.request({
+          url: `${getApp().globalData.baseUrl}/auth/anonymous-login`,
+          method: 'POST',
+          data: { code: loginRes.code },
+          success: resolve,
+          fail: reject
+        });
+      });
+
+      wx.hideLoading();
+
+      if (res.data && (res.data.code === 200 || res.data.success)) {
+        const data = res.data.data || {};
+        this.setData({
+          token: data.token,
+          userId: data.user?.id,
+          hasPhone: data.user?.has_phone || false,
+          contactPhone: data.user?.phone || '',
+          loggedIn: true,
+          loginError: ''
+        });
+        getApp().globalData.token = data.token;
+
+        // 登录成功后加载服务类型等数据
+        this.loadServiceTypes();
+        this.getUserInfo();
+      } else {
+        this.setData({ loginError: res.data?.message || '登录失败，请重试' });
+      }
+    } catch (err) {
+      wx.hideLoading();
+      this.setData({ loginError: '网络错误，请重试' });
+    }
+  },
+
+  // ─── 语音输入 ─────────────────────────────────────────────
 
   _initVoice() {
-    // 实时识别回调：流式更新展示文字
     manager.onRecognize = (res) => {
       if (res.result) {
         this.setData({ realtimeText: res.result });
       }
     };
-
-    // 录音开始：启动波形动画
     manager.onStart = () => {
       this._waveTimer = setInterval(() => {
         this.setData({
@@ -142,19 +200,15 @@ Page({
         });
       }, 120);
     };
-
-    // 录音结束：将最终识别文字存入 confirmedText，等待用户点"结束并输入文字"
     manager.onStop = (res) => {
       clearInterval(this._waveTimer);
       this.setData({
         isRecording: false,
         waveBars: [20, 35, 50, 65, 80, 65, 50, 35, 20],
-        // 用最终结果覆盖实时文字（更准确）
         realtimeText: res.result || this.data.realtimeText,
         confirmedText: res.result || this.data.realtimeText,
       });
     };
-
     manager.onError = () => {
       clearInterval(this._waveTimer);
       this.setData({
@@ -165,10 +219,8 @@ Page({
     };
   },
 
-  // 点击"语音输入"按钮：开始录音 / 再次点击停止录音
   onMicTap() {
     if (this.data.isRecording) {
-      // 正在录音时再次点击 → 停止，让 onStop 回调处理文字
       manager.stop();
       return;
     }
@@ -193,28 +245,19 @@ Page({
     });
   },
 
-  // 点击"结束并输入文字"：停止录音，将文字写入输入框，关闭弹层
   onRecordConfirm() {
     if (this.data.isRecording) {
-      // 先停止录音，onStop 回调会更新 confirmedText
-      // 使用 wx.nextTick 确保 onStop 回调执行完毕后再写入
       manager.stop();
-      // 稍等 onStop 回调完成后再写入（onStop 是同步触发但内部 setData 异步）
-      setTimeout(() => {
-        this._commitText();
-      }, 300);
+      setTimeout(() => { this._commitText(); }, 300);
     } else {
-      // 录音已自然结束，直接写入
       this._commitText();
     }
   },
 
-  // 将识别文字追加进输入框，关闭弹层
   _commitText() {
     const recognized = this.data.confirmedText || this.data.realtimeText;
     if (recognized) {
       const current = this.data.description || '';
-      const separator = current && !current.endsWith('\n') ? '' : '';
       this.setData({ description: current + recognized });
       this.updateSubmitEnable();
     }
@@ -226,11 +269,8 @@ Page({
     });
   },
 
-  // 点击"取消"或右上角 × ：丢弃识别结果，关闭弹层
   onRecordClose() {
-    if (this.data.isRecording) {
-      manager.stop();
-    }
+    if (this.data.isRecording) { manager.stop(); }
     clearInterval(this._waveTimer);
     this.setData({
       showRecordPanel: false,
@@ -241,7 +281,7 @@ Page({
     });
   },
 
-  // ─── 原有业务逻辑（保持不变）───────────────────────────
+  // ─── 业务逻辑 ────────────────────────────────────────────
 
   getUserInfo() {
     const app = getApp();
@@ -257,7 +297,6 @@ Page({
     const app = getApp();
     const serviceTypesUrl = `${app.globalData.baseUrl}/system/service-types`;
     const timePeriodFeesUrl = `${app.globalData.baseUrl}/system/time-period-fees`;
-    console.log('加载服务类型，URL=', serviceTypesUrl);
     Promise.all([
       new Promise((resolve, reject) => {
         wx.request({ url: serviceTypesUrl, method: 'GET', success: resolve, fail: reject });
@@ -341,26 +380,6 @@ Page({
     });
   },
 
-  openMapChoose() {
-    const that = this;
-    wx.chooseLocation({
-      success(res) {
-        const full = (res.address && res.name) ? `${res.address}${res.name}` : (res.address || res.name || '');
-        that.setData({
-          selectedAddress: { contactName: '', contactPhone: '', province: '', city: '', district: '', detail: full },
-          selectedAddressStr: full,
-          latitude: res.latitude,
-          longitude: res.longitude
-        });
-        that.updateSubmitEnable();
-      },
-      fail(err) {
-        console.error('chooseLocation 失败：', err);
-        wx.showToast({ title: '选择地址失败', icon: 'none' });
-      }
-    });
-  },
-
   openAddressSheet() {
     this.setData({ showAddressSheet: true });
     this.loadAddresses();
@@ -376,7 +395,7 @@ Page({
     wx.request({
       url: `${app.globalData.baseUrl}/addresses`,
       method: 'GET',
-      header: { 'Authorization': `Bearer ${app.globalData.token}` },
+      header: { 'Authorization': `Bearer ${this.data.token}` },
       success: (res) => {
         this.setData({ loadingAddresses: false });
         if (res.data.code === 0 || res.data.code === 200) {
@@ -523,7 +542,7 @@ Page({
         url: `${app.globalData.baseUrl}/upload/order`,
         filePath,
         name: 'order_image',
-        header: { 'Authorization': `Bearer ${app.globalData.token}` },
+        header: { 'Authorization': `Bearer ${this.data.token}` },
         success: (res) => {
           try {
             const data = JSON.parse(res.data);
@@ -545,7 +564,6 @@ Page({
     if (!this.validateForm()) return;
     if (this.data.submitting) return;
     this.setData({ submitting: true });
-    const app = getApp();
 
     let imageUrls = [];
     const localImages = this.data.images || [];
@@ -576,32 +594,38 @@ Page({
       electricity_type: this.data.electricityType,
       isDirected: this.data.isDirected,
       electricianId: this.data.isDirected ? (this.data.searchedElectrician?.id || null) : null,
-      // 推荐达人追踪：从缓存读取 referrer_id，当次会话有效
-      referrerId: wx.getStorageSync('referrer_id') || null
+      referrerId: this.data.referrerId
     };
 
-    console.log('提交的订单 payload:', payload);
-
     wx.request({
-      url: `${app.globalData.baseUrl}/orders`,
+      url: `${getApp().globalData.baseUrl}/orders`,
       method: 'POST',
-      header: { 'Authorization': `Bearer ${app.globalData.token}`, 'Content-Type': 'application/json' },
+      header: { 'Authorization': `Bearer ${this.data.token}`, 'Content-Type': 'application/json' },
       data: payload,
       success: (res) => {
         this.setData({ submitting: false });
-        if (res && res.data && (res.data.code === 0 || res.data.code === 200)) {
-          wx.showToast({ title: '正在支付', icon: 'none' });
-          const orderId = res.data.data?.id || res.data.id;
-          setTimeout(() => {
-            wx.navigateTo({ url: `/pages/payment/payment/payment?orderId=${orderId}` });
-          }, 500);
+        if (res && res.data && (res.data.code === 200 || res.data.success)) {
+          const orderId = res.data.data?.id;
+          wx.showToast({ title: '下单成功', icon: 'success' });
+          if (orderId) {
+            // 跳转到独立订单详情页（用户停留在此）
+            setTimeout(() => {
+              wx.redirectTo({
+                url: `/pages/order-landing-detail/index?id=${orderId}`
+              });
+            }, 800);
+          } else {
+            this.setData({
+              orderSubmitted: true,
+              submittedOrderNo: res.data.data?.order_no || ''
+            });
+          }
         } else {
           wx.showToast({ title: res.data?.message || '提交失败', icon: 'none' });
         }
       },
-      fail: (err) => {
+      fail: () => {
         this.setData({ submitting: false });
-        console.error('提交订单失败：', err);
         wx.showToast({ title: '网络错误，请重试', icon: 'none' });
       }
     });
@@ -621,13 +645,12 @@ Page({
 
   // ─── 企业多日工程 ────────────────────────────────────────────
 
-  // 加载企业认证信息（用于区校验）
   loadEnterpriseCert() {
     const app = getApp();
     wx.request({
       url: `${app.globalData.baseUrl}/miniprogram/enterprise/certification`,
       method: 'GET',
-      header: { 'Authorization': `Bearer ${app.globalData.token}` },
+      header: { 'Authorization': `Bearer ${this.data.token}` },
       success: (res) => {
         const ok = res?.data?.success === true || res?.data?.code === 0 || res?.data?.code === 200;
         if (ok && res.data.data && res.data.data.certStatus === 'approved') {
@@ -637,14 +660,12 @@ Page({
     });
   },
 
-  // 切换下单模式
   switchOrderMode(e) {
     const mode = e.currentTarget.dataset.mode;
     this.setData({ orderMode: mode });
     this.updateProjectSubmitEnable();
   },
 
-  // 多日工程 - 电工人数变更
   onProjCountChange(e) {
     const idx = e.detail.value;
     const count = this.data.projRequiredRange[idx];
@@ -653,7 +674,6 @@ Page({
     this.updateProjectSubmitEnable();
   },
 
-  // 多日工程 - 日期变更
   onProjDateChange(e) {
     const { field } = e.currentTarget.dataset;
     const val = e.detail.value;
@@ -661,7 +681,6 @@ Page({
     this.updateProjectSubmitEnable();
   },
 
-  // 多日工程 - 持证要求变更（多选）
   onProjCertChange(e) {
     const values = e.detail.value || [];
     this.setData({
@@ -671,26 +690,22 @@ Page({
     this.updateProjectSubmitEnable();
   },
 
-  // 多日工程 - 总费用变更
   onProjAmountInput(e) {
     this.setData({ projTotalAmount: e.detail.value });
     this.calcElectricianFee();
     this.updateProjectSubmitEnable();
   },
 
-  // 多日工程 - 省市区变更
   onProjectRegionChange(e) {
     this.setData({ projectRegion: e.detail.value });
     this.updateProjectSubmitEnable();
   },
 
-  // 多日工程 - 详细地址变更
   onProjectAddressInput(e) {
     this.setData({ projectAddressDetail: e.detail.value });
     this.updateProjectSubmitEnable();
   },
 
-  // 计算每个电工应得金额
   calcElectricianFee() {
     const amount = parseFloat(this.data.projTotalAmount);
     const count = this.data.projRequiredCount;
@@ -702,7 +717,6 @@ Page({
     }
   },
 
-  // 多日工程 - 更新提交按钮状态
   updateProjectSubmitEnable() {
     const { projStartDate, projStartTime, projEndDate, projEndTime, projTotalAmount, projectRegion, projectAddressDetail } = this.data;
     const ok = projStartDate && projStartTime && projEndDate && projEndTime
@@ -712,7 +726,6 @@ Page({
     this.setData({ canSubmit: ok });
   },
 
-  // 多日工程 - 表单校验
   validateProjectForm() {
     const { projStartDate, projStartTime, projEndDate, projEndTime,
             projCertLowChecked, projCertHighChecked,
@@ -748,7 +761,6 @@ Page({
       wx.showToast({ title: '请填写详细地址', icon: 'none' }); return false;
     }
 
-    // 区级校验：必须与企业认证地址的区一致
     if (enterpriseCertDistrict && projectRegion[2] !== enterpriseCertDistrict) {
       wx.showToast({ title: `工单地址区(${projectRegion[2]})须与企业认证区(${enterpriseCertDistrict})一致`, icon: 'none' });
       return false;
@@ -765,7 +777,6 @@ Page({
     return true;
   },
 
-  // 多日工程 - 提交
   async submitProjectOrder() {
     if (!this.validateProjectForm()) return;
     if (this.data.projectSubmitting) return;
@@ -776,13 +787,11 @@ Page({
             projEndDate, projEndTime, projCertLowChecked, projCertHighChecked,
             projTotalAmount, contactPhone, projectRegion, projectAddressDetail } = this.data;
 
-    // 构建持证要求：逗号分隔
     const certReqs = [];
     if (projCertLowChecked) certReqs.push('low_voltage');
     if (projCertHighChecked) certReqs.push('high_voltage');
     const projCertRequirement = certReqs.join(',');
 
-    // 构建完整 datetime
     const startDateTime = projStartDate + ' ' + projStartTime + ':00';
     const endDateTime = projEndDate + ' ' + projEndTime + ':00';
 
@@ -797,31 +806,45 @@ Page({
       province: projectRegion[0],
       city: projectRegion[1],
       district: projectRegion[2],
-      addressDetail: projectAddressDetail
+      addressDetail: projectAddressDetail,
+      referrerId: this.data.referrerId
     };
 
     wx.request({
       url: `${app.globalData.baseUrl}/miniprogram/enterprise/orders/project`,
       method: 'POST',
-      header: { 'Authorization': `Bearer ${app.globalData.token}`, 'Content-Type': 'application/json' },
+      header: { 'Authorization': `Bearer ${this.data.token}`, 'Content-Type': 'application/json' },
       data: payload,
       success: (res) => {
         this.setData({ projectSubmitting: false });
-        if (res && res.data && (res.data.code === 0 || res.data.code === 200)) {
-          wx.showToast({ title: '创建成功，跳转支付', icon: 'none' });
-          const orderId = res.data.data?.orderId || res.data.data?.id;
-          setTimeout(() => {
-            wx.navigateTo({ url: `/pages/payment/payment/payment?orderId=${orderId}` });
-          }, 500);
+        if (res && res.data && (res.data.code === 200 || res.data.success)) {
+          const orderId = res.data.data?.id;
+          wx.showToast({ title: '下单成功', icon: 'success' });
+          if (orderId) {
+            setTimeout(() => {
+              wx.redirectTo({
+                url: `/pages/order-landing-detail/index?id=${orderId}`
+              });
+            }, 800);
+          } else {
+            this.setData({
+              orderSubmitted: true,
+              submittedOrderNo: res.data.data?.order_no || res.data.data?.id || ''
+            });
+          }
         } else {
           wx.showToast({ title: res.data?.message || '提交失败', icon: 'none' });
         }
       },
-      fail: (err) => {
+      fail: () => {
         this.setData({ projectSubmitting: false });
-        console.error('提交多日工程失败：', err);
         wx.showToast({ title: '网络错误，请重试', icon: 'none' });
       }
     });
+  },
+
+  // ── 关闭页面 ──
+  closePage() {
+    wx.navigateBack({ delta: 1 });
   }
 });

@@ -1,0 +1,361 @@
+<!--pages/order-landing-detail/index.wxml-->
+<!-- 落地页订单详情（独立副本，不从详情页跳走） -->
+<view class="container">
+  <view wx:if="{{!loading && order}}" class="content-wrapper">
+    <!-- 订单状态 + 刷新按钮 -->
+    <view class="status-section card">
+      <view class="status-row">
+        <view class="status-text">
+          <text class="status-title">{{order.statusText}}</text>
+          <text class="status-desc">{{order.statusDesc}}</text>
+        </view>
+        <view class="refresh-btn" bindtap="refreshOrder">
+          <text>↻ 刷新</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 订单基本信息 -->
+    <view class="section card">
+      <view class="section-title">订单信息</view>
+      <view class="info-row">
+        <text class="label">订单号：</text>
+        <text class="value">{{order.orderNumber}}</text>
+      </view>
+      <view class="info-row" wx:if="{{order.orderTypeText}}">
+        <text class="label">工单类型：</text>
+        <text class="value">{{order.orderTypeText}}</text>
+      </view>
+      <view class="info-row" wx:if="{{currentRole !== 'electrician' && !(currentRole === 'enterprise' && order.projRequiredCount)}}">
+        <text class="label">服务类型：</text>
+        <text class="value">{{order.serviceTypeName}}</text>
+      </view>
+      <view class="info-row" wx:if="{{currentRole !== 'electrician' && order.electricityTypeName && !(currentRole === 'enterprise' && order.projRequiredCount)}}">
+        <text class="label">用电类型：</text>
+        <text class="value">{{order.electricityTypeName}}</text>
+      </view>
+      <view class="info-row">
+        <text class="label">问题描述</text>
+        <text class="value">{{order.description}}</text>
+      </view>
+      <view class="images" wx:if="{{order.images && order.images.length > 0}}">
+        <view class="image-title">问题图片：</view>
+        <view class="image-list">
+          <image
+            class="image-item"
+            wx:for="{{order.images}}"
+            wx:key="*this"
+            src="{{item}}"
+            mode="aspectFill"
+            data-src="{{item}}"
+            data-urls="{{order.images}}"
+            bindtap="previewImage"
+          ></image>
+        </view>
+      </view>
+      <view class="info-row">
+        <text class="label">创建时间：</text>
+        <text class="value">{{order.createTime}}</text>
+      </view>
+      <block wx:if="{{(order.status === 'in_progress' || order.status === 'pending_review' || order.status === 'completed_settled') && order.installFee && !(currentRole === 'electrician' && order.projRequiredCount)}}">
+        <view class="info-row">
+          <text class="label">维修安装费：</text>
+          <text class="value amount">{{order.installFee}}元</text>
+        </view>
+      </block>
+      <block wx:elif="{{currentRole !== 'electrician' && order.amount && order.status !== 'cancelled' && order.status !== 'closed' && !(currentRole === 'enterprise' && order.projRequiredCount)}}">
+        <view class="info-row">
+          <text class="label">预付款：</text>
+          <text class="value amount">{{order.amount}}元</text>
+        </view>
+      </block>
+    </view>
+
+    <!-- 多日工程专属信息 -->
+    <view class="section card" wx:if="{{order.projRequiredCount}}">
+      <view class="section-title">工程信息</view>
+      <view class="info-row">
+        <text class="label">电工招募：</text>
+        <text class="value amount">{{order.recruitedCount}} / {{order.projRequiredCount}} 人</text>
+      </view>
+      <view class="info-row" wx:if="{{order.projStartTimeShort}}">
+        <text class="label">工程时间：</text>
+        <text class="value">{{order.projStartTimeShort}} 至 </text>
+      </view>
+      <view class="info-row" wx:if="{{order.projStartTimeShort}}">
+        <text class="label"></text>
+        <text class="value">{{order.projEndTimeShort}}</text>
+      </view>
+      <view class="info-row" wx:if="{{order.projCertRequirement}}">
+        <text class="label">持证要求：</text>
+        <text class="value">{{order.projCertRequirement === 'low_voltage' ? '低压电工证' : order.projCertRequirement === 'high_voltage' ? '高压电工证' : '低压电工证 / 高压电工证'}}</text>
+      </view>
+      <view class="info-row" wx:if="{{order.projTotalAmount}}">
+        <text class="label">工单总费用：</text>
+        <text class="value amount">{{(currentRole === 'enterprise' || currentRole === 'electrician') ? order.projActualAmount : order.projTotalAmount}}元</text>
+      </view>
+      <view class="info-row" wx:if="{{order.projElectricianFee}}">
+        <text class="label">电工每人费用：</text>
+        <text class="value amount">{{order.projElectricianFee}}元</text>
+      </view>
+      <view class="recruiting-hint" wx:if="{{currentRole === 'enterprise' && order.status === 'recruiting'}}">
+        <text class="hint-text">到期如未满额，请联系平台客服</text>
+      </view>
+    </view>
+
+    <!-- 已招募电工列表（企业端） -->
+    <view class="section card" wx:if="{{currentRole === 'enterprise' && order.electricians && order.electricians.length > 0}}">
+      <view class="section-title">已招募电工（{{order.electricians.length}}人）</view>
+      <view class="electrician-item" wx:for="{{order.electricians}}" wx:key="electricianId">
+        <view class="electrician-info">
+          <text class="electrician-name">{{item.name}}</text>
+          <text class="electrician-workno">工号：{{item.workNo}}</text>
+        </view>
+        <view class="electrician-phone-icon" wx:if="{{item.phone}}" data-phone="{{item.phone}}" bindtap="makePhoneCall">
+          <text class="phone-icon">📞</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 服务地址 -->
+    <view class="section card">
+      <view class="section-title">服务地址</view>
+      <view class="address-info">
+        <view class="contact-row">
+          <text class="contact-name">{{order.contactName}}</text>
+          <text class="contact-phone" bindtap="makePhoneCall" data-phone="{{order.contactPhone}}">{{order.contactPhoneMasked}}</text>
+        </view>
+        <view class="address-detail">{{order.address}}</view>
+      </view>
+    </view>
+
+    <!-- 电工信息（用户视角） -->
+    <view class="section card electrician-section" wx:if="{{order.electrician && order.status !== 'pending' && currentRole !== 'electrician' && currentRole !== 'enterprise'}}">
+      <view class="section-title">电工信息</view>
+      <view class="electrician-info-row">
+        <view>
+          <text class="electrician-name">{{order.electrician.name}}</text>
+        </view>
+        <button
+          wx:if="{{order.electrician && order.electrician.phone}}"
+          class="electrician-contact-btn electrician-contact-text"
+          data-phone="{{order.electrician.phone}}"
+          bindtap="makePhoneCall"
+        >联系电工</button>
+      </view>
+    </view>
+
+    <!-- 维修明细 -->
+    <view class="section card" wx:if="{{(order.status === 'accepted' || order.status === 'pending_repair_payment') && !(currentRole === 'electrician' && order.projRequiredCount)}}">
+      <view class="section-title">维修明细</view>
+      <view class="info-row" wx:if="{{order.amount}}">
+        <text class="label">预付款：</text>
+        <text class="value amount">{{order.amount || '30.00'}}元</text>
+      </view>
+      <block wx:if="{{order.canSubmitCompletedUpdate}}">
+        <view class="update-form">
+          <view class="form-item">
+            <text class="form-label">剩余维修款（单位:元）</text>
+            <input class="amount-input" placeholder="请输入维修金额" value="{{updateAmount}}" bindinput="onUpdateAmountInput" type="digit" />
+          </view>
+          <view class="form-item">
+            <text class="form-label">维修内容：</text>
+            <textarea class="work-content-input" placeholder="填写维修内容" value="{{updateContent}}" bindinput="onUpdateContentInput" maxlength="500"></textarea>
+          </view>
+        </view>
+      </block>
+      <block wx:else>
+        <view class="form-item">
+          <text class="form-label">维修金额：</text>
+          <text class="value amount">{{order.repairAmount || updateAmount || '0.00'}}元</text>
+        </view>
+        <view class="form-item">
+          <text class="form-label">维修内容：</text>
+          <text class="form-value work-text">{{order.workContent || '暂无维修内容'}}</text>
+        </view>
+      </block>
+    </view>
+
+    <!-- 维修明细（进行中/待评价等状态） -->
+    <view class="section card" wx:if="{{(order.status === 'in_progress' || order.status === 'pending_review' || order.status === 'completed_settled' || order.status === 'pending_payment' || order.status === 'settled' || order.status === 'recruiting' || order.status === 'full' || order.status === 'reviewing') && !((currentRole === 'electrician' || currentRole === 'enterprise') && order.projRequiredCount)}}">
+      <view class="section-title">维修明细</view>
+      <block wx:if="{{order.projRequiredCount}}">
+        <view class="info-row" wx:if="{{order.projElectricianFee}}">
+          <text class="label">电工费用：</text>
+          <text class="value amount">{{order.projElectricianFee}}元</text>
+        </view>
+        <view class="info-row">
+          <text class="label">工程时间：</text>
+          <text class="value">{{order.projStartTimeShort || '待定'}} 至 {{order.projEndTimeShort || '待定'}}</text>
+        </view>
+        <view class="info-row" wx:if="{{order.projCertRequirement}}">
+          <text class="label">持证要求：</text>
+          <text class="value">{{order.projCertRequirement === 'low_voltage' ? '低压电工证' : order.projCertRequirement === 'high_voltage' ? '高压电工证' : '低压电工证 / 高压电工证'}}</text>
+        </view>
+      </block>
+      <block wx:else>
+        <view class="info-row" wx:if="{{order.amount && order.status !== 'cancelled' && order.status !== 'closed'}}">
+          <text class="label">预付款：</text>
+          <text class="value">{{order.amount}}元</text>
+        </view>
+        <view class="info-row" wx:if="{{order.repairAmount}}">
+          <text class="label">维修款：</text>
+          <text class="value">{{order.repairAmount}}元</text>
+        </view>
+        <view class="info-row" wx:if="{{order.repairAmount}}">
+          <text class="label">维修内容：</text>
+          <text class="value">{{order.workContent}}</text>
+        </view>
+        <view class="work-images-display" wx:if="{{order.workImages && order.workImages.length > 0}}">
+          <view class="image-title">维修图片：</view>
+          <view class="image-list">
+            <image class="image-item" wx:for="{{order.workImages}}" wx:key="*this" src="{{item}}" mode="aspectFill" data-src="{{item}}" data-urls="{{order.workImages}}" bindtap="previewImage"></image>
+          </view>
+        </view>
+        <view wx:if="{{action === 'complete'}}" class="work-form">
+          <view class="form-item">
+            <text class="form-label">维修内容：</text>
+            <textarea class="work-content-input" placeholder="请详细描述维修过程和结果" value="{{workContent}}" bindinput="onWorkContentInput" maxlength="500"></textarea>
+          </view>
+          <view class="form-item">
+            <text class="form-label">维修图片：</text>
+            <view class="work-images">
+              <view class="work-image-item" wx:for="{{workImages}}" wx:key="*this">
+                <image src="{{item}}" mode="aspectFill"></image>
+                <view class="delete-btn" data-index="{{index}}" bindtap="deleteWorkImage">×</view>
+              </view>
+              <view class="add-work-image-btn" wx:if="{{workImages.length < 3}}" bindtap="chooseWorkImage">
+                <text class="add-icon">+</text>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view wx:else>
+          <view wx:if="{{!order.workContent}}" class="no-work-content">
+            <text>电工暂未填写维修内容</text>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <!-- 我的评价 -->
+    <view class="section card" wx:if="{{order.status === 'completed_settled' || order.status === 'settled'}}">
+      <view class="section-title">我的评价</view>
+      <view class="review-display" wx:if="{{order.review && order.review.rating}}">
+        <view class="review-label">评分</view>
+        <view class="rating-stars display-only">
+          <block wx:for="{{[1,2,3,4,5]}}" wx:for-item="star" wx:key="star">
+            <view class="star {{star <= order.review.rating ? 'active' : ''}}">★</view>
+          </block>
+        </view>
+        <view class="review-text" wx:if="{{order.review.content}}">{{order.review.content}}</view>
+      </view>
+    </view>
+
+    <!-- 提交评价 -->
+    <view class="section card review-section" wx:if="{{(order.status === 'pending_review' || order.status === 'pending_second_review') && (currentRole === 'user' || currentRole === 'enterprise') && !(currentRole === 'enterprise' && order.projRequiredCount)}}">
+      <view class="section-title">提交评价</view>
+      <view class="rating-stars">
+        <block wx:for="{{[1,2,3,4,5]}}" wx:for-item="star" wx:key="star">
+          <view class="star {{star <= rating ? 'active' : ''}}" data-value="{{star}}" bindtap="setRating">★</view>
+        </block>
+      </view>
+      <textarea class="review-input" placeholder="分享本次服务体验" value="{{reviewComment}}" bindinput="onReviewCommentInput" maxlength="500"></textarea>
+    </view>
+
+    <!-- 订单进度 -->
+    <view class="section card" wx:if="{{order.timeline && order.timeline.length > 0}}">
+      <view class="section-title">订单进度</view>
+      <view class="timeline">
+        <view class="timeline-item" wx:for="{{order.timeline}}" wx:key="id">
+          <view class="timeline-dot"></view>
+          <view class="timeline-content">
+            <view class="timeline-title">{{item.title}}</view>
+            <view class="timeline-time">{{item.time}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+  </view>
+
+  <!-- 底部操作栏 -->
+  <view class="bottom-bar" wx:if="{{!loading && order}}">
+    <view class="bottom-content">
+      <button class="service-btn" open-type="contact">
+        <text class="service-text">客服</text>
+      </button>
+      <view class="action-area">
+        <!-- 待支付 -->
+        <block wx:if="{{order.status === 'pending_payment'}}">
+          <button wx:if="{{order.canCancel}}" class="service-btn" bindtap="cancelOrder">
+            <text class="service-text">取消订单</text>
+          </button>
+          <button wx:if="{{order.canPay}}" class="main-action-btn pay" bindtap="goToPay">去支付¥{{order.amount || '30.00'}}</button>
+        </block>
+
+        <!-- 待接单 / 招募中 -->
+        <block wx:if="{{order.status === 'pending' || order.status === 'recruiting' || order.status === 'full'}}">
+          <button wx:if="{{order.canAccept}}" class="main-action-btn primary" bindtap="acceptOrder">接单</button>
+          <button wx:if="{{order.canWithdraw}}" class="main-action-btn danger" bindtap="withdrawOrder">退单</button>
+          <button wx:if="{{order.canCancel && (currentRole === 'user' || currentRole === 'enterprise')}}" class="service-btn" bindtap="cancelOrder">
+            <text class="service-text">取消订单</text>
+          </button>
+        </block>
+
+        <!-- 进行中 -->
+        <block wx:if="{{order.status === 'in_progress'}}">
+          <button wx:if="{{order.canComplete}}" class="main-action-btn primary {{completing ? 'disabled' : ''}}" bindtap="completeOrder" disabled="{{completing}}">{{completing ? '提交中...' : '完成订单'}}</button>
+        </block>
+
+        <!-- 评价中（企业多日工程） -->
+        <block wx:if="{{order.status === 'reviewing' || order.status === 'pending_second_review'}}">
+          <button wx:if="{{order.canReviewProject}}" class="main-action-btn primary" bindtap="goToProjectReview">去评价</button>
+        </block>
+
+        <!-- 电工评价企业（多日工程） -->
+        <block wx:if="{{order.canReviewEnterprise}}">
+          <button class="main-action-btn primary" bindtap="goToElectricianReview">去评价</button>
+        </block>
+
+        <!-- 待支付维修费 -->
+        <block wx:if="{{order.status === 'pending_repair_payment'}}">
+          <button wx:if="{{order.canPayRepairFee}}" class="main-action-btn pay" bindtap="goToRepairPay" disabled="{{paying}}">{{paying ? '支付中...' : '支付维修费¥' + (order.repairAmount || updateAmount || '0.00')}}</button>
+          <button wx:if="{{order.canSubmitCompletedUpdate}}" class="main-action-btn primary {{updating ? 'disabled' : ''}}" bindtap="submitUpdate" disabled="{{updating}}">{{updating ? '提交中...' : '提交维修信息'}}</button>
+        </block>
+
+        <!-- 待评价 -->
+        <block wx:if="{{order.status === 'pending_review'}}">
+          <button wx:if="{{order.canReview}}" class="main-action-btn primary {{reviewing ? 'disabled' : ''}}" bindtap="submitReview" disabled="{{reviewing}}">{{reviewing ? '提交中...' : '提交评价'}}</button>
+        </block>
+
+        <!-- 待二次评价 -->
+        <block wx:if="{{order.status === 'pending_second_review'}}">
+          <button wx:if="{{order.canReview}}" class="main-action-btn primary {{reviewing ? 'disabled' : ''}}" bindtap="submitReview" disabled="{{reviewing}}">{{reviewing ? '提交中...' : '提交评价'}}</button>
+        </block>
+
+        <!-- 已接单（电工提交维修信息） -->
+        <block wx:if="{{order.status === 'accepted'}}">
+          <button wx:if="{{order.canSubmitCompletedUpdate}}" class="main-action-btn primary {{updating ? 'disabled' : ''}}" bindtap="submitUpdate" disabled="{{updating}}">{{updating ? '提交中...' : '提交维修信息'}}</button>
+        </block>
+
+        <!-- 已完成 -->
+        <block wx:if="{{order.status === 'completed_settled'}}">
+          <button wx:if="{{order.canReview}}" class="main-action-btn primary" bindtap="goToReview">评价</button>
+          <button wx:elif="{{order.canSubmitCompletedUpdate}}" class="main-action-btn primary {{updating ? 'disabled' : ''}}" bindtap="submitUpdate" disabled="{{updating}}">{{updating ? '提交中...' : '提交'}}</button>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view wx:if="{{!loading && !order}}" class="empty-state">
+    <text class="empty-icon">📋</text>
+    <text class="empty-text">订单不存在</text>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-state" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

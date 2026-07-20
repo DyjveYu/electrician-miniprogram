@@ -5,11 +5,18 @@
     "miniprogram": {
       "list": [
         {
+          "name": "测试推荐达人下单",
+          "pathName": "pages/order-landing/index",
+          "query": "referrer_id=65",
+          "scene": null,
+          "launchMode": "default"
+        },
+        {
           "name": "开发版",
           "pathName": "pages/order/create/create",
           "query": "",
-          "scene": null,
-          "launchMode": "default"
+          "launchMode": "default",
+          "scene": null
         }
       ]
     }

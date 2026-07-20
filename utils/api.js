@@ -204,7 +204,7 @@ class AuthAPI {
    * 发送验证码
    */
   static sendCode(phone, type = 'login') {
-    return API.post('/auth/send-code', { phone, type });
+    return API.post('/auth/send-code', { phone, type }, { showError: false });
   }
 
   /**
@@ -473,11 +473,36 @@ class MessageAPI {
   }
 }
 
+// 推荐达人相关API
+class ReferrerAPI {
+  /**
+   * 查询推荐达人开通资格
+   */
+  static getQualification() {
+    return API.get('/user-referrers/qualification');
+  }
+
+  /**
+   * 激活推荐达人身份
+   */
+  static activate() {
+    return API.post('/user-referrers/activate');
+  }
+
+  /**
+   * 获取推荐达人信息
+   */
+  static getInfo() {
+    return API.get('/user-referrers/info');
+  }
+}
+
 module.exports = {
   API,
   AuthAPI,
   OrderAPI,
   PaymentAPI,
   SystemAPI,
-  MessageAPI
+  MessageAPI,
+  ReferrerAPI
 };

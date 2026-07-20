@@ -1,0 +1,106 @@
+page {
+  background-color: #f5f5f5;
+}
+
+.container {
+  padding: 20rpx;
+}
+
+.balance-info {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  text-align: center;
+  margin-bottom: 20rpx;
+}
+
+.label {
+  font-size: 28rpx;
+  color: #999;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.amount {
+  font-size: 56rpx;
+  font-weight: bold;
+  color: #0F9D58;
+}
+
+.withdraw-form {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+}
+
+.form-item {
+  margin-bottom: 20rpx;
+}
+
+.form-label {
+  font-size: 30rpx;
+  color: #333;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  border-bottom: 2rpx solid #eee;
+  padding-bottom: 16rpx;
+}
+
+.currency {
+  font-size: 40rpx;
+  color: #333;
+  margin-right: 10rpx;
+  font-weight: bold;
+}
+
+.amount-input {
+  flex: 1;
+  font-size: 48rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+}
+
+.quick-actions {
+  margin-bottom: 20rpx;
+}
+
+.all-btn {
+  background: #E8F5E9;
+  color: #0F9D58;
+  border: none;
+  border-radius: 8rpx;
+  padding: 12rpx 30rpx;
+  font-size: 26rpx;
+  width: auto;
+  display: inline-block;
+}
+
+.tips {
+  margin-bottom: 40rpx;
+}
+
+.tip-text {
+  display: block;
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 8rpx;
+}
+
+.submit-btn {
+  background: #ccc;
+  color: #fff;
+  border: none;
+  border-radius: 40rpx;
+  padding: 24rpx;
+  font-size: 32rpx;
+  width: 100%;
+}
+
+.submit-btn.active {
+  background: #0F9D58;
+}

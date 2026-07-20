@@ -1,0 +1,73 @@
+<view class="container">
+  <view class="header">
+    <text class="title">推荐达人</text>
+    <text class="subtitle">分享给好友，赚取3%佣金</text>
+  </view>
+
+  <view class="stats-card" wx:if="{{referrerInfo}}">
+    <view class="stat-row">
+      <view class="stat-item">
+        <text class="stat-number">¥{{referrerInfo.total_commission || '0.00'}}</text>
+        <text class="stat-label">累计佣金</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-number">¥{{referrerInfo.total_withdrawn || '0.00'}}</text>
+        <text class="stat-label">已提现</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="share-section">
+    <view class="section-title">分享方式</view>
+
+    <!-- 1. 我的推荐二维码 -->
+    <view class="share-item" bindtap="downloadQRCode">
+      <text class="share-icon">📱</text>
+      <view class="share-content">
+        <text class="share-title">我的推荐二维码</text>
+        <text class="share-desc">保存图片后分享给好友扫码</text>
+      </view>
+      <text class="share-arrow">></text>
+    </view>
+
+    <!-- 3. 复制链接 -->
+    <view class="share-item" bindtap="copyShareLink">
+      <text class="share-icon">🔗</text>
+      <view class="share-content">
+        <text class="share-title">复制分享链接</text>
+        <text class="share-desc">将链接发送给微信好友</text>
+      </view>
+      <text class="share-arrow">></text>
+    </view>
+
+    <!-- 4. 测试入口：跳转到分享落地页 -->
+    <view class="share-item" bindtap="jumpToShareLink">
+      <text class="share-icon">▶️</text>
+      <view class="share-content">
+        <text class="share-title">点击跳转到分享链接</text>
+        <text class="share-desc">直接打开下单落地页测试</text>
+      </view>
+      <text class="share-arrow">></text>
+    </view>
+  </view>
+
+  <view class="rule-section">
+    <view class="section-title">佣金规则</view>
+    <view class="rule-item">
+      <text class="rule-dot">•</text>
+      <text class="rule-text">好友通过您的分享链接或二维码下单，订单完成后您可获得订单金额3%的佣金</text>
+    </view>
+    <view class="rule-item">
+      <text class="rule-dot">•</text>
+      <text class="rule-text">佣金实时结算到您的账户，可在订单完成后7个工作日提现到微信钱包</text>
+    </view>
+    <view class="rule-item">
+      <text class="rule-dot">•</text>
+      <text class="rule-text">不可为自己推荐下单</text>
+    </view>
+  </view>
+
+  <view class="loading-tip" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

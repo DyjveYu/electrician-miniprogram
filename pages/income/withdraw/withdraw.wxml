@@ -1,0 +1,40 @@
+<view class="container">
+  <view class="balance-info">
+    <text class="label">可用余额</text>
+    <text class="amount">¥{{balance.available_balance.toFixed(2)}}</text>
+  </view>
+
+  <view class="withdraw-form">
+    <view class="form-item">
+      <text class="form-label">提现金额</text>
+      <view class="input-wrapper">
+        <text class="currency">¥</text>
+        <input
+          type="digit"
+          class="amount-input"
+          placeholder="请输入提现金额"
+          value="{{withdrawAmount}}"
+          bindinput="onAmountInput"
+        />
+      </view>
+    </view>
+
+    <view class="quick-actions">
+      <button class="all-btn" bindtap="handleWithdrawAll">全部提现</button>
+    </view>
+
+    <view class="tips">
+      <text class="tip-text">· 最低提现金额 1 元</text>
+      <text class="tip-text">· 提现到微信零钱</text>
+    </view>
+
+    <button
+      class="submit-btn {{canWithdraw ? 'active' : ''}}"
+      disabled="{{!canWithdraw || submitting}}"
+      loading="{{submitting}}"
+      bindtap="handleWithdraw"
+    >
+      确认提现
+    </button>
+  </view>
+</view>

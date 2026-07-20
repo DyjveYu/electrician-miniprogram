@@ -1,0 +1,640 @@
+/* pages/order-landing-detail/index.wxss */
+/* 从 pages/order/detail/detail.wxss 复制，增加刷新按钮样式 */
+.container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding-bottom: 180rpx;
+}
+
+.content-wrapper {
+  padding: 20rpx;
+}
+
+.card {
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.08);
+  margin-bottom: 20rpx;
+}
+
+/* 订单状态 */
+.status-section {
+  background-color: #fff;
+  padding: 40rpx 30rpx;
+}
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.status-text {
+  flex: 1;
+}
+
+.status-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.status-desc {
+  font-size: 26rpx;
+  color: #666;
+}
+
+/* 刷新按钮 */
+.refresh-btn {
+  padding: 12rpx 20rpx;
+  border-radius: 32rpx;
+  font-size: 24rpx;
+  color: #0F9D58;
+  background-color: #e8f5e9;
+  flex-shrink: 0;
+  margin-left: 16rpx;
+}
+
+/* 通用section */
+.section {
+  background-color: #fff;
+  margin-bottom: 20rpx;
+  padding: 30rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20rpx;
+  padding-bottom: 15rpx;
+  border-bottom: 2rpx solid #f0f0f0;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+  font-size: 28rpx;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.label {
+  color: #666;
+  width: 200rpx;
+  flex-shrink: 0;
+}
+
+.value {
+  color: #333;
+  flex: 1;
+}
+
+.value.amount {
+  color: #f44336;
+  font-weight: 600;
+  font-size: 32rpx;
+}
+
+.images, .work-images-display {
+  margin-top: 20rpx;
+}
+
+.image-title {
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 15rpx;
+}
+
+.image-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15rpx;
+}
+
+.image-item {
+  width: 200rpx;
+  height: 200rpx;
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.address-info {
+  padding: 20rpx;
+  background-color: #fafafa;
+  border-radius: 8rpx;
+}
+
+.contact-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15rpx;
+}
+
+.contact-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+  margin-right: 30rpx;
+}
+
+.contact-phone {
+  font-size: 28rpx;
+  color: #1976d2;
+}
+
+.address-detail {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.4;
+}
+
+.electrician-info {
+  display: flex;
+  align-items: center;
+  padding: 20rpx;
+  background-color: #fafafa;
+  border-radius: 8rpx;
+}
+
+.electrician-avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 20rpx;
+}
+
+.electrician-details {
+  flex: 1;
+}
+
+.electrician-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.electrician-phone {
+  font-size: 26rpx;
+  color: #1976d2;
+}
+
+.electrician-rating {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.work-form {
+  border-top: 2rpx solid #f0f0f0;
+  padding-top: 20rpx;
+}
+
+.form-item {
+  margin-bottom: 30rpx;
+}
+
+.form-label {
+  display: block;
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 15rpx;
+}
+
+.form-value {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.work-content-input {
+  width: 100%;
+  min-height: 200rpx;
+  padding: 20rpx;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  line-height: 1.5;
+  background-color: #fafafa;
+  box-sizing: border-box;
+}
+
+.work-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15rpx;
+}
+
+.work-image-item {
+  position: relative;
+  width: 150rpx;
+  height: 150rpx;
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+
+.work-image-item image {
+  width: 100%;
+  height: 100%;
+}
+
+.delete-btn {
+  position: absolute;
+  top: 5rpx;
+  right: 5rpx;
+  width: 30rpx;
+  height: 30rpx;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20rpx;
+}
+
+.add-work-image-btn {
+  width: 150rpx;
+  height: 150rpx;
+  border: 2rpx dashed #ccc;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fafafa;
+}
+
+.add-icon {
+  font-size: 40rpx;
+  color: #999;
+}
+
+.amount-input {
+  flex: 1;
+  padding: 15rpx 20rpx;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  background-color: #fafafa;
+  margin-right: 10rpx;
+}
+
+.amount-unit {
+  font-size: 28rpx;
+  color: #666;
+}
+
+.work-content {
+  padding: 20rpx;
+  background-color: #fafafa;
+  border-radius: 8rpx;
+  margin-bottom: 20rpx;
+}
+
+.work-text {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.6;
+}
+
+.no-work-content {
+  text-align: center;
+  padding: 40rpx 0;
+  color: #999;
+  font-size: 26rpx;
+}
+
+.timeline {
+  position: relative;
+  padding-left: 40rpx;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 15rpx;
+  top: 0;
+  bottom: 0;
+  width: 2rpx;
+  background-color: #e0e0e0;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 30rpx;
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -25rpx;
+  top: 5rpx;
+  width: 12rpx;
+  height: 12rpx;
+  background-color: #1976d2;
+  border-radius: 50%;
+}
+
+.timeline-content {
+  padding-left: 20rpx;
+}
+
+.timeline-title {
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.timeline-time {
+  font-size: 24rpx;
+  color: #999;
+}
+
+/* 底部操作栏 */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff;
+  border-top: 1rpx solid #e5e5e5;
+  z-index: 1001;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.bottom-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 24rpx;
+  gap: 16rpx;
+  flex-wrap: nowrap;
+}
+
+.service-btn {
+  min-width: 120rpx;
+  height: 64rpx;
+  border-radius: 32rpx;
+  font-size: 26rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24rpx;
+  margin-left: auto;
+  margin-right: 32rpx;
+  background: transparent;
+  box-shadow: 0 0 0 1rpx #e0e0e0;
+}
+
+.service-btn::after {
+  border: none;
+}
+
+.service-text {
+  font-size: 22rpx;
+  color: #666;
+}
+
+.electrician-bottom-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  font-size: 24rpx;
+  color: #333;
+  margin-left: 16rpx;
+}
+
+.electrician-label {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.action-area {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.main-action-btn {
+  min-width: 180rpx;
+  height: 64rpx;
+  border-radius: 44rpx;
+  font-size: 32rpx;
+  font-weight: 400;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 30rpx;
+  margin-left: auto;
+  margin-right: 32rpx;
+}
+
+.main-action-btn::after {
+  border: none;
+}
+
+.main-action-btn.primary {
+  background: linear-gradient(90deg, #07c160 0%, #06ae56 100%);
+  color: #fff;
+  box-shadow: 0 4rpx 12rpx rgba(7, 193, 96, 0.3);
+}
+
+.main-action-btn.pay {
+  background: linear-gradient(90deg, #07c160 0%, #06ae56 100%);
+  color: #fff;
+  box-shadow: 0 4rpx 12rpx rgba(7, 193, 96, 0.3);
+}
+
+.main-action-btn.disabled {
+  background: #cccccc !important;
+  color: #999 !important;
+  box-shadow: none !important;
+}
+
+.main-action-btn.danger {
+  background-color: #f56c6c;
+  color: #fff;
+}
+
+.electrician-section {
+  margin-top: 20rpx;
+}
+
+.electrician-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+
+.electrician-contact-btn {
+  min-width: 160rpx;
+  height: 64rpx;
+  border-radius: 32rpx;
+  font-size: 26rpx;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 24rpx;
+  margin-left: auto;
+  margin-right: 32rpx;
+  background: transparent;
+  box-shadow: 0 0 0 1rpx #e0e0e0;
+}
+
+.electrician-contact-text {
+  white-space: nowrap;
+  font-size: 22rpx;
+  color: #666;
+}
+
+.review-section .section-title {
+  margin-bottom: 20rpx;
+}
+
+.rating-stars {
+  display: flex;
+  gap: 12rpx;
+  margin-bottom: 20rpx;
+}
+
+.star {
+  font-size: 55rpx;
+  color: #ccc;
+}
+
+.star.active {
+  color: #ffb400;
+}
+
+.review-input {
+  width: 100%;
+  min-height: 160rpx;
+  border: 2rpx solid #e0e0e0;
+  border-radius: 12rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  color: #333;
+  box-sizing: border-box;
+  background-color: #fff;
+}
+
+.review-display {
+  padding: 20rpx;
+  background-color: #fafafa;
+  border-radius: 12rpx;
+  margin-top: 24rpx;
+}
+
+.review-label {
+  font-size: 28rpx;
+  color: #333;
+  font-weight: 600;
+  margin-bottom: 10rpx;
+}
+
+.rating-stars.display-only .star {
+  cursor: default;
+}
+
+.review-text {
+  margin-top: 12rpx;
+  font-size: 26rpx;
+  color: #333;
+  line-height: 1.6;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 20rpx;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 28rpx;
+  color: #999;
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+  font-size: 28rpx;
+  color: #999;
+}
+
+.electrician-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.electrician-item:last-child {
+  border-bottom: none;
+}
+
+.electrician-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6rpx;
+}
+
+.electrician-name {
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #333;
+}
+
+.electrician-workno {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.electrician-phone-icon {
+  width: 72rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #e8f5e9;
+  border-radius: 50%;
+}
+
+.phone-icon {
+  font-size: 36rpx;
+}
+
+.recruiting-hint {
+  margin: 0 20rpx 20rpx 20rpx;
+  padding: 24rpx 32rpx;
+  background-color: #fff8e1;
+  border-left: 6rpx solid #ffa000;
+  border-radius: 8rpx;
+}
+
+.hint-text {
+  font-size: 26rpx;
+  color: #e65100;
+  line-height: 1.6;
+}

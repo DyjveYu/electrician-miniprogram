@@ -26,7 +26,13 @@
     "pages/partner/partner",
     "pages/enterprise/certification/certification",
     "pages/enterprise/project-review/project-review",
-    "pages/enterprise/electrician-review/electrician-review"
+    "pages/enterprise/electrician-review/electrician-review",
+    "pages/referrer/referrer",
+    "pages/order-landing/index",
+    "pages/order-landing-detail/index",
+    "pages/income/index",
+    "pages/income/withdraw/withdraw",
+    "pages/income/records/records"
   ],
   "plugins": {
     "WechatSI": {

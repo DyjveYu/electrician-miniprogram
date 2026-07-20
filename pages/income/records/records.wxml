@@ -1,0 +1,26 @@
+<view class="container">
+  <!-- 列表 -->
+  <view class="list">
+    <view class="record-item" wx:for="{{records}}" wx:key="id">
+      <view class="record-header">
+        <text class="record-amount">¥{{item.amount.toFixed(2)}}</text>
+        <text class="record-status {{getStatusClass(item.status)}}">{{getStatusText(item.status)}}</text>
+      </view>
+      <view class="record-info">
+        <text class="record-time">{{item.created_at || ''}}</text>
+        <text class="record-fail" wx:if="{{item.fail_reason}}">{{item.fail_reason}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:if="{{records.length === 0 && !loading}}">
+    <text class="empty-icon">📋</text>
+    <text class="empty-text">暂无提现记录</text>
+  </view>
+
+  <!-- 加载提示 -->
+  <view class="loading-more" wx:if="{{loading}}">
+    <text>加载中...</text>
+  </view>
+</view>

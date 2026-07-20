@@ -104,7 +104,7 @@
 
   <!-- 底部信息 -->
   <view class="footer">
-  
+    <text class="version-text">{{version}}</text>
   </view>
 </view>
 

@@ -8,6 +8,7 @@ Page({
     unfreezing: false,
     depositStatus: null,
     isPartner: false,
+    isReferrer: false,
     enterpriseCertStatus: '',
     enterpriseCertStatusText: '',
     enterpriseCompanyName: '',
@@ -205,6 +206,9 @@ loadUserInfo() {
         if (this.data.currentRole === 'enterprise') {
           this.loadEnterpriseCertStatus();
         }
+
+        // 加载推荐达人状态（对所有用户检查）
+        this.loadReferrerStatus();
 
         // 更新显示名称
         this.updateDisplayName();
@@ -506,6 +510,41 @@ loadUserInfo() {
   navigateToPartner() {
     wx.navigateTo({
       url: '/pages/partner/partner'
+    });
+  },
+
+  // 加载推荐达人状态
+  loadReferrerStatus() {
+    const app = getApp();
+    if (!app.globalData.token) return;
+
+    wx.request({
+      url: `${app.globalData.baseUrl}/user-referrers/info`,
+      method: 'GET',
+      header: { 'Authorization': `Bearer ${app.globalData.token}` },
+      success: (res) => {
+        if (res.data && res.data.code === 200) {
+          const data = res.data.data || {};
+          this.setData({ isReferrer: data.is_referrer === true });
+        }
+      },
+      fail: () => {
+        this.setData({ isReferrer: false });
+      }
+    });
+  },
+
+  // 导航到推荐达人页
+  navigateToReferrer() {
+    wx.navigateTo({
+      url: '/pages/referrer/referrer'
+    });
+  },
+
+  // 导航到收入页（推荐达人/合作伙伴）
+  navigateToIncome() {
+    wx.navigateTo({
+      url: '/pages/income/index'
     });
   }
 });

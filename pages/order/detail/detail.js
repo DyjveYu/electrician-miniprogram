@@ -622,6 +622,8 @@ Page({
         if (ok) {
           wx.showToast({ title: '评价成功', icon: 'success' });
           this.loadOrderDetail();
+          // 评价完成后检测是否满足推荐达人开通条件
+          this._checkReferrerQualification();
         } else {
           wx.showToast({ title: res?.data?.message || '提交失败', icon: 'none' });
         }
@@ -952,5 +954,42 @@ Page({
       return phone.slice(0, 3) + '****' + phone.slice(-4);
     }
     return phone;
+  },
+
+  // 检测推荐达人开通条件并弹窗提示
+  async _checkReferrerQualification() {
+    try {
+      const { ReferrerAPI } = require('../../../utils/api');
+      const res = await ReferrerAPI.getQualification();
+      const data = res?.data;
+      if (data && data.is_qualified && !data.is_referrer) {
+        wx.showModal({
+          title: '成为推荐达人',
+          content: '恭喜您已达到推荐达人条件！分享给好友下单可获得 3% 的佣金奖励。立即开通？',
+          confirmText: '立即开通',
+          cancelText: '稍后再说',
+          success: (modalRes) => {
+            if (modalRes.confirm) {
+              this._activateReferrer();
+            }
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('检测推荐达人条件失败:', err.message);
+    }
+  },
+
+  // 激活推荐达人身份
+  async _activateReferrer() {
+    try {
+      const { ReferrerAPI } = require('../../../utils/api');
+      const res = await ReferrerAPI.activate();
+      if (res?.code === 0 || res?.success) {
+        wx.showToast({ title: '恭喜您已成为推荐达人！', icon: 'success' });
+      }
+    } catch (err) {
+      wx.showToast({ title: err.message || '开通失败', icon: 'none' });
+    }
   }
 });

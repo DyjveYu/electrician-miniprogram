@@ -58,9 +58,34 @@ Page({
     loading: false
   },
 
-  onLoad() {
-    console.log('首页加载');
-    // 检查登录状态
+  /**
+   * 尝试跳转到推荐达人落地页
+   */
+  _tryReferrerRedirect(referrerId) {
+    if (!referrerId) return false;
+    this._referrerRedirecting = true;
+    wx.removeStorageSync('referrer_id');
+    wx.redirectTo({
+      url: `/pages/order-landing/index?referrer_id=${referrerId}`
+    });
+    return true;
+  },
+
+  /**
+   * 获取推荐人 ID：优先从 options.query，后备从 storage
+   */
+  _getReferrerId(options) {
+    if (options && options.referrer_id) return options.referrer_id;
+    const stored = wx.getStorageSync('referrer_id');
+    return stored || null;
+  },
+
+  onLoad(options) {
+    console.log('首页加载 options=', options);
+
+    const referrerId = this._getReferrerId(options);
+    if (this._tryReferrerRedirect(referrerId)) return;
+
     if (!this.checkLogin()) {
       return;
     }
@@ -69,11 +94,14 @@ Page({
 
   onShow() {
     console.log('首页显示');
-    // 检查登录状态
+    if (this._referrerRedirecting) return;
+
+    const storedReferrerId = wx.getStorageSync('referrer_id');
+    if (this._tryReferrerRedirect(storedReferrerId)) return;
+
     if (!this.checkLogin()) {
       return;
     }
-    // 检查是否被冻结
     if (app.checkFrozenAndRedirect()) {
       return;
     }
@@ -91,6 +119,8 @@ Page({
    */
   checkLogin() {
     const app = getApp();
+    console.log('checkLogin: globalData.isLogin=', app.globalData.isLogin ? 'true' : 'false');
+    console.log('checkLogin: globalData.token=', app.globalData.token ? '存在' : '不存在');
     let isLogin = app.globalData.isLogin;
     let token = app.globalData.token;
 
@@ -123,14 +153,12 @@ Page({
     }
 
     if (!isLogin || !token) {
-      console.log('[首页] 最终判定未登录，跳转到登录页');
-      wx.reLaunch({
-        url: '/pages/login/login'
-      });
+      console.log('[首页] 未登录，跳转到登录页');
+      wx.reLaunch({ url: '/pages/login/login' });
       return false;
     }
 
-    console.log('[首页] 判定已登录，允许访问');
+    console.log('[首页] 已登录');
     return true;
   },
 
