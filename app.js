@@ -1,19 +1,20 @@
 // app.js
+const log = require('./utils/log.js');
 App({
   globalData: {
     userInfo: null,
     token: null,
-    version: 'v1.1.2', // ⭐小程序版本号，与 app.json 同步维护
+    version: 'v1.1.3', // ⭐小程序版本号，与 app.json 同步维护
     //baseUrl: 'https://electrician.mijutime.com/api', // 阿里云 API地址；测试环境
-     // baseUrl: 'http://192.168.1.9:3000/api', // ⭐本地开发环境API地址
-    baseUrl: 'http://localhost:3000/api', // ⭐本地开发环境API地址
-    //baseUrl: 'https://api.51zoon.com/api',  // ⭐
+      // baseUrl: 'http://192.168.1.5:3000/api', // ⭐本地开发环境API地址
+  baseUrl: 'http://localhost:3000/api', // ⭐本地开发环境API地址
+   // baseUrl: 'https://api.51zoon.com/api',  // ⭐
     imageBaseUrl: 'https://api.51zoon.com',     // 用于拼接图片URL
     isLogin: false,
     currentRole: 'user', // user | electrician
     systemInfo: null,
     location: null,
-    paymentMethod: 'test', //  ⭐ 支付方式全局配置：生产默认微信支付 wechat ；开发可自动走测试支付 test
+    paymentMethod: 'test', //  ⭐ 支付方式全局配置：生产微信支付 wechat ；开发测试支付 test
     mchId: '1103388382' //  添加你的商户号
   },
 
@@ -30,6 +31,9 @@ App({
     this._parseReferrer(options);
 
     // 位置权限不在启动阶段申请，避免重复弹窗；在真正需要定位的页面再调用
+  },
+  onError(err) {
+    log.error('global_app_error', { errMsg: err });
   },
 
   onShow(options) {
@@ -396,6 +400,7 @@ App({
     }
     return false;
   },
+  
   /**
    * 更新全局用户状态（用于同步最新的冻结状态）
    */

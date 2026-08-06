@@ -18,7 +18,9 @@ Page({
     showTestTip: false,
     testCode: '',
     selectedRole: 'user', // 默认选择"我要找电工"
-    isAgreed: false, // 是否同意协议
+
+    // V1.1.3 细化需求: 欢迎弹窗（点击登录按钮后弹出，进入页面时不弹）
+    showWelcomeModal: false,
 
     // 弹窗相关
     showModal: false,
@@ -91,13 +93,21 @@ Page({
   },
 
   /**
-   * 切换协议勾选状态
+   * V1.1.3 细化需求: 欢迎弹窗 - 同意（关闭弹窗并直接执行登录）
    */
-  toggleAgreement() {
-    this.setData({
-      isAgreed: !this.data.isAgreed
-    });
-    this.validateForm();
+  async onAgree() {
+    if (this.data.isLogging) {
+      return;
+    }
+    this.setData({ showWelcomeModal: false });
+    await this.doLogin();
+  },
+
+  /**
+   * V1.1.3 细化需求: 欢迎弹窗 - 取消（关闭弹窗返回登录页，不阻塞，可重新操作）
+   */
+  onCancel() {
+    this.setData({ showWelcomeModal: false });
   },
 
   /**
@@ -128,13 +138,13 @@ Page({
    * 验证表单
    */
   validateForm() {
-    const { phone, code, isAgreed } = this.data;
+    const { phone, code } = this.data;
 
     // 验证手机号
     const canSendCode = validatePhone(phone);
 
-    // 验证登录条件
-    const canLogin = canSendCode && code.length === 6 && isAgreed;
+    // 验证登录条件（V1.1.3 细化需求: 输入手机号+6位验证码即可登录，不再依赖协议确认）
+    const canLogin = canSendCode && code.length === 6;
 
     this.setData({
       canSendCode,
@@ -211,10 +221,20 @@ Page({
   },
 
   /**
-   * 登录
+   * 登录按钮点击（V1.1.3 细化需求: 点击登录按钮先弹出《隐私政策和用户协议》确认弹窗）
    */
-  async login() {
+  login() {
     if (!this.data.canLogin || this.data.isLogging) {
+      return;
+    }
+    this.setData({ showWelcomeModal: true });
+  },
+
+  /**
+   * 执行登录（V1.1.3 细化需求: 弹窗「同意」后直接登录，逻辑由原 login() 迁移至此）
+   */
+  async doLogin() {
+    if (this.data.isLogging) {
       return;
     }
 

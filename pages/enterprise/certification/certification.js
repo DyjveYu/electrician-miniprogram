@@ -1,6 +1,14 @@
 // pages/enterprise/certification/certification.js
 const app = getApp();
 
+// 实时日志封装（无需额外依赖文件，直接内联）
+const rtLog = wx.getRealtimeLogManager ? wx.getRealtimeLogManager() : null;
+const log = {
+  info(...args) { rtLog && rtLog.info.apply(rtLog, args); },
+  warn(...args) { rtLog && rtLog.warn.apply(rtLog, args); },
+  error(...args) { rtLog && rtLog.error.apply(rtLog, args); }
+};
+
 Page({
   data: {
     mode: 'apply', // apply: 申请认证, view: 查看认证
@@ -30,6 +38,13 @@ Page({
         'formData.contactPhone': app.globalData.userInfo.phone
       });
     }
+
+    // 提前获取网络类型，供后续上传失败时一并上报
+    wx.getNetworkType({
+      success: (res) => {
+        this._networkType = res.networkType;
+      }
+    });
 
     // 查看模式加载认证信息
     if (this.data.mode === 'view') {
@@ -81,9 +96,15 @@ Page({
             // 无认证记录，保持申请模式
             this.setData({ mode: 'apply', certStatus: '' });
           }
+        } else {
+          log.warn('load_certification_biz_fail', {
+            code: res?.data?.code,
+            message: res?.data?.message
+          });
         }
       },
-      fail: () => {
+      fail: (err) => {
+        log.error('load_certification_fail', { errMsg: err.errMsg });
         wx.showToast({ title: '加载失败', icon: 'none' });
       },
       complete: () => {
@@ -131,6 +152,14 @@ Page({
           licenseImagePath: tempFilePath
         });
         that.checkFormValid();
+      },
+      fail(err) {
+        // 用户主动取消不算异常，不需要打扰用户/上报
+        if (err.errMsg && err.errMsg.indexOf('cancel') !== -1) {
+          return;
+        }
+        log.warn('choose_license_image_fail', { errMsg: err.errMsg });
+        wx.showToast({ title: '获取图片失败，请检查相册/相机权限', icon: 'none' });
       }
     });
   },
@@ -187,56 +216,103 @@ Page({
         return;
       }
 
-      wx.uploadFile({
-        url: `${app.globalData.baseUrl}/upload/certification`,
-        filePath: filePath,
-        name: 'certification',
-        header: {
-          'Authorization': `Bearer ${app.globalData.token}`
-        },
-        success: (res) => {
-          if (res.statusCode !== 200) {
-            reject(new Error('营业执照上传失败'));
-            return;
-          }
-
-          try {
-            const data = JSON.parse(res.data);
-            if (data.code === 200 && data.data && data.data.url) {
-              let url = data.data.url;
-              let relativePath;
-
-              if (url.startsWith('http://') || url.startsWith('https://')) {
-                const match = url.match(/\/uploads\/.+$/);
-                if (match) {
-                  relativePath = match[0];
-                } else {
-                  const urlParts = url.split('/');
-                  const uploadsIndex = urlParts.indexOf('uploads');
-                  if (uploadsIndex > 0) {
-                    relativePath = '/' + urlParts.slice(uploadsIndex).join('/');
-                  } else {
-                    relativePath = url;
-                  }
-                }
-              } else if (url.startsWith('/')) {
-                relativePath = url;
-              } else {
-                relativePath = '/' + url;
-              }
-
-              resolve(relativePath);
-            } else {
-              reject(new Error(data.message || '营业执照上传失败'));
-            }
-          } catch (e) {
-            reject(new Error('解析响应失败'));
-          }
-        },
-        fail: () => {
-          reject(new Error('网络错误'));
-        }
+      // 先获取文件大小，便于失败时一并上报诊断信息
+      wx.getFileSystemManager().getFileInfo({
+        filePath,
+        success: (fileInfo) => this._doUploadLicenseImage(filePath, fileInfo.size, resolve, reject),
+        fail: () => this._doUploadLicenseImage(filePath, -1, resolve, reject)
       });
+    });
+  },
+
+  _doUploadLicenseImage(filePath, fileSize, resolve, reject) {
+    const systemInfo = wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
+
+    wx.uploadFile({
+      url: `${app.globalData.baseUrl}/upload/certification`,
+      filePath: filePath,
+      name: 'certification',
+      timeout: 30000, // 显式设置超时，避免默认值在弱网下过短
+      header: {
+        'Authorization': `Bearer ${app.globalData.token}`
+      },
+      success: (res) => {
+        // 无论状态码是多少，都先尝试解析响应体——
+        // 后端 res.error() 在 400/401/403/413 等情况下同样会返回带 message 的 JSON，
+        // 之前的写法一看到非 200 就直接吞掉了这些真实原因。
+        let parsedData = null;
+        try {
+          parsedData = JSON.parse(res.data);
+        } catch (e) {
+          // 非 JSON 响应（比如 Nginx/网关直接返回的错误页），走下面兜底
+        }
+
+        if (res.statusCode !== 200) {
+          const backendMessage = parsedData && parsedData.message;
+          log.error('cert_upload_http_error', {
+            statusCode: res.statusCode,
+            backendMessage,
+            fileSize,
+            platform: systemInfo.platform,
+            SDKVersion: systemInfo.SDKVersion,
+            rawData: parsedData ? undefined : (res.data || '').toString().slice(0, 200)
+          });
+          reject(new Error(backendMessage || `营业执照上传失败(HTTP ${res.statusCode})`));
+          return;
+        }
+
+        try {
+          const data = parsedData || JSON.parse(res.data);
+          if (data.code === 200 && data.data && data.data.url) {
+            let url = data.data.url;
+            let relativePath;
+
+            if (url.startsWith('http://') || url.startsWith('https://')) {
+              const match = url.match(/\/uploads\/.+$/);
+              if (match) {
+                relativePath = match[0];
+              } else {
+                const urlParts = url.split('/');
+                const uploadsIndex = urlParts.indexOf('uploads');
+                if (uploadsIndex > 0) {
+                  relativePath = '/' + urlParts.slice(uploadsIndex).join('/');
+                } else {
+                  relativePath = url;
+                }
+              }
+            } else if (url.startsWith('/')) {
+              relativePath = url;
+            } else {
+              relativePath = '/' + url;
+            }
+
+            resolve(relativePath);
+          } else {
+            log.error('cert_upload_biz_error', {
+              code: data.code,
+              message: data.message,
+              fileSize
+            });
+            reject(new Error(data.message || '营业执照上传失败'));
+          }
+        } catch (e) {
+          log.error('cert_upload_parse_error', {
+            fileSize,
+            rawData: (res.data || '').toString().slice(0, 200)
+          });
+          reject(new Error('解析响应失败'));
+        }
+      },
+      fail: (err) => {
+        log.error('cert_upload_fail', {
+          errMsg: err.errMsg,
+          fileSize,
+          networkType: this._networkType,
+          platform: systemInfo.platform,
+          SDKVersion: systemInfo.SDKVersion
+        });
+        reject(new Error(err.errMsg || '网络错误'));
+      }
     });
   },
 
@@ -303,11 +379,17 @@ Page({
             if (ok) {
               resolve(res.data);
             } else {
+              log.error('cert_submit_biz_error', {
+                code: res?.data?.code,
+                message: res?.data?.message
+              });
               reject(new Error(res.data.message || '提交失败'));
             }
           },
           fail: (err) => {
-            reject(err);
+            // 修复：err 是 {errMsg} 对象而非 Error，需转换后才有 .message
+            log.error('cert_submit_fail', { errMsg: err.errMsg });
+            reject(new Error(err.errMsg || '网络请求失败'));
           }
         });
       });
@@ -330,6 +412,7 @@ Page({
       }, 1500);
 
     } catch (error) {
+      log.error('cert_submit_catch', { message: error.message });
       wx.hideLoading();
       wx.showModal({
         title: '提交失败',

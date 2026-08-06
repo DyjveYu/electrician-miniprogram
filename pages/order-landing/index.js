@@ -5,31 +5,7 @@
 //   - 自动携带 referrer_id
 const plugin = requirePlugin('WechatSI')
 const manager = plugin.getRecordRecognitionManager()
-
-const SERVICE_TYPE_DISPLAY_MAP = {
-  '电路维修': '电工维修',
-  '开关插座': '电工安装'
-};
-
-const SERVICE_TYPE_WHITELIST = Object.keys(SERVICE_TYPE_DISPLAY_MAP);
-
-const RAW_SERVICE_TYPES = [
-  { id: 1, name: '电路维修', icon: '🔌' },
-  { id: 2, name: '开关插座', icon: '🔘' },
-  { id: 3, name: '灯具安装', icon: '💡' },
-  { id: 4, name: '其他电工服务', icon: '⚡' }
-];
-
-const DEFAULT_SERVICE_TYPES = formatServiceTypes(RAW_SERVICE_TYPES);
-
-function formatServiceTypes(list = []) {
-  return (list || [])
-    .filter(item => SERVICE_TYPE_WHITELIST.includes(item.name))
-    .map(item => ({
-      ...item,
-      name: SERVICE_TYPE_DISPLAY_MAP[item.name] || item.name
-    }));
-}
+const SERVICE_TYPES = require('../../config/service-types')
 
 function calculateCurrentPrepayAmount(feeList = []) {
   if (!Array.isArray(feeList) || feeList.length === 0) return 20;
@@ -71,7 +47,7 @@ Page({
     selectedAddressStr: '',
     latitude: '',
     longitude: '',
-    descriptionTitle: '故障描述',
+    descriptionTitle: '订单描述',
     prepayAmount: '30.00',
     canSubmit: false,
     submitting: false,
@@ -295,36 +271,18 @@ Page({
 
   loadServiceTypes() {
     const app = getApp();
-    const serviceTypesUrl = `${app.globalData.baseUrl}/system/service-types`;
-    const timePeriodFeesUrl = `${app.globalData.baseUrl}/system/time-period-fees`;
-    Promise.all([
-      new Promise((resolve, reject) => {
-        wx.request({ url: serviceTypesUrl, method: 'GET', success: resolve, fail: reject });
-      }),
-      new Promise((resolve, reject) => {
-        wx.request({ url: timePeriodFeesUrl, method: 'GET', success: resolve, fail: reject });
-      })
-    ]).then(([serviceTypesRes, timePeriodFeesRes]) => {
-      let prepayAmount = this.data.prepayAmount;
-      const ok = timePeriodFeesRes && timePeriodFeesRes.data &&
-        (timePeriodFeesRes.data.code === 0 || timePeriodFeesRes.data.code === 200);
-      if (ok && Array.isArray(timePeriodFeesRes.data.data.fees)) {
-        prepayAmount = calculateCurrentPrepayAmount(timePeriodFeesRes.data.data.fees).toFixed(2);
-      }
-      const serviceOk = serviceTypesRes && serviceTypesRes.data &&
-        (serviceTypesRes.data.code === 0 || serviceTypesRes.data.code === 200);
-      if (serviceOk && Array.isArray(serviceTypesRes.data.data) && serviceTypesRes.data.data.length > 0) {
-        const formatted = formatServiceTypes(serviceTypesRes.data.data);
-        if (formatted.length > 0) {
-          this.setData({ serviceTypes: formatted, prepayAmount });
-        } else {
-          this.setData({ serviceTypes: DEFAULT_SERVICE_TYPES, prepayAmount });
+    // 服务类型从配置文件读取，不依赖后端
+    this.setData({ serviceTypes: SERVICE_TYPES });
+    // 仍请求时段费（预付款计算需要）
+    wx.request({
+      url: `${app.globalData.baseUrl}/system/time-period-fees`,
+      method: 'GET',
+      success: (res) => {
+        const ok = res.data && (res.data.code === 0 || res.data.code === 200);
+        if (ok && Array.isArray(res.data.data.fees)) {
+          this.setData({ prepayAmount: calculateCurrentPrepayAmount(res.data.data.fees).toFixed(2) });
         }
-      } else {
-        this.setData({ serviceTypes: DEFAULT_SERVICE_TYPES, prepayAmount });
       }
-    }).catch(() => {
-      this.setData({ serviceTypes: DEFAULT_SERVICE_TYPES });
     });
   },
 
@@ -335,8 +293,7 @@ Page({
       const found = this.data.serviceTypes.find(s => s.id == id);
       this.setData({
         selectedServiceTypeId: id,
-        selectedServiceType: found || null,
-        descriptionTitle: this.getDescriptionTitle(found?.name)
+        selectedServiceType: found || null
       });
       return;
     }
@@ -344,14 +301,9 @@ Page({
     if (!selected) return;
     this.setData({
       selectedServiceTypeId: selected.id,
-      selectedServiceType: selected,
-      descriptionTitle: this.getDescriptionTitle(selected.name)
+      selectedServiceType: selected
     });
     this.updateSubmitEnable();
-  },
-
-  getDescriptionTitle(serviceName) {
-    return serviceName === '电工安装' ? '工程描述' : '故障描述';
   },
 
   onDescriptionInput(e) {

@@ -262,23 +262,30 @@
     <view wx:if="{{showAddressSheet}}" class="sheet-mask" bindtap="closeAddressSheet"></view>
     <view wx:if="{{showAddressSheet}}" class="action-sheet" catchtouchmove="true">
       <view class="sheet-header">
-        <text>选择服务地址</text>
+        <view class="sheet-header-spacer"></view>
+        <text class="sheet-header-title">选择服务地址</text>
         <view class="close-icon" bindtap="closeAddressSheet">×</view>
       </view>
       <scroll-view scroll-y="true" class="sheet-body">
-        <view class="address-item" wx:for="{{addresses}}" wx:key="id" bindtap="selectAddress" data-address="{{item}}">
-          <view class="address-main">
-            <text class="addr-title">{{item.contactName}} {{item.contactPhone}}</text>
+        <view class="address-card {{item.isDefault ? 'address-card-default' : ''}}" wx:for="{{addresses}}" wx:key="id">
+          <view class="default-badge" wx:if="{{item.isDefault}}">
+            <text class="default-badge-text">默认</text>
+          </view>
+          <view class="address-card-main" bindtap="selectAddress" data-address="{{item}}">
+            <view class="addr-title-row">
+              <text class="addr-name">{{item.contactName}}</text>
+              <text class="addr-phone">{{item.contactPhone}}</text>
+            </view>
             <view class="addr-detail">{{item.province}}{{item.city}}{{item.district}}{{item.detail}}</view>
           </view>
-          <view class="addr-actions">
-            <button class="mini-btn" data-id="{{item.id}}" bindtap="editAddress" catchtap="editAddress">编辑</button>
+          <view class="addr-edit-btn" data-id="{{item.id}}" bindtap="editAddress">
+            <text class="edit-icon">✎</text>
           </view>
         </view>
         <view class="empty-tip" wx:if="{{!loadingAddresses && addresses.length === 0}}">暂无地址，请新增</view>
       </scroll-view>
       <view class="sheet-footer">
-        <button class="footer-btn primary" bindtap="addAddress">服务地址</button>
+        <button class="footer-btn-add" bindtap="addAddress">添加服务地址</button>
       </view>
     </view>
 
