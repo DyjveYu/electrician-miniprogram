@@ -5,11 +5,18 @@
     "miniprogram": {
       "list": [
         {
-          "name": "测试推荐达人下单",
-          "pathName": "pages/order-landing/index",
-          "query": "referrer_id=65",
+          "name": "推荐达人申请",
+          "pathName": "pages/referrer/apply/apply",
+          "query": "",
           "scene": null,
           "launchMode": "default"
+        },
+        {
+          "name": "测试推荐达人下单",
+          "pathName": "pages/order-landing/index",
+          "query": "referrer_id=98",
+          "launchMode": "default",
+          "scene": null
         },
         {
           "name": "开发版",

@@ -217,9 +217,18 @@ class AuthAPI {
   /**
    * 用户登录
    */
-  static login(phone, code, initialRole = 'user', openid = null) {
+  static login(phone, code, initialRole = null, openid = null) {
     console.log('AuthAPI.login 调用参数:', { phone, code, initialRole, openid });
-    return API.post('/auth/login', { phone, code, initialRole, openid });
+    const data = { phone, code };
+    // initialRole 仅在显式传入时才发送，让后端自行判断已有用户的角色
+    if (initialRole) {
+      data.initialRole = initialRole;
+    }
+    // openid 仅在有效值时才发送，避免 null 导致 Joi 校验 422
+    if (openid) {
+      data.openid = openid;
+    }
+    return API.post('/auth/login', data);
   }
 
   /**
@@ -494,6 +503,20 @@ class ReferrerAPI {
    */
   static getInfo() {
     return API.get('/user-referrers/info');
+  }
+
+  /**
+   * 提交推荐达人申请（扫码通道）
+   */
+  static apply(name) {
+    return API.post('/miniprogram/referrer/apply', { name });
+  }
+
+  /**
+   * 查询推荐达人申请状态
+   */
+  static getApplyStatus() {
+    return API.get('/miniprogram/referrer/apply/status');
   }
 }
 

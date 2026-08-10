@@ -256,7 +256,30 @@
 
 .rating-text {
   font-size: 26rpx;
+  color: #f59e0b;
+}
+
+/* 服务范围说明框 */
+.service-scope {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.05);
+}
+
+.scope-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #1f2937;
+  margin-bottom: 16rpx;
+  line-height: 1.6;
+}
+
+.scope-body {
+  font-size: 26rpx;
   color: #6b7280;
+  line-height: 1.8;
 }
 
 .price-text {

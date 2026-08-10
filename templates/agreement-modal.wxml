@@ -1,0 +1,54 @@
+<!-- 预付款协议弹窗公共模板 -->
+<!-- 使用方式：在页面 wxml 中 <import src="../../templates/agreement-modal.wxml" />
+     <template is="agreement-modal" data="{{showAgreementModal}}" />
+     页面 JS 需定义 data.showAgreementModal 和 onShowAgreement / onCloseAgreement 方法 -->
+
+<template name="agreement-modal">
+  <!-- 遮罩层 -->
+  <view wx:if="{{showAgreementModal}}" class="agreement-mask" bindtap="onCloseAgreement" catchtouchmove="true"></view>
+
+  <!-- 弹层 -->
+  <view wx:if="{{showAgreementModal}}" class="agreement-sheet" catchtouchmove="true">
+    <view class="agreement-header">
+      <text class="agreement-title">订单服务预约预付款协议</text>
+      <view class="agreement-close" bindtap="onCloseAgreement">×</view>
+    </view>
+
+    <scroll-view scroll-y="true" class="agreement-body">
+      <view class="agreement-content">
+        <text class="agreement-p">为明确下单用户（以下简称甲方）和接单用户（以下简称乙方）双方在着安交互平台的订单服务预约预付款权责，本着自愿、公平原则，达成如下约定，双方共同遵守：</text>
+        <view class="agreement-article">
+          <text class="agreement-p">1. 本协议适用于甲方预约乙方上门提供勘测、维修、维护、施工、安装或不上门提供制作、技术支持、远程协同及其它合作等服务，甲方向乙方支付服务预付款，作为锁定上门档期、预留人工及其它合作等筹备的费用。</text>
+        </view>
+        <view class="agreement-article">
+          <text class="agreement-p">2. 订单服务预约预付款标准：日间（08:00-17:00）20元，晚间（17:00-22:00）50元，深夜至凌晨（22:00-次日05:00）80元。</text>
+        </view>
+        <view class="agreement-article">
+          <text class="agreement-p">3. 权责与退款约定，甲方原因乙方不退订单服务预约预付款。甲乙双方确认下单、接单、锁定上门时间后或约定不上门服务的内容后，因甲方单方面原因（包含但不限于：临时取消、改期、无需服务、场地不具备施工条件、个人原因终止订单）导致本次服务订单未完成、未施工、未落地的，本次预付款自动转为乙方上门或不上门的筹备服务费、档期占用费、人工预留成本，不予退还。</text>
+        </view>
+        <view class="agreement-article">
+          <text class="agreement-p">4. 权责与退款约定，乙方原因全额原路退款。若因乙方单方面原因，未按双方约定时间上门、无故缺席、单方面中途终止服务、无法履约提供对应服务的，乙方需在24小时内将甲方预付款全额原路退回，无任何扣款。</text>
+        </view>
+        <view class="agreement-article">
+          <text class="agreement-p">5. 本预付款仅针对上门预约或不上门服务及前期筹备成本，不抵扣最终完工尾款，服务正常完成后，甲方按双方约定结清剩余费用。</text>
+        </view>
+        <view class="agreement-article">
+          <text class="agreement-p">6. 正常履约、乙方顺利完成全部约定服务的，预付款抵扣对应服务费用。</text>
+        </view>
+        <view class="agreement-article">
+          <text class="agreement-p">7. 本协议为双方真实意愿确认，付款即代表认可全部条款，双方无争议。</text>
+        </view>
+        <view class="agreement-article">
+          <text class="agreement-p">8. 自甲方支付预付款乙方接单之时起，本协议自动生效。</text>
+        </view>
+        <view class="agreement-date">
+          <text class="agreement-p">2026年5月1日</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="agreement-footer">
+      <button class="agreement-close-btn" bindtap="onCloseAgreement">同意</button>
+    </view>
+  </view>
+</template>

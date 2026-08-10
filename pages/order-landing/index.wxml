@@ -233,7 +233,7 @@
         <view class="electricity-type-gap"></view>
         <label class="electricity-type-item {{electricityType === 'industrial' ? 'selected' : ''}}">
           <radio value="industrial" checked="{{electricityType === 'industrial'}}" />
-          <text>工业用电</text>
+          <text>工商业用电</text>
         </label>
       </radio-group>
     </view>
@@ -244,11 +244,17 @@
         <checkbox-group bindchange="onAgreeChange">
           <label class="terms-label">
             <checkbox value="agree" checked="{{agreePrepayTerms}}"></checkbox>
-            <text class="terms-text">下单预约将支付维修预付款。如因您个人原因（如取消服务、无法提供维修条件等）导致未能完成维修，该预付款将作为上门服务费不予退还。</text>
+            <text class="terms-text">我已阅读并同意<text class="terms-link" bindtap="onShowAgreement">《订单服务预约预付款协议》</text></text>
           </label>
+          
         </checkbox-group>
+        <view class="terms-tip">点击阅读《订单服务预约预付款协议》后下单。</view>
       </view>
     </view>
+
+    <!-- 协议弹窗 -->
+    <import src="../../templates/agreement-modal.wxml" />
+    <template is="agreement-modal" data="{{showAgreementModal}}" />
 
     <!-- 底部提交预约条 -->
     <view class="submit-bar">

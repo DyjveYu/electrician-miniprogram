@@ -32,7 +32,8 @@
     "pages/order-landing-detail/index",
     "pages/income/index",
     "pages/income/withdraw/withdraw",
-    "pages/income/records/records"
+    "pages/income/records/records",
+    "pages/referrer/apply/apply"
   ],
   "plugins": {
     "WechatSI": {

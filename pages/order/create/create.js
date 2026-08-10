@@ -1,7 +1,7 @@
 // pages/order/create/create.js
 const plugin = requirePlugin('WechatSI')
 const manager = plugin.getRecordRecognitionManager()
-const SERVICE_TYPES = require('../../config/service-types')
+const SERVICE_TYPES = require('../../../config/service-types')
 
 function calculateCurrentPrepayAmount(feeList = []) {
   if (!Array.isArray(feeList) || feeList.length === 0) return 20;
@@ -46,6 +46,9 @@ Page({
     // 语音输入相关
     isRecording: false,
     showRecordPanel: false,
+    // 协议弹窗
+    showAgreementModal: false,
+    hasOpenedAgreement: false,
     realtimeText: '',
     confirmedText: '',
     waveBars: [20, 35, 50, 65, 80, 65, 50, 35, 20],
@@ -387,6 +390,16 @@ Page({
     this.updateSubmitEnable();
   },
 
+  // 协议弹窗
+  onShowAgreement() {
+    this.setData({ showAgreementModal: true, hasOpenedAgreement: true });
+    this.updateSubmitEnable();
+  },
+
+  onCloseAgreement() {
+    this.setData({ showAgreementModal: false });
+  },
+
   onElectricityTypeChange(e) {
     this.setData({ electricityType: e.detail.value });
     this.updateSubmitEnable();
@@ -495,6 +508,11 @@ Page({
   async submitOrder() {
     if (!this.validateForm()) return;
     if (this.data.submitting) return;
+    // 未阅读协议时弹出协议弹层
+    if (!this.data.hasOpenedAgreement) {
+      this.setData({ showAgreementModal: true, hasOpenedAgreement: true });
+      return;
+    }
     this.setData({ submitting: true });
     const app = getApp();
 
@@ -561,7 +579,8 @@ Page({
   updateSubmitEnable() {
     let ok = !!this.data.selectedServiceTypeId
       && !!(this.data.description && this.data.description.trim())
-      && !!this.data.agreePrepayTerms;
+      && !!this.data.agreePrepayTerms
+      && !!this.data.hasOpenedAgreement;
     if (this.data.isDirected) {
       ok = ok && !!this.data.searchedElectrician;
     } else {

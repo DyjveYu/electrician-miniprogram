@@ -4,17 +4,17 @@ App({
   globalData: {
     userInfo: null,
     token: null,
-    version: 'v1.1.3', // ⭐小程序版本号，与 app.json 同步维护
-    //baseUrl: 'https://electrician.mijutime.com/api', // 阿里云 API地址；测试环境
+    version: 'v1.1.4', // ⭐小程序版本号，与 app.json 同步维护
+    baseUrl: 'https://api.mijutime.com/api', // 阿里云 API地址；测试环境
       // baseUrl: 'http://192.168.1.5:3000/api', // ⭐本地开发环境API地址
-  baseUrl: 'http://localhost:3000/api', // ⭐本地开发环境API地址
+   //baseUrl: 'http://localhost:3000/api', // ⭐本地开发环境API地址
    // baseUrl: 'https://api.51zoon.com/api',  // ⭐
     imageBaseUrl: 'https://api.51zoon.com',     // 用于拼接图片URL
+    paymentMethod: 'wechat', //  ⭐ 支付方式全局配置：生产微信支付 wechat ；开发测试支付 test
     isLogin: false,
     currentRole: 'user', // user | electrician
     systemInfo: null,
     location: null,
-    paymentMethod: 'test', //  ⭐ 支付方式全局配置：生产微信支付 wechat ；开发测试支付 test
     mchId: '1103388382' //  添加你的商户号
   },
 

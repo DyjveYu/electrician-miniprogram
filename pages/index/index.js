@@ -55,6 +55,42 @@ Page({
     ],
     // 电工角色的附近订单
     nearbyOrders: [],
+    // 电工角色的已完成订单（与用户首页共享 mock 数据）
+    completedOrders: [
+      {
+        id: 1,
+        title: '客厅灯具安装',
+        status: 'completed',
+        statusText: '已完成',
+        electrician_name: '张工',
+        created_at: '2024-01-15 14:30',
+        createdTime: '2024-01-15 14:30',
+        rating: 5,
+        final_price: 120
+      },
+      {
+        id: 2,
+        title: '厨房插座维修',
+        status: 'completed',
+        statusText: '已完成',
+        electrician_name: '李工',
+        created_at: '2024-01-12 09:15',
+        createdTime: '2024-01-12 09:15',
+        rating: 4.8,
+        final_price: 80
+      },
+      {
+        id: 3,
+        title: '卫生间照明修理',
+        status: 'completed',
+        statusText: '已完成',
+        electrician_name: '王工',
+        created_at: '2024-01-10 16:20',
+        createdTime: '2024-01-10 16:20',
+        rating: 4.9,
+        final_price: 95
+      }
+    ],
     loading: false
   },
 

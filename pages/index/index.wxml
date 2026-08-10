@@ -21,17 +21,23 @@
       <view class="service-arrow">></view>
     </view>
 
+    <!-- 服务范围说明 -->
+    <view class="service-scope">
+      <view class="scope-title">居民商业工业用电设备安装维修维护技术服务</view>
+      <view class="scope-body">电机与水泵、配电箱与配电柜、线路与控制。新能源与光伏、充电桩、监控与弱电。电取暖与电热器、灯具与照明、制冷与空调。PLC与变频控制、电气设备、变压器。智能家居、巡检维护、技术服务、远程协作。</view>
+    </view>
+
     <!-- 最近订单 -->
     <view class="section">
       <view class="section-header">
         <text class="section-title">已完成订单</text>
         <text class="section-more" bindtap="viewAllOrders">查看全部</text>
       </view>
-      
+
       <view wx:if="{{loading}}" class="loading">
         <text>加载中...</text>
       </view>
-      
+
       <view wx:elif="{{recentOrders.length > 0}}" class="order-list">
         <view wx:for="{{recentOrders}}" wx:key="id" class="order-item">
           <view class="order-header">
@@ -43,12 +49,12 @@
             <text class="order-time">{{item.createdTime}}</text>
           </view>
           <view wx:if="{{item.rating}}" class="order-rating">
-            <text class="rating-text">评分：{{item.rating}}分</text>
+            <text class="rating-text">评价：★★★★★</text>
             <text class="price-text">￥{{item.final_price}}</text>
           </view>
         </view>
       </view>
-      
+
       <view wx:else class="empty-state">
         <text class="empty-text">暂无订单记录</text>
         <text class="empty-desc">点击上方"立即下单"创建您的第一个订单</text>
@@ -76,11 +82,11 @@
         <text class="section-title">附近订单</text>
         <text class="section-subtitle">可接单的订单</text>
       </view>
-      
+
       <view wx:if="{{loading}}" class="loading">
         <text>加载中...</text>
       </view>
-      
+
       <view wx:elif="{{nearbyOrders.length > 0}}" class="nearby-order-list">
         <view wx:for="{{nearbyOrders}}" wx:key="id" class="nearby-order-item">
           <view class="order-card">
@@ -119,10 +125,39 @@
           </view>
         </view>
       </view>
-      
+
       <view wx:else class="empty-state">
         <text class="empty-text">暂无附近订单</text>
         <text class="empty-desc">请稍后刷新或扩大搜索范围</text>
+      </view>
+    </view>
+
+    <!-- 已完成订单 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">已完成订单</text>
+        <text class="section-more" bindtap="viewAllOrders">查看全部</text>
+      </view>
+
+      <view wx:if="{{completedOrders.length > 0}}" class="order-list">
+        <view wx:for="{{completedOrders}}" wx:key="id" class="order-item">
+          <view class="order-header">
+            <text class="order-title">{{item.title}}</text>
+            <text class="order-status status-{{item.status}}">{{item.statusText}}</text>
+          </view>
+          <view class="order-info">
+            <text class="order-electrician">电工：{{item.electrician_name}}</text>
+            <text class="order-time">{{item.createdTime}}</text>
+          </view>
+          <view wx:if="{{item.rating}}" class="order-rating">
+            <text class="rating-text">评价：★★★★★</text>
+            <text class="price-text">￥{{item.final_price}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:else class="empty-state">
+        <text class="empty-text">暂无订单记录</text>
       </view>
     </view>
   </view>

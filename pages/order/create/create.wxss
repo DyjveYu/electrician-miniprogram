@@ -343,6 +343,18 @@
   overflow-wrap: anywhere;
 }
 
+.terms-link {
+  color: #e74c3c;
+}
+
+.terms-tip {
+  margin-top: 8rpx;
+  padding-left: 48rpx;
+  color: #999;
+  font-size: 24rpx;
+  line-height: 1.4;
+}
+
 /* 编辑按钮——方框内铅笔图标 */
 .addr-edit-btn {
   width: 56rpx;
@@ -735,4 +747,102 @@
   margin-top: 10rpx;
   min-height: 80rpx;
   line-height: 1.5;
+}
+
+/* ─── 协议弹层（z-index ≥2100，参考 V1.1.3 T03） ─── */
+.agreement-mask {
+  position: fixed;
+  left: 0; right: 0; top: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 2100;
+}
+
+.agreement-sheet {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  background: #fff;
+  border-top-left-radius: 32rpx;
+  border-top-right-radius: 32rpx;
+  z-index: 2101;
+  max-height: 75vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.agreement-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 30rpx 32rpx 20rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.agreement-title {
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.agreement-close {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+  line-height: 40rpx;
+  color: #999;
+  flex-shrink: 0;
+}
+
+.agreement-body {
+  flex: 1;
+  padding: 24rpx 32rpx;
+  max-height: 55vh;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+.agreement-content {
+  padding-bottom: 20rpx;
+}
+
+.agreement-article {
+  margin-top: 20rpx;
+}
+
+.agreement-p {
+  font-size: 28rpx;
+  color: #333;
+  line-height: 1.8;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.agreement-date {
+  margin-top: 40rpx;
+  text-align: right;
+}
+
+.agreement-footer {
+  padding: 20rpx 32rpx 40rpx;
+  flex-shrink: 0;
+}
+
+.agreement-close-btn {
+  width: 100%;
+  height: 88rpx;
+  line-height: 88rpx;
+  background: #0F9D58;
+  color: #fff;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  border: none;
+  text-align: center;
+}
+
+.agreement-close-btn::after {
+  border: none;
 }

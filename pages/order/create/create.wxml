@@ -221,12 +221,16 @@
       <checkbox-group bindchange="onAgreeChange">
         <label class="terms-label">
           <checkbox value="agree" checked="{{agreePrepayTerms}}"></checkbox>
-          <text class="terms-text">我已阅读并同意《订单预约支付预付款协议》
-          订单预约支付预付款，如因您单方面原因(包含但不限于:临时取消、改期、无需服务、场地不具备施工条件、个人原因终止订单)导致本次服务订单未完成、未施工、未落地的，本次预付款自动转为乙方上门或不上门的筹备服务费、档期占用费、人工预留成本，不予退还。</text>
+          <text class="terms-text">我已阅读并同意<text class="terms-link" bindtap="onShowAgreement">《订单服务预约预付款协议》</text></text>
         </label>
       </checkbox-group>
+      <view class="terms-tip">点击阅读《订单服务预约预付款协议》后下单。</view>
     </view>
   </view>
+
+  <!-- 协议弹窗 -->
+  <import src="../../../templates/agreement-modal.wxml" />
+  <template is="agreement-modal" data="{{showAgreementModal}}" />
 
   <!-- 底部提交预约条 -->
   <view class="submit-bar">
