@@ -92,9 +92,6 @@
       <view class="role-option {{selectedRole === 'enterprise' ? 'active' : ''}}" bindtap="selectRole" data-role="enterprise">
         <text class="role-text">我是企业</text>
       </view>
-      <view class="role-option" bindtap="selectRole" data-role="learn">
-        <text class="role-text">我要学电工</text>
-      </view>
     </view>
   </view>
 

@@ -93,6 +93,12 @@
 .tips {
   font-size: 24rpx;
   color: #999;
+  margin-bottom: 10rpx;
+}
+
+.today-tip {
+  font-size: 24rpx;
+  color: #e6a23c;
   margin-bottom: 40rpx;
 }
 

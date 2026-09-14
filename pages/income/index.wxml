@@ -21,7 +21,7 @@
       </view>
       <!-- 合作伙伴不显示提现按钮（线下结算） -->
       <view class="balance-action" wx:if="{{balance.referrer_type !== 'partner'}}">
-        <button class="withdraw-btn" bindtap="navigateToWithdraw" disabled="{{balance.available_balance < 1}}">
+        <button class="withdraw-btn" bindtap="navigateToWithdraw" disabled="{{balance.available_balance < 0.1}}">
           申请提现
         </button>
       </view>

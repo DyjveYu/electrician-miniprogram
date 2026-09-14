@@ -13,7 +13,9 @@ Page({
     },
     withdrawAmount: '',
     canWithdraw: false,
-    submitting: false
+    submitting: false,
+    todayWithdrawCount: 0,
+    todayWithdrawnAmount: 0
   },
 
   onLoad() {
@@ -33,7 +35,12 @@ Page({
       header: { 'Authorization': `Bearer ${app.globalData.token}` },
       success: (res) => {
         if (res.data.success) {
-          this.setData({ wallet: res.data.data });
+          const data = res.data.data || {};
+          this.setData({
+            wallet: data,
+            todayWithdrawCount: data.today_withdraw_count || 0,
+            todayWithdrawnAmount: data.today_withdrawn_amount || 0
+          });
         }
       }
     });
@@ -50,7 +57,7 @@ Page({
     
     const amount = parseFloat(value);
     const balance = this.data.wallet.available_balance;
-    const isValid = !isNaN(amount) && amount >= 1 && amount <= balance;
+    const isValid = !isNaN(amount) && amount >= 0.1 && amount <= 200 && amount <= balance && this.canWithdrawToday();
 
     this.setData({
       withdrawAmount: value,
@@ -60,17 +67,44 @@ Page({
 
   handleWithdrawAll() {
     const balance = this.data.wallet.available_balance;
+    // 单笔上限 200 元，余额超出时自动封顶 200
+    const amount = Math.min(balance, 200);
     this.setData({
-      withdrawAmount: balance.toString(),
-      canWithdraw: balance >= 1
+      withdrawAmount: amount.toString(),
+      canWithdraw: amount >= 0.1 && amount <= 200 && this.canWithdrawToday()
     });
   },
 
+  // 今日是否还有提现次数（每日最多10次，自然日00:00重置）
+  canWithdrawToday() {
+    return (this.data.todayWithdrawCount || 0) < 10;
+  },
+
   handleWithdraw() {
-    if (!this.data.canWithdraw || this.data.submitting) return;
+    if (this.data.submitting) return;
+
+    if (!this.canWithdrawToday()) {
+      wx.showModal({
+        title: '提示',
+        content: '今日提现次数已达上限（10次），请明天再试',
+        showCancel: false
+      });
+      return;
+    }
+
+    if (!this.data.canWithdraw) return;
 
     const amount = parseFloat(this.data.withdrawAmount);
-    
+
+    if (amount + (this.data.todayWithdrawnAmount || 0) > 2000) {
+      wx.showModal({
+        title: '提示',
+        content: '今日累计提现金额已达上限¥2,000，请明天再试',
+        showCancel: false
+      });
+      return;
+    }
+
     wx.showModal({
       title: '确认提现',
       content: `确认提现 ¥${amount.toFixed(2)} 到微信零钱？`,

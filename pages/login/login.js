@@ -76,16 +76,6 @@ Page({
     const role = e.currentTarget.dataset.role;
     console.log('选择角色:', role);
 
-    // "我要学电工"弹出提示
-    if (role === 'learn') {
-      wx.showToast({
-        title: '功能开发中，敬请期待',
-        icon: 'none',
-        duration: 2000
-      });
-      return;
-    }
-
     this.setData({
       selectedRole: role
     });

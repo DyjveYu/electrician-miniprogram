@@ -1,0 +1,45 @@
+<view class="about-container">
+  <!-- 品牌区 -->
+  <view class="brand-section"> 
+    <view class="brand-name">着安</view> 
+  </view>
+
+  <!-- 平台介绍卡片 -->
+  <view class="content-card">
+    <view class="card-title">平台简介</view>
+    <view class="card-body">
+      <text class="body-text">着安小程序是同城电工服务预约平台，专注为居民、商业工业等企业提供用电线路开关灯具照明、电机水泵伺服器、电取暖电热器等维修安装需求下单预约的客户与电工对接的服务软件，订单服务全程可追溯。</text>
+    </view>
+  </view>
+
+  <!-- 服务保障卡片 -->
+  <view class="content-card">
+    <view class="card-title">服务保障</view>
+    <view class="card-body">
+      <text class="body-text">入驻平台接单电工均经过实名认证、人工审核。严格遵守小程序运营规范。客户下单预约上门（不上门）勘测后据实报价，先报价、后施工，无强制增项，无隐形消费，全链条透明可查。支持同城本地就近派单。</text>
+    </view>
+  </view>
+
+  <!-- 使用流程卡片 -->
+  <view class="content-card">
+    <view class="card-title">使用流程</view>
+    <view class="workflow">
+      <block wx:for="{{steps}}" wx:key="index">
+        <view class="step-item">
+          <view class="step-left">
+            <view class="step-circle">{{item.num}}</view>
+            <view class="step-line" wx:if="{{index < steps.length - 1}}"></view>
+          </view>
+          <view class="step-right">
+            <text class="step-label">{{item.label}}</text>
+          </view>
+        </view>
+      </block>
+    </view>
+  </view>
+
+  <!-- 底部版本信息 -->
+  <view class="footer-info">
+    <text class="footer-text">着安电工平台 v1.1.4</text>
+  </view>
+</view>

@@ -7,6 +7,7 @@ Page({
       transactionId: null
     },
     configuredAmount: 200,
+    expireMinutes: 30,
     statusText: '未缴纳',
     paying: false,
     refunding: false
@@ -46,7 +47,8 @@ Page({
               'paid': '已缴纳',
               'pending': '待支付',
               'refunded': '已退款',
-              'refunding': '退款中'
+              'refunding': '退款中',
+              'expired': '已过期'
             };
             this.setData({
               depositInfo: {
@@ -97,7 +99,8 @@ Page({
             'paid': '已缴纳',
             'pending': '待支付',
             'refunded': '已退款',
-            'refunding': '退款中'
+            'refunding': '退款中',
+            'expired': '已过期'
           };
           this.setData({
             depositInfo: {
@@ -106,6 +109,7 @@ Page({
               transactionId: data.transactionId || null
             },
             configuredAmount: data.configuredAmount || data.amount || 200,
+            expireMinutes: data.expireMinutes || 30,
             statusText: statusMap[data.status] || '未缴纳'
           });
         } else {
@@ -136,7 +140,8 @@ Page({
       'paid': '已缴纳',
       'pending': '待支付',
       'refunded': '已退款',
-      'refunding': '退款中'
+      'refunding': '退款中',
+      'expired': '已过期'
     };
     return statusMap[this.data.depositInfo.status] || '未缴纳';
   },
@@ -195,7 +200,16 @@ Page({
               data: { openid },
               success: (createRes) => {
                 if (createRes.data.code === 200 && createRes.data.data) {
-                  const payParams = createRes.data.data.payParams;
+                  const resData = createRes.data.data;
+
+                  // 后端查单发现已支付：无需再拉起收银台
+                  if (resData.status === 'paid' || !resData.payParams) {
+                    wx.showToast({ title: resData.message || '押金已缴纳', icon: 'success' });
+                    this.loadDepositStatus();
+                    return;
+                  }
+
+                  const payParams = resData.payParams;
                   // 调起微信支付
                   wx.requestPayment({
                     ...payParams,
@@ -205,11 +219,16 @@ Page({
                       this.pollDepositStatus(0);
                     },
                     fail: (payErr) => {
-                      if (payErr.errMsg === 'requestPayment:fail cancel') {
+                      const errMsg = payErr.errMsg || '';
+                      if (errMsg === 'requestPayment:fail cancel') {
                         wx.showToast({ title: '支付已取消', icon: 'none' });
+                      } else if (errMsg.indexOf('过期') > -1 || errMsg.indexOf('关闭') > -1) {
+                        wx.showToast({ title: '支付订单已过期，请重新缴纳', icon: 'none' });
                       } else {
                         wx.showToast({ title: '支付失败', icon: 'none' });
                       }
+                      // 失败后刷新状态，避免页面停留在「待支付」
+                      this.loadDepositStatus();
                     }
                   });
                 } else {

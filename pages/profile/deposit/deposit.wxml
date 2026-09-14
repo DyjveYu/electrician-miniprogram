@@ -37,6 +37,11 @@
     </view>
   </view>
 
+  <!-- 支付订单过期提示 -->
+  <view class="tips-section" wx:if="{{depositInfo.status === 'expired'}}">
+    <text class="tips-text">上一笔支付订单已超过{{expireMinutes}}分钟有效期，已自动失效。请点击「重新缴纳」，新订单将重新计时。</text>
+  </view>
+
   <!-- 操作按钮 -->
   <view class="action-section">
     <button
@@ -47,11 +52,11 @@
     >退回押金</button>
 
     <button
-      wx:if="{{!depositInfo.status || depositInfo.status === 'refunded' || depositInfo.status === 'pending'}}"
+      wx:if="{{!depositInfo.status || depositInfo.status === 'refunded' || depositInfo.status === 'pending' || depositInfo.status === 'expired'}}"
       class="btn pay-btn"
       bindtap="handlePay"
       loading="{{paying}}"
-    >立即缴纳</button>
+    >{{depositInfo.status === 'expired' ? '重新缴纳' : '立即缴纳'}}</button>
   </view>
 
   <!-- 退款提示 -->

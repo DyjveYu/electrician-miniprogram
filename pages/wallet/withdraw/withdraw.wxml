@@ -27,7 +27,8 @@
       />
       <view class="all-btn" bindtap="handleWithdrawAll">全部提现</view>
     </view>
-    <view class="tips">最低提现金额 1.00元</view>
+    <view class="tips">单笔提现 0.10~200 元</view>
+    <view class="today-tip">今日已提现 {{todayWithdrawCount}}/10 次，单日累计上限 ¥2,000</view>
     
     <button 
       class="withdraw-btn" 
@@ -40,9 +41,11 @@
   </view>
   
   <view class="notice">
-    <view class="notice-title">提现说明</view>
-    <view class="notice-item">1. 仅限5星评价的订单收入可提现。</view>
-    <view class="notice-item">2. 提现申请提交后，资金将直接转入您的微信零钱。</view>
-    <view class="notice-item">3. 单日提现次数限制为5次。</view>
+      <view class="notice-title">提现规则</view>
+      <view class="notice-item">1. 结算周期：订单完成24小时后，服务费计入"总收入"</view>
+      <view class="notice-item">2. 可提现余额：已结算金额，实时更新。单笔提现金额¥0.10~¥200，单日累计提现上限¥2,000。</view>
+      <view class="notice-item">3. 提现次数：每日最多可提现10次（以自然日00:00重置）。</view>
+      <view class="notice-item">4. 申请时间：全天 0:00-24:00 均可提交提现申请，无时段限制。</view>
+      <view class="notice-item">5. 到账时效：提交后系统自动处理（无需人工审核），资金实时到账微信零钱，最长不超过2小时。</view>
   </view>
 </view>

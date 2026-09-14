@@ -42,13 +42,6 @@ Page({
         url: '/pages/profile/switch-role/switch-role',
         showForRole: ['user', 'electrician']
       },
-      {
-        id: 'settings',
-        title: '设置',
-        icon: '⚙️',
-        url: '/pages/profile/settings/settings',
-        showForRole: ['user', 'electrician']
-      }
     ],
     stats: {
       totalOrders: 0,
@@ -436,14 +429,6 @@ loadUserInfo() {
     });
   },
 
-  // 导航到设置页面
-  navigateToSettings() {
-    wx.showToast({
-      title: '功能开发中',
-      icon: 'none'
-    });
-  },
-
   // 导航到押金管理页面
   navigateToDeposit() {
     wx.navigateTo({
@@ -477,9 +462,8 @@ loadUserInfo() {
 
   // 导航到关于页面
   navigateToAbout() {
-    wx.showToast({
-      title: '功能开发中',
-      icon: 'none'
+    wx.navigateTo({
+      url: '/pages/about/about/about'
     });
   },
 
