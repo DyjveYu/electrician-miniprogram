@@ -1,0 +1,2 @@
+.state { padding: 120rpx 40rpx; text-align: center; color: #606266; }
+.state button { margin-top: 24rpx; }

@@ -1,6 +1,8 @@
 {
   "pages": [
     "pages/index/index",
+    "pages/content/notice-detail/index",
+    "pages/content/webview/index",
     "pages/login/login",
     "pages/order/create/create",
     "pages/order/list/list",

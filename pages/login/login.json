@@ -1,4 +1,5 @@
 {
+  "usingComponents": { "home-ads": "/components/home-ads/index" },
   "navigationBarTitleText": "登录",
   "navigationStyle": "custom",
   "backgroundColor": "#667eea"

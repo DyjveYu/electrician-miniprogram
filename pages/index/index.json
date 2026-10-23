@@ -1,4 +1,5 @@
 {
+  "usingComponents": { "home-ads": "/components/home-ads/index" },
   "navigationBarTitleText": "电工应用平台",
   "enablePullDownRefresh": true,
   "backgroundTextStyle": "dark",

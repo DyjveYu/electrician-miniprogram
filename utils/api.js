@@ -520,7 +520,25 @@ class ReferrerAPI {
   }
 }
 
+// 公开内容请求不附带身份信息，也不触发通用401登出流程；只接受本片内部路径。
+class ContentAPI {
+  static request(path) {
+    return new Promise((resolve, reject) => wx.request({
+      url: `${app.globalData.baseUrl}/content${path}`, method: 'GET',
+      success: res => {
+        if (res.statusCode === 200 && res.data.code === 200) resolve(res.data);
+        else reject(new Error(res.statusCode === 404 ? '内容不可用' : '内容加载失败，请重试'));
+      },
+      fail: () => reject(new Error('网络请求失败，请重试'))
+    }));
+  }
+  static getAds() { return this.request('/ads'); }
+  static resolveTarget(slot) { return this.request(`/ads/${encodeURIComponent(slot)}/target`); }
+  static getNotice(id) { return this.request(`/notices/${encodeURIComponent(id)}`); }
+}
+
 module.exports = {
+  ContentAPI,
   API,
   AuthAPI,
   OrderAPI,
