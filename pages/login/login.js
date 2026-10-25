@@ -28,7 +28,10 @@ Page({
     modalContent: ''
   },
 
-  onLoad() {
+  onLoad(options = {}) {
+    this._contentEntry = options.entry === 'electrician-home';
+    if (this._contentEntry) this.enterElectricianHomeLogin();
+    else app.globalData.contentLoginEntry = null;
     // 从 app globalData 读取版本号
     this.setData({ version: app.globalData.version });
     console.log('登录页面加载，版本号:', this.data.version);
@@ -48,13 +51,24 @@ Page({
       });
 
       // 如果已经登录,直接返回首页
-      if (app.globalData.isLogin && app.globalData.token) {
+      if (!this._contentEntry && app.globalData.isLogin && app.globalData.token) {
         console.log('[登录页] 已登录,跳转到首页');
         wx.reLaunch({
           url: '/pages/index/index'
         });
       }
     }, 100);
+  },
+
+  enterElectricianHomeLogin() {
+    this._contentEntry = true;
+    app.globalData.contentLoginEntry = 'electrician-home';
+    this.setData({ selectedRole: 'electrician' });
+    wx.pageScrollTo({ selector: '#login-form', duration: 200 });
+  },
+
+  onReady() {
+    if (this._contentEntry) wx.pageScrollTo({ selector: '#login-form', duration: 200 });
   },
 
   /**
@@ -74,6 +88,10 @@ Page({
    */
   selectRole(e) {
     const role = e.currentTarget.dataset.role;
+    if (role !== 'electrician') {
+      this._contentEntry = false;
+      app.globalData.contentLoginEntry = null;
+    }
     console.log('选择角色:', role);
 
     this.setData({

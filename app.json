@@ -3,6 +3,8 @@
     "pages/index/index",
     "pages/content/notice-detail/index",
     "pages/content/webview/index",
+    "pages/content/electrician-home/index",
+    "pages/content/article-detail/index",
     "pages/login/login",
     "pages/order/create/create",
     "pages/order/list/list",

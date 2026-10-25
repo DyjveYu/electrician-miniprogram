@@ -26,7 +26,7 @@
   </view>
 
   <!-- 登录表单 -->
-  <view class="login-form">
+  <view class="login-form" id="login-form">
     <view class="form-title">找电工 上着安</view> 
     <!-- 角色选择 -->
     <view class="role-selector">
@@ -101,6 +101,7 @@
 
 
   <home-ads />
+  <electrician-home-entry />
 
   <!-- 底部信息 -->
   <view class="footer">

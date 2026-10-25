@@ -1,4 +1,4 @@
 {
   "navigationBarTitleText": "电工认证",
-  "usingComponents": {}
+  "usingComponents": { "electrician-home-entry": "/components/electrician-home-entry/index" }
 }

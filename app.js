@@ -21,6 +21,13 @@ App({
   onLaunch(options) {
     console.log('小程序启动', options);
 
+    // 冷启动直达受限内容时，先保留来源，再开始异步token校验。
+    const launchPath = String(options && options.path || '').replace(/^\//, '');
+    if (/^pages\/content\/(electrician-home|article-detail)\//.test(launchPath) ||
+        (launchPath === 'pages/login/login' && options.query && options.query.entry === 'electrician-home')) {
+      this.globalData.contentLoginEntry = 'electrician-home';
+    }
+
     // 获取系统信息
     this.getSystemInfo();
 
@@ -146,6 +153,7 @@ App({
    */
   verifyToken() {
     console.log('[App] 开始验证Token有效性...');
+    const verifyingToken = this.globalData.token;
     wx.request({
       url: `${this.globalData.baseUrl}/auth/verify-token`,
       method: 'GET',
@@ -153,6 +161,8 @@ App({
         'Authorization': `Bearer ${this.globalData.token}`
       },
       success: (res) => {
+        // 旧会话的异步验证不能退出后来已登录的新会话。
+        if (verifyingToken !== this.globalData.token) return;
         console.log('[App] Token验证响应:', res);
         // 只有明确的 401 或者 success=false 且 code=401 时才登出
         if (res.statusCode === 401 || (res.data && res.data.code === 401)) {
@@ -224,6 +234,7 @@ App({
     this.globalData.token = token;
     this.globalData.isLogin = true;
     this.globalData.currentRole = userInfo.current_role || 'user';
+    this.globalData.contentLoginEntry = null;
 
     // 存储到本地
     wx.setStorageSync('userInfo', userInfo);
@@ -240,7 +251,13 @@ App({
   /**
    * 用户登出
    */
-  logout() {
+  logout(options = {}) {
+    const pages = getCurrentPages();
+    const current = pages[pages.length - 1];
+    const contentEntry = options.entry === 'electrician-home' ||
+      this.globalData.contentLoginEntry === 'electrician-home' ||
+      (current && /^pages\/content\/(electrician-home|article-detail)\//.test(current.route));
+    if (contentEntry) this.globalData.contentLoginEntry = 'electrician-home';
     this.globalData.userInfo = null;
     this.globalData.token = null;
     this.globalData.isLogin = false;
@@ -252,9 +269,16 @@ App({
 
     console.log('用户登出');
 
+    if (contentEntry && current && current.route === 'pages/login/login') {
+      if (current.enterElectricianHomeLogin) current.enterElectricianHomeLogin();
+      return;
+    }
+    if (this._logoutNavigating) return;
+    this._logoutNavigating = true;
     // 跳转到登录页
     wx.reLaunch({
-      url: '/pages/login/login'
+      url: contentEntry ? '/pages/login/login?entry=electrician-home' : '/pages/login/login',
+      complete: () => { this._logoutNavigating = false; }
     });
   },
 

@@ -537,7 +537,32 @@ class ContentAPI {
   static getNotice(id) { return this.request(`/notices/${encodeURIComponent(id)}`); }
 }
 
+// 受限文章不复用公开ContentAPI，也不触发通用API的普通登录401跳转。
+class ElectricianHomeAPI {
+  static request(path) {
+    const token = app.globalData.token;
+    return new Promise((resolve, reject) => wx.request({
+      url: `${app.globalData.baseUrl}/content/electrician-home/articles${path}`,
+      method: 'GET', header: token ? { Authorization: `Bearer ${token}` } : {},
+      success: res => {
+        if (token !== app.globalData.token) {
+          const error = new Error('登录状态已变化，请重新进入'); error.statusCode = 409;
+          return reject(error);
+        }
+        if (res.statusCode === 200 && res.data.code === 200) return resolve(res.data);
+        const error = new Error(res.data && res.data.message || '内容加载失败，请重试');
+        error.statusCode = res.statusCode;
+        reject(error);
+      },
+      fail: () => reject(new Error('网络请求失败，请检查网络后重试'))
+    }));
+  }
+  static list(page = 1) { return this.request(`?page=${encodeURIComponent(page)}&pageSize=20`); }
+  static detail(id) { return this.request(`/${encodeURIComponent(id)}`); }
+}
+
 module.exports = {
+  ElectricianHomeAPI,
   ContentAPI,
   API,
   AuthAPI,

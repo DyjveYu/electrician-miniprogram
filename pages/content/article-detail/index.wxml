@@ -1,0 +1,11 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="state">正在加载…</view>
+  <view wx:elif="{{error}}" class="state"><text>{{error}}</text><button size="mini" bindtap="retry">重试</button><button size="mini" bindtap="goBack">返回</button></view>
+  <view wx:elif="{{article}}">
+    <view class="title">{{article.title}}</view><view class="meta">{{article.date}} · 阅读 {{article.read_count}}</view>
+    <view class="body" wx:for="{{article.body}}" wx:key="index">
+      <text wx:if="{{item.type === 'text'}}" class="paragraph" user-select="true">{{item.text}}</text>
+      <image wx:elif="{{item.type === 'image'}}" class="illustration" src="{{item.src}}" mode="widthFix" />
+    </view>
+  </view>
+</view>

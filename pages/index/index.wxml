@@ -164,6 +164,7 @@
 </view>
 
 <home-ads />
+<electrician-home-entry />
 
 <!-- 已移除报价弹窗：接单改为直接调用接口 -->
 

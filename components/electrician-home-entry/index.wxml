@@ -1,0 +1,1 @@
+<view class="content-entry" bindtap="openHome" role="button" aria-label="着安电工之家"><text>着安电工之家</text><text aria-hidden="true">›</text></view>

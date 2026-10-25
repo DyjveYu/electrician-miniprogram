@@ -1,5 +1,6 @@
 <!-- pages/profile/certification/certification.wxml -->
 <view class="container">
+  <electrician-home-entry />
   <view class="header">
     <view class="title">电工认证</view>
     <view class="subtitle" wx:if="{{mode === 'apply'}}">请填写真实信息，审核通过后可接单</view>
