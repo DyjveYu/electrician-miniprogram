@@ -561,7 +561,26 @@ class ElectricianHomeAPI {
   static detail(id) { return this.request(`/${encodeURIComponent(id)}`); }
 }
 
+// 固定公开栏目，不附JWT，不调用通用401登出；保留状态用于人工重试提示。
+class SafetyKnowledgeAPI {
+  static request(path) {
+    return new Promise((resolve, reject) => wx.request({
+      url: `${app.globalData.baseUrl}/content/safety-knowledge/articles${path}`, method: 'GET',
+      success: res => {
+        if (res.statusCode === 200 && res.data && res.data.code === 200) return resolve(res.data);
+        const error = new Error(res.statusCode === 404 ? '内容不可用' : '内容加载失败，请重试');
+        error.statusCode = res.statusCode;
+        reject(error);
+      },
+      fail: () => reject(new Error('网络请求失败，请检查网络后重试'))
+    }));
+  }
+  static list(page = 1) { return this.request(`?page=${encodeURIComponent(page)}&pageSize=20`); }
+  static detail(id) { return this.request(`/${encodeURIComponent(id)}`); }
+}
+
 module.exports = {
+  SafetyKnowledgeAPI,
   ElectricianHomeAPI,
   ContentAPI,
   API,

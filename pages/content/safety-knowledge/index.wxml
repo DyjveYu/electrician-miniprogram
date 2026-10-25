@@ -1,0 +1,12 @@
+<view class="page">
+  <view class="intro">着安用电安全小知识</view>
+  <view wx:if="{{loading}}" class="state">正在加载…</view>
+  <view wx:elif="{{error}}" class="state"><text>{{error}}</text><button bindtap="retry" size="mini">重试</button></view>
+  <view wx:elif="{{!list.length}}" class="state">暂无文章</view>
+  <view wx:else>
+    <view class="article" wx:for="{{list}}" wx:key="id" data-id="{{item.id}}" bindtap="openArticle">
+      <view class="title">{{item.title}}</view><view class="meta">{{item.date}} · 阅读 {{item.read_count}}</view>
+    </view>
+    <view class="pagination"><button size="mini" bindtap="previous" disabled="{{page <= 1 || loading}}">上一页</button><text>{{page}} / {{pages}} 页</text><button size="mini" bindtap="next" disabled="{{page >= pages || loading}}">下一页</button></view>
+  </view>
+</view>

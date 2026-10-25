@@ -18,6 +18,7 @@ App({
 
     // 冷启动直达受限内容时，先保留来源，再开始异步token校验。
     const launchPath = String(options && options.path || '').replace(/^\//, '');
+    this._publicContentLaunchPending = /^pages\/content\/(safety-knowledge|safety-knowledge-detail)\/index$/.test(launchPath);
     if (/^pages\/content\/(electrician-home|article-detail)\//.test(launchPath) ||
         (launchPath === 'pages/login/login' && options.query && options.query.entry === 'electrician-home')) {
       this.globalData.contentLoginEntry = 'electrician-home';
@@ -263,6 +264,13 @@ App({
     wx.removeStorageSync('token');
 
     console.log('用户登出');
+
+    // verifyToken可能在首Page入栈前结束；只用精确启动路径临时保护公开页。
+    const publicContent = current
+      ? /^pages\/content\/(safety-knowledge|safety-knowledge-detail)\/index$/.test(current.route)
+      : this._publicContentLaunchPending;
+    if (current) this._publicContentLaunchPending = false;
+    if (publicContent) return;
 
     if (contentEntry && current && current.route === 'pages/login/login') {
       if (current.enterElectricianHomeLogin) current.enterElectricianHomeLogin();

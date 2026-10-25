@@ -1,5 +1,5 @@
 {
-  "usingComponents": { "home-ads": "/components/home-ads/index", "electrician-home-entry": "/components/electrician-home-entry/index" },
+  "usingComponents": { "home-ads": "/components/home-ads/index", "electrician-home-entry": "/components/electrician-home-entry/index", "safety-knowledge-entry": "/components/safety-knowledge-entry/index" },
   "navigationBarTitleText": "电工应用平台",
   "enablePullDownRefresh": true,
   "backgroundTextStyle": "dark",

@@ -102,6 +102,7 @@
 
   <home-ads />
   <electrician-home-entry />
+  <safety-knowledge-entry />
 
   <!-- 底部信息 -->
   <view class="footer">

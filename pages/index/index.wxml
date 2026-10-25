@@ -165,6 +165,7 @@
 
 <home-ads />
 <electrician-home-entry />
+<safety-knowledge-entry />
 
 <!-- 已移除报价弹窗：接单改为直接调用接口 -->
 

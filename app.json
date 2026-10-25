@@ -5,6 +5,8 @@
     "pages/content/webview/index",
     "pages/content/electrician-home/index",
     "pages/content/article-detail/index",
+    "pages/content/safety-knowledge/index",
+    "pages/content/safety-knowledge-detail/index",
     "pages/login/login",
     "pages/order/create/create",
     "pages/order/list/list",

@@ -1,0 +1,1 @@
+<view class="content-entry" bindtap="openKnowledge" role="button" aria-label="着安用电安全小知识"><text>着安用电安全小知识</text><text aria-hidden="true">›</text></view>
