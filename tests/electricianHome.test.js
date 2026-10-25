@@ -41,7 +41,8 @@ function harness() {
       require: specifier => {
         if (specifier.includes('log.js')) return { error() {} };
         if (specifier.includes('utils/util')) return { validatePhone: () => true };
-        return load(path.relative(root, path.resolve(path.dirname(file), specifier + (path.extname(specifier) ? '' : '.js'))));
+        const target = path.resolve(path.dirname(file), specifier);
+        return load(path.relative(root, fs.existsSync(target) ? target : target + '.js'));
       }
     }, { filename: file });
     cache.set(file, module.exports);

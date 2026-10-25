@@ -1,7 +1,12 @@
 {
   "description": "电工维修平台小程序",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      { "type": "file", "value": "config/local.json" },
+      { "type": "file", "value": "config/local.example.json" },
+      { "type": "folder", "value": "scripts" },
+      { "type": "folder", "value": "tests" }
+    ],
     "include": []
   },
   "setting": {

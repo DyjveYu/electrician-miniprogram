@@ -12,3 +12,8 @@ $RECYCLE.BIN/
 
 # Node.js
 node_modules/
+
+# 个人联调配置与自动生成运行时（首次编译先运行配置生成器）
+config/local.json
+config/runtime.generated.js
+config/runtime.generated.js.tmp
