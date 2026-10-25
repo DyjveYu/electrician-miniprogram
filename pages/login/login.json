@@ -1,5 +1,5 @@
 {
-  "usingComponents": { "home-ads": "/components/home-ads/index", "electrician-home-entry": "/components/electrician-home-entry/index", "safety-knowledge-entry": "/components/safety-knowledge-entry/index" },
+  "usingComponents": { "notice-board": "/components/notice-board/index", "home-ads": "/components/home-ads/index", "electrician-home-entry": "/components/electrician-home-entry/index", "safety-knowledge-entry": "/components/safety-knowledge-entry/index" },
   "navigationBarTitleText": "登录",
   "navigationStyle": "custom",
   "backgroundColor": "#667eea"

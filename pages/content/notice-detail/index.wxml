@@ -7,6 +7,7 @@
   </view>
   <block wx:elif="{{notice}}">
     <view class="title">{{notice.title}}</view>
+    <view class="date">{{notice.date}}</view>
     <text class="body" selectable>{{notice.content}}</text>
   </block>
 </view>

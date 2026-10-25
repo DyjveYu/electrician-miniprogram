@@ -1,0 +1,10 @@
+.notice-board { margin: 24rpx; padding: 28rpx; background: #fff; border-radius: 16rpx; color: #303133; }
+.heading { font-size: 30rpx; font-weight: 600; margin-bottom: 12rpx; }
+.notice-viewport { position: relative; height: 216rpx; overflow: hidden; }
+.notice-track { transform: translateY(0); }
+.notice-track.is-moving { transform: translateY(-216rpx); transition: transform 300ms ease-in-out; pointer-events: none; }
+.notice-group { height: 216rpx; overflow: hidden; }
+.notice-title { height: 72rpx; font-size: 28rpx; line-height: 72rpx; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.state { position: absolute; top: 0; left: 0; right: 0; }
+.state, .error { padding: 16rpx 0; font-size: 26rpx; color: #909399; }
+.error { color: #c45656; }

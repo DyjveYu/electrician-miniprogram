@@ -522,19 +522,26 @@ class ReferrerAPI {
 
 // 公开内容请求不附带身份信息，也不触发通用401登出流程；只接受本片内部路径。
 class ContentAPI {
-  static request(path) {
-    return new Promise((resolve, reject) => wx.request({
+  static request(path, options = {}) {
+    return new Promise((resolve, reject) => {
+      const task = wx.request({
       url: `${app.globalData.baseUrl}/content${path}`, method: 'GET',
+      timeout: 15000,
       success: res => {
         if (res.statusCode === 200 && res.data.code === 200) resolve(res.data);
         else reject(new Error(res.statusCode === 404 ? '内容不可用' : '内容加载失败，请重试'));
       },
       fail: () => reject(new Error('网络请求失败，请重试'))
-    }));
+      });
+      if (options.onRequestTask) options.onRequestTask(task);
+    });
   }
   static getAds() { return this.request('/ads'); }
   static resolveTarget(slot) { return this.request(`/ads/${encodeURIComponent(slot)}/target`); }
-  static getNotice(id) { return this.request(`/notices/${encodeURIComponent(id)}`); }
+  static getNotice(id, options) { return this.request(`/notices/${encodeURIComponent(id)}`, options); }
+  static getNotices({ page = 1, pageSize = 30 } = {}, options) {
+    return this.request(`/notices?page=${encodeURIComponent(page)}&pageSize=${encodeURIComponent(pageSize)}`, options);
+  }
 }
 
 // 受限文章不复用公开ContentAPI，也不触发通用API的普通登录401跳转。

@@ -103,6 +103,7 @@
   <home-ads />
   <electrician-home-entry />
   <safety-knowledge-entry />
+  <notice-board />
 
   <!-- 底部信息 -->
   <view class="footer">
