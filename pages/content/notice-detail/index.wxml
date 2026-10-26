@@ -1,13 +1,13 @@
-<view class="notice-page">
-  <view wx:if="{{loading}}">加载中...</view>
-  <view wx:elif="{{error}}" class="error">
+<view class="page">
+  <view wx:if="{{loading}}" class="state">正在加载…</view>
+  <view wx:elif="{{error}}" class="state">
     <text>{{error}}</text>
-    <button bindtap="loadNotice">重试</button>
-    <button bindtap="goBack">返回</button>
+    <button size="mini" bindtap="loadNotice">重试</button>
+    <button size="mini" bindtap="goBack">返回</button>
   </view>
   <block wx:elif="{{notice}}">
     <view class="title">{{notice.title}}</view>
-    <view class="date">{{notice.date}}</view>
-    <text class="body" selectable>{{notice.content}}</text>
+    <view class="meta">{{notice.date}}</view>
+    <view class="body"><text class="paragraph" selectable>{{notice.content}}</text></view>
   </block>
 </view>

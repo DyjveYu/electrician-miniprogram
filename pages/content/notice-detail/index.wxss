@@ -1,6 +1,2 @@
-.notice-page { padding: 40rpx; color: #303133; }
-.date { font-size: 24rpx; color: #909399; margin-bottom: 24rpx; }
-.title { font-size: 38rpx; font-weight: bold; margin-bottom: 32rpx; }
-.body { display: block; white-space: pre-wrap; word-break: break-all; line-height: 1.8; font-size: 30rpx; }
-.error { padding-top: 80rpx; text-align: center; }
-.error button { margin-top: 24rpx; }
+/* 通知与用电安全知识详情保持同一套阅读样式，通知数据与行为独立。 */
+@import "../safety-knowledge-detail/index.wxss";

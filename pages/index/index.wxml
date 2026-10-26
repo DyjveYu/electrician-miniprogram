@@ -163,10 +163,13 @@
   </view>
 </view>
 
-<home-ads />
-<electrician-home-entry />
-<safety-knowledge-entry />
+<view class="home-public-content">
+  <electrician-home-entry />
+  <safety-knowledge-entry />
   <notice-board />
+  <home-ads />
+  <view class="home-brand-footer">着安电工服务平台</view>
+</view>
 
 <!-- 已移除报价弹窗：接单改为直接调用接口 -->
 

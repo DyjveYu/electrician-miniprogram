@@ -18,6 +18,7 @@ Page({
     showTestTip: false,
     testCode: '',
     selectedRole: 'user', // 默认选择"我要找电工"
+    showLoginForm: false,
 
     // V1.1.3 细化需求: 欢迎弹窗（点击登录按钮后弹出，进入页面时不弹）
     showWelcomeModal: false,
@@ -29,6 +30,7 @@ Page({
   },
 
   onLoad(options = {}) {
+    this._unloaded = false;
     this._contentEntry = options.entry === 'electrician-home';
     if (this._contentEntry) this.enterElectricianHomeLogin();
     else app.globalData.contentLoginEntry = null;
@@ -61,14 +63,37 @@ Page({
   },
 
   enterElectricianHomeLogin() {
+    if (this.data.isLogging) return;
     this._contentEntry = true;
     app.globalData.contentLoginEntry = 'electrician-home';
-    this.setData({ selectedRole: 'electrician' });
-    wx.pageScrollTo({ selector: '#login-form', duration: 200 });
+    this.setData({ selectedRole: 'electrician', showLoginForm: true });
   },
 
   onReady() {
-    if (this._contentEntry) wx.pageScrollTo({ selector: '#login-form', duration: 200 });
+    if (this._contentEntry) this.setData({ showLoginForm: true });
+  },
+
+  openLoginForm(e) {
+    if (this.data.isLogging || this.data.showWelcomeModal) return;
+    const role = e.currentTarget.dataset.role;
+    if (!['user', 'electrician'].includes(role)) return;
+    this.selectRole(e);
+    this.setData({ showLoginForm: true, phoneError: '', codeError: '', code: '', canLogin: false });
+  },
+
+  closeLoginForm() {
+    if (this.data.isLogging || this.data.showWelcomeModal || this.data.showModal) return;
+    this._contentEntry = false;
+    app.globalData.contentLoginEntry = null;
+    this.setData({ showLoginForm: false, code: '', canLogin: false, phoneError: '', codeError: '' });
+  },
+
+  preventTouchMove() {},
+
+  onUnload() {
+    this._unloaded = true;
+    if (this._countdownTimer) clearInterval(this._countdownTimer);
+    this._countdownTimer = null;
   },
 
   /**
@@ -87,7 +112,9 @@ Page({
    * 选择角色
    */
   selectRole(e) {
+    if (this.data.isLogging || this.data.showWelcomeModal) return;
     const role = e.currentTarget.dataset.role;
+    if (!['user', 'enterprise', 'electrician'].includes(role)) return;
     if (role !== 'electrician') {
       this._contentEntry = false;
       app.globalData.contentLoginEntry = null;
@@ -164,7 +191,7 @@ Page({
    * 发送验证码
    */
   async sendCode() {
-    if (!this.data.canSendCode || this.data.countdown > 0) {
+    if (!this.data.canSendCode || this.data.countdown > 0 || this.data.isLogging) {
       return;
     }
 
@@ -182,6 +209,7 @@ Page({
       app.showLoading('发送中...');
 
       const res = await AuthAPI.sendCode(phone, 'login');
+      if (this._unloaded) return;
 
       app.showToast('验证码发送成功', 'success');
 
@@ -195,7 +223,7 @@ Page({
         });
       }
     } catch (error) {
-      app.showToast(error.message || '发送失败');
+      if (!this._unloaded) app.showToast(error.message || '发送失败');
     } finally {
       app.hideLoading();
     }
@@ -205,6 +233,8 @@ Page({
    * 开始倒计时
    */
   startCountdown() {
+    if (this._unloaded) return;
+    if (this._countdownTimer) clearInterval(this._countdownTimer);
     let countdown = 60;
     this.setData({
       countdown,
@@ -215,6 +245,7 @@ Page({
       countdown--;
       if (countdown <= 0) {
         clearInterval(timer);
+        this._countdownTimer = null;
         this.setData({
           countdown: 0,
           codeButtonText: '获取验证码'
@@ -226,6 +257,7 @@ Page({
         });
       }
     }, 1000);
+    this._countdownTimer = timer;
   },
 
   /**

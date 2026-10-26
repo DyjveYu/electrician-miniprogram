@@ -15,7 +15,7 @@ test('V4/V7: 匿名从现有登录页点击只预选电工且不重叠，不被i
   h.load('utils/contentAccess.js').openHome();
   page.onShow(); h.timers.forEach(callback => callback());
   assert.equal(page.data.selectedRole, 'electrician'); assert.equal(h.calls.navigate.length, 0); assert.equal(h.calls.relaunch.length, 0);
-  assert.equal(h.calls.scroll[0].selector, '#login-form');
+  assert.equal(page.data.showLoginForm, true); assert.equal(h.calls.scroll.length, 0);
 });
 test('V3/V4: 访客直达带来源登录；个人企业仅提示并保留会话', () => {
   const h = harness(); const access = h.load('utils/contentAccess.js');

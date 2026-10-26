@@ -1,1 +1,7 @@
-<view class="content-entry" bindtap="openKnowledge" role="button" aria-label="着安用电安全小知识"><text>着安用电安全小知识</text><text aria-hidden="true">›</text></view>
+<view class="content-entry-shell">
+  <view class="content-entry" bindtap="openKnowledge" role="button" aria-label="着安用电安全小知识">
+    <view class="entry-icon"><image src="/images/content-ui/bulb.svg" mode="aspectFit" aria-hidden="true" /></view>
+    <text class="entry-copy">着安用电安全小知识</text>
+    <text class="entry-arrow" aria-hidden="true">›</text>
+  </view>
+</view>

@@ -1,1 +1,7 @@
-<view class="content-entry" bindtap="openHome" role="button" aria-label="着安电工之家"><text>着安电工之家</text><text aria-hidden="true">›</text></view>
+<view class="content-entry-shell">
+  <view class="content-entry" bindtap="openHome" role="button" aria-label="着安电工之家">
+    <view class="entry-icon"><image src="/images/content-ui/helmet.svg" mode="aspectFit" aria-hidden="true" /></view>
+    <text class="entry-copy">着安电工之家</text>
+    <text class="entry-arrow" aria-hidden="true">›</text>
+  </view>
+</view>

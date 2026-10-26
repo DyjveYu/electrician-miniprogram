@@ -1,11 +1,12 @@
 <view class="home-ads" wx:if="{{icons.length || banner || error}}">
+  <view class="ad-label" wx:if="{{icons.length || banner}}"></view>
   <view class="icons" wx:if="{{icons.length}}">
     <view class="icon-ad" wx:for="{{icons}}" wx:key="slot_key" data-slot="{{item.slot_key}}" bindtap="openAd">
-      <image src="{{item.image}}" mode="aspectFit" binderror="imageError" aria-label="广告" />
+      <image src="{{item.image}}" data-slot="{{item.slot_key}}" data-src="{{item.image}}" mode="aspectFit" binderror="imageError" aria-label="广告" />
     </view>
   </view>
   <view class="banner" wx:if="{{banner}}" data-slot="{{banner.slot_key}}" bindtap="openAd">
-    <image src="{{banner.image}}" mode="widthFix" binderror="imageError" aria-label="广告" />
+    <image src="{{banner.image}}" data-slot="{{banner.slot_key}}" data-src="{{banner.image}}" mode="widthFix" binderror="imageError" aria-label="广告" />
   </view>
   <view wx:if="{{error}}" class="error" bindtap="loadAds">{{error}}</view>
 </view>

@@ -1,1 +1,6 @@
-{ "navigationBarTitleText": "通知详情" }
+{
+  "navigationBarTitleText": "通知详情",
+  "backgroundColor": "#ffffff",
+  "backgroundColorTop": "#ffffff",
+  "backgroundColorBottom": "#ffffff"
+}

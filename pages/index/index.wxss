@@ -379,3 +379,7 @@
 /* 抢单报价弹窗 */
 /* 报价弹窗样式已移除 */
 
+
+/* M1.5：三入口共用的清爽实用公共区，订单区保持原样。 */
+.home-public-content { background: #fff; }
+.home-brand-footer { background: #fff; color: #687a71; font-size: 22rpx; line-height: 1.5; padding: 40rpx 32rpx; text-align: center; }

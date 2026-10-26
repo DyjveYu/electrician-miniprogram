@@ -1,10 +1,13 @@
-.notice-board { margin: 24rpx; padding: 28rpx; background: #fff; border-radius: 16rpx; color: #303133; }
-.heading { font-size: 30rpx; font-weight: 600; margin-bottom: 12rpx; }
-.notice-viewport { position: relative; height: 216rpx; overflow: hidden; }
+.notice-board { box-sizing: border-box; padding: 40rpx 44rpx 32rpx; background: #fff; color: #172d25; }
+.heading { display: flex; align-items: center; gap: 16rpx; font-size: 30rpx; line-height: 1.5; font-weight: 600; margin-bottom: 24rpx; }
+.heading-icon { width: 32rpx; height: 32rpx; }
+.notice-viewport { position: relative; height: 216rpx; overflow: hidden; padding: 0 24rpx; border-radius: 22rpx; background: #f5f7f5; }
 .notice-track { transform: translateY(0); }
 .notice-track.is-moving { transform: translateY(-216rpx); transition: transform 300ms ease-in-out; pointer-events: none; }
 .notice-group { height: 216rpx; overflow: hidden; }
-.notice-title { height: 72rpx; font-size: 28rpx; line-height: 72rpx; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.state { position: absolute; top: 0; left: 0; right: 0; }
-.state, .error { padding: 16rpx 0; font-size: 26rpx; color: #909399; }
-.error { color: #c45656; }
+.notice-title { display: flex; align-items: center; gap: 20rpx; height: 72rpx; font-size: 26rpx; line-height: 72rpx; white-space: nowrap; overflow: hidden; }
+.notice-dot { display: block; flex-shrink: 0; width: 8rpx; height: 8rpx; border-radius: 50%; background: #16835c; }
+.notice-copy { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.state { position: absolute; top: 0; left: 0; right: 0; padding: 24rpx; }
+.state, .error { color: #687a71; font-size: 26rpx; line-height: 1.6; }
+.error { padding: 16rpx 0 0; color: #b74434; }

@@ -20,95 +20,74 @@
 
   <!-- 头部区域 -->
   <view class="header">
-    <view class="logo">
-      <image class="logo" src="/images/icons/logo.png" mode="widthFix"></image>
-      </view>
+    <view class="brand-logo-wrap">
+      <image class="brand-logo" src="/images/icons/logo.png" mode="widthFix"></image>
+    </view>
+    <view class="brand-slogan">找电工 上着安</view>
   </view>
 
-  <!-- 登录表单 -->
-  <view class="login-form" id="login-form">
-    <view class="form-title">找电工 上着安</view> 
-    <!-- 角色选择 -->
-    <view class="role-selector">
-      <view class="role-option {{selectedRole === 'user' ? 'active' : ''}}" bindtap="selectRole" data-role="user">
-        <text class="role-text">我要找电工</text>
-      </view>
-      
-    </view>
-    
-    <!-- 手机号输入 -->
-    <view class="form-group">
-      <view class="form-label"></view>
-      <view class="input-group">
-        <input
-          class="form-input"
-          type="number"
-          placeholder="请输入手机号码"
-          value="{{phone}}"
-          bindinput="onPhoneInput"
-          maxlength="11"
-        />
-      </view>
-      <text class="error-text" wx:if="{{phoneError}}">{{phoneError}}</text>
-    </view>
-
-    <!-- 验证码输入 -->
-    <view class="form-group">
-      <view class="form-label"></view>
-      <view class="input-group">
-        <input
-          class="form-input code-input"
-          type="number"
-          placeholder="请输入验证码"
-          value="{{code}}"
-          bindinput="onCodeInput"
-          maxlength="6"
-        />
-
-        <button
-          class="send-code-btn {{canSendCode ? '' : 'disabled'}}"
-          bindtap="sendCode"
-          disabled="{{!canSendCode}}"
-        >
-          {{codeButtonText}}
-        </button>
-      </view>
-      <text class="error-text" wx:if="{{codeError}}">{{codeError}}</text>
-    </view>
-    <view class="login-btn {{canLogin ? '' : 'disabled'}}" bindtap="login">
-      {{loginButtonText}}
-    </view>
-    
-    <!-- 测试环境提示 
-    <view class="test-tip" wx:if="{{showTestTip}}">
-      <view class="tip-title">测试环境</view>
-      <view class="tip-content">验证码：{{testCode}}</view>
-    </view>-->
-
-  <view class="role-selector role-selector-inline">
-      <view class="role-option {{selectedRole === 'electrician' ? 'active' : ''}}" bindtap="selectRole" data-role="electrician">
-        <text class="role-text">我是电工</text>
-      </view>
-      <view class="role-option {{selectedRole === 'enterprise' ? 'active' : ''}}" bindtap="selectRole" data-role="enterprise">
-        <text class="role-text">我是企业</text>
-      </view>
-    </view>
+  <!-- 图1：首页只展示两个入口，输入表单在点击后打开 -->
+  <view class="login-entries">
+    <button class="entry-button entry-button-primary" bindtap="openLoginForm" data-role="user">我要找电工</button>
+    <button class="entry-button" bindtap="openLoginForm" data-role="electrician">我要去接单</button>
   </view>
 
-
-
-  <!-- 其他登录方式 -->
-
-
-  <home-ads />
   <electrician-home-entry />
   <safety-knowledge-entry />
   <notice-board />
+  <home-ads />
 
-  <!-- 底部信息 -->
   <view class="footer">
+    <text class="footer-brand">着安电工服务平台</text>
     <text class="version-text">{{version}}</text>
   </view>
+</view>
+
+<!-- 图2／3：两个入口复用原登录流程 -->
+<view class="login-overlay" wx:if="{{showLoginForm}}">
+  <view class="login-mask" bindtap="closeLoginForm" catchtouchmove="preventTouchMove"></view>
+  <scroll-view class="login-dialog" scroll-y>
+    <view class="login-form" id="login-form">
+      <view class="login-heading">
+        <view class="form-title">{{selectedRole === 'electrician' ? '欢迎注册着安电工' : '欢迎使用着安订单登录'}}</view>
+        <button class="close-login" bindtap="closeLoginForm" disabled="{{isLogging}}" aria-label="关闭登录弹层">×</button>
+      </view>
+      <view class="login-description">
+        欢迎您使用着安，您使用本应用前应当阅读并同意
+        <text class="link" bindtap="showPrivacyPolicy">《隐私政策》</text>和<text class="link" bindtap="showUserAgreement">《用户协议》</text>。
+        当您点击同意并开始使用产品服务时，即表示您已理解并同意该条款内容。
+      </view>
+      <view class="form-group">
+        <text class="input-label">手机号</text>
+        <view class="input-group">
+          <input class="form-input" type="number" placeholder="请输入手机号码" value="{{phone}}" bindinput="onPhoneInput" maxlength="11" disabled="{{isLogging}}" />
+        </view>
+        <text class="error-text" wx:if="{{phoneError}}">{{phoneError}}</text>
+      </view>
+      <view class="form-group">
+        <text class="input-label">验证码</text>
+        <view class="code-group">
+          <view class="input-group code-input-group">
+            <input class="form-input code-input" type="number" placeholder="请输入验证码" value="{{code}}" bindinput="onCodeInput" maxlength="6" disabled="{{isLogging}}" />
+          </view>
+          <button class="send-code-btn {{!canSendCode || countdown > 0 || isLogging ? 'disabled' : ''}}" bindtap="sendCode" disabled="{{!canSendCode || countdown > 0 || isLogging}}">{{codeButtonText}}</button>
+        </view>
+        <text class="error-text" wx:if="{{codeError}}">{{codeError}}</text>
+      </view>
+      <view class="order-role-selector" wx:if="{{selectedRole !== 'electrician'}}">
+        <view class="order-role {{selectedRole === 'user' ? 'active' : ''}}" bindtap="selectRole" data-role="user" role="radio" aria-checked="{{selectedRole === 'user'}}">
+          <text class="role-check">{{selectedRole === 'user' ? '●' : ''}}</text><text>个人订单</text>
+        </view>
+        <view class="order-role {{selectedRole === 'enterprise' ? 'active' : ''}}" bindtap="selectRole" data-role="enterprise" role="radio" aria-checked="{{selectedRole === 'enterprise'}}">
+          <text class="role-check">{{selectedRole === 'enterprise' ? '●' : ''}}</text><text>企业订单</text>
+        </view>
+      </view>
+      <view class="login-actions">
+        <button class="login-btn {{!canLogin || isLogging ? 'disabled' : ''}}" bindtap="login" disabled="{{!canLogin || isLogging}}">{{isLogging ? '登录中...' : (selectedRole === 'electrician' ? '去注册' : '我要找电工')}}</button>
+        <button class="cancel-login" bindtap="closeLoginForm" disabled="{{isLogging}}">取消</button>
+      </view>
+    </view>
+  </scroll-view>
 </view>
 
 <!-- 协议弹窗 -->
@@ -116,7 +95,7 @@
   <view class="modal-content" catchtap="">
     <view class="modal-header">
       <text class="modal-title">{{modalTitle}}</text>
-      <image class="close-icon" src="/images/icons/close.png" bindtap="hideModal"></image>
+      <button class="close-login" bindtap="hideModal" aria-label="关闭协议详情">×</button>
     </view>
     <scroll-view class="modal-body" scroll-y>
       <text class="modal-text">{{modalContent}}</text>

@@ -1,6 +1,6 @@
 {
   "usingComponents": { "notice-board": "/components/notice-board/index", "home-ads": "/components/home-ads/index", "electrician-home-entry": "/components/electrician-home-entry/index", "safety-knowledge-entry": "/components/safety-knowledge-entry/index" },
-  "navigationBarTitleText": "电工应用平台",
+  "navigationBarTitleText": "找电工 上着安",
   "enablePullDownRefresh": true,
   "backgroundTextStyle": "dark",
   "backgroundColor": "#f5f5f5"

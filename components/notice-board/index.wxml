@@ -1,12 +1,12 @@
 <view class="notice-board">
-  <view class="heading">信息栏</view>
+  <view class="heading"><image class="heading-icon" src="/images/content-ui/megaphone.svg" mode="aspectFit" aria-hidden="true" /><text>信息栏</text></view>
   <view class="notice-viewport">
     <view class="notice-track {{transitioning ? 'is-moving' : ''}}">
       <view class="notice-group">
-        <view wx:for="{{group}}" wx:key="id" class="notice-title" bindtap="openNotice" data-id="{{item.id}}">{{item.title}}</view>
+        <view wx:for="{{group}}" wx:key="id" class="notice-title" bindtap="openNotice" data-id="{{item.id}}"><text class="notice-dot" aria-hidden="true"></text><text class="notice-copy">{{item.title}}</text></view>
       </view>
       <view class="notice-group" aria-hidden="true">
-        <view wx:for="{{nextGroup}}" wx:key="id" class="notice-title">{{item.title}}</view>
+        <view wx:for="{{nextGroup}}" wx:key="id" class="notice-title"><text class="notice-dot" aria-hidden="true"></text><text class="notice-copy">{{item.title}}</text></view>
       </view>
     </view>
     <view wx:if="{{!group.length}}" class="state">{{loading ? '加载中...' : (error ? '' : '暂无通知')}}</view>

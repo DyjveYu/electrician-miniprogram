@@ -29,6 +29,14 @@ Component({
       } catch (error) { wx.showToast({ title: error.message, icon: 'none' }); }
       finally { this.opening = false; }
     },
-    imageError() { this.setData({ error: '广告图片加载失败，点击重试' }); }
+    imageError(event) {
+      const dataset = event && event.currentTarget && event.currentTarget.dataset || {};
+      console.warn('[home-ads] 图片加载失败', {
+        slot: dataset.slot || '',
+        url: dataset.src || '',
+        errMsg: event && event.detail && event.detail.errMsg || '未返回错误信息'
+      });
+      this.setData({ error: '广告图片加载失败，点击重试' });
+    }
   }
 });
