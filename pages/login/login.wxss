@@ -60,3 +60,7 @@ page { background: #fff; }
 .welcome-btn { box-sizing: border-box; flex: 1; min-width: 0; min-height: 88rpx; margin: 0; padding: 20rpx 8rpx; border-radius: 22rpx; font-size: 28rpx; line-height: 1.5; }
 .welcome-btn.cancel { background: #f5f7f5; color: #687a71; }
 .welcome-btn.agree { background: #16835c; color: #fff; }
+
+.identity-hint { margin: 16rpx 0; padding: 16rpx; color: #8a5200; background: #fff5e6; border-radius: 12rpx; font-size: 24rpx; line-height: 1.6; }
+
+.conversion-warning { margin: 24rpx 0; color: #b45309; font-size: 26rpx; line-height: 1.6; }

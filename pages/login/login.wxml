@@ -11,6 +11,7 @@
         <text class="link" bindtap="showPrivacyPolicy">《隐私政策》</text>和<text class="link" bindtap="showUserAgreement">《用户协议》</text>
         。当您点击同意并开始使用产品服务时，即表示你已理解并同意该条款内容。
       </view>
+      <view wx:if="{{selectedRole === 'electrician'}}" class="conversion-warning">若该手机号已有个人／企业身份，本次注册会使其失效。</view>
       <view class="welcome-buttons">
         <button class="welcome-btn cancel" bindtap="onCancel">取消</button>
         <button class="welcome-btn agree" bindtap="onAgree">同意</button>
@@ -52,6 +53,7 @@
         <view class="form-title">{{selectedRole === 'electrician' ? '欢迎注册着安电工' : '欢迎使用着安订单登录'}}</view>
         <button class="close-login" bindtap="closeLoginForm" disabled="{{isLogging}}" aria-label="关闭登录弹层">×</button>
       </view>
+      <view class="identity-hint" wx:if="{{selectedRole === 'electrician'}}">转电工前请先处理完原订单、推荐佣金和提现；转换后原个人／企业身份将停用。</view>
       <view class="login-description">
         欢迎您使用着安，您使用本应用前应当阅读并同意
         <text class="link" bindtap="showPrivacyPolicy">《隐私政策》</text>和<text class="link" bindtap="showUserAgreement">《用户协议》</text>。

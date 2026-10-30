@@ -31,7 +31,10 @@ Page({
 
   onLoad(options = {}) {
     this._unloaded = false;
+    this._conversionConsent = null;
     this._contentEntry = options.entry === 'electrician-home';
+    this._identityEntry = options.entry === 'identity-conversion';
+    if (this._identityEntry) this.setData({ selectedRole: 'electrician', showLoginForm: true });
     if (this._contentEntry) this.enterElectricianHomeLogin();
     else app.globalData.contentLoginEntry = null;
     // 从 app globalData 读取版本号
@@ -53,7 +56,7 @@ Page({
       });
 
       // 如果已经登录,直接返回首页
-      if (!this._contentEntry && app.globalData.isLogin && app.globalData.token) {
+      if (!this._unloaded && !this._identityEntry && !this._contentEntry && app.globalData.isLogin && app.globalData.token) {
         console.log('[登录页] 已登录,跳转到首页');
         wx.reLaunch({
           url: '/pages/index/index'
@@ -75,6 +78,7 @@ Page({
 
   openLoginForm(e) {
     if (this.data.isLogging || this.data.showWelcomeModal) return;
+    this._conversionConsent = null;
     const role = e.currentTarget.dataset.role;
     if (!['user', 'electrician'].includes(role)) return;
     this.selectRole(e);
@@ -92,6 +96,7 @@ Page({
 
   onUnload() {
     this._unloaded = true;
+    this._conversionConsent = null;
     if (this._countdownTimer) clearInterval(this._countdownTimer);
     this._countdownTimer = null;
   },
@@ -134,6 +139,7 @@ Page({
     if (this.data.isLogging) {
       return;
     }
+    this._conversionConsent = { phone: this.data.phone, role: this.data.selectedRole };
     this.setData({ showWelcomeModal: false });
     await this.doLogin();
   },
@@ -142,6 +148,7 @@ Page({
    * V1.1.3 细化需求: 欢迎弹窗 - 取消（关闭弹窗返回登录页，不阻塞，可重新操作）
    */
   onCancel() {
+    this._conversionConsent = null;
     this.setData({ showWelcomeModal: false });
   },
 
@@ -149,6 +156,8 @@ Page({
    * 手机号输入
    */
   onPhoneInput(e) {
+    if (this.data.isLogging) return;
+    this._conversionConsent = null;
     const phone = e.detail.value;
     this.setData({
       phone,
@@ -161,6 +170,7 @@ Page({
    * 验证码输入
    */
   onCodeInput(e) {
+    if (this.data.isLogging) return;
     const code = e.detail.value;
     this.setData({
       code,
@@ -267,6 +277,7 @@ Page({
     if (!this.data.canLogin || this.data.isLogging) {
       return;
     }
+    this._conversionConsent = null;
     this.setData({ showWelcomeModal: true });
   },
 
@@ -308,12 +319,9 @@ Page({
         console.log('正在获取微信登录凭证...');
         const wxLoginRes = await wx.login();
         if (wxLoginRes.code) {
-           console.log('获取到微信 code:', wxLoginRes.code);
            const sessionRes = await AuthAPI.code2Session(wxLoginRes.code);
-           console.log('code2session 响应:', sessionRes);
            if (sessionRes && (sessionRes.code === 0 || sessionRes.code === 200) && sessionRes.data && sessionRes.data.openid) {
              openid = sessionRes.data.openid;
-             console.log('成功获取 OpenID:', openid);
            }
         }
       } catch (err) {
@@ -321,25 +329,29 @@ Page({
       }
 
       // 传递角色选择给后端
-      console.log('准备登录，选择的角色:', this.data.selectedRole, 'OpenID:', openid);
-      const res = await AuthAPI.login(phone, code, this.data.selectedRole, openid);
-
-      console.log('登录API响应:', res);
+      if (this._unloaded) return;
+      const role = this.data.selectedRole;
+      const consent = this._conversionConsent;
+      if (!consent || consent.phone !== phone || consent.role !== role) {
+        this.setData({ isLogging: false, loginButtonText: '登录', showWelcomeModal: true });
+        return;
+      }
+      this._conversionConsent = null;
+      const res = await AuthAPI.login(phone, code, role, openid, role === 'electrician');
+      if (this._unloaded) return;
 
       // 保存登录信息
       app.login(res.data.user, res.data.token);
 
       // 保存企业认证信息到 globalData
-      if (res.data.enterpriseCertification) {
-        app.globalData.enterpriseCertification = res.data.enterpriseCertification;
-      }
+      app.globalData.enterpriseCertification = res.data.enterpriseCertification || null;
 
       app.showToast('登录成功');
 
       // 延迟跳转，让用户看到成功提示
       setTimeout(async () => {
         console.log('登录成功，准备跳转到首页');
-        console.log('当前全局数据:', app.globalData);
+        if (this._unloaded) return;
 
         // 电工角色首次登录引导认证
         if (this.data.selectedRole === 'electrician') {
@@ -387,6 +399,7 @@ Page({
         });
       }, 1500);
     } catch (error) {
+      if (this._unloaded) return;
       app.showToast(error.message || '登录失败');
       this.setData({
         isLogging: false,

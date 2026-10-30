@@ -121,8 +121,7 @@ App({
 
     console.log('[App] 本地存储数据:', {
       hasToken: !!token,
-      hasUserInfo: !!userInfo,
-      userInfo: userInfo
+      hasUserInfo: !!userInfo
     });
 
     if (token && userInfo) {
@@ -159,7 +158,7 @@ App({
       success: (res) => {
         // 旧会话的异步验证不能退出后来已登录的新会话。
         if (verifyingToken !== this.globalData.token) return;
-        console.log('[App] Token验证响应:', res);
+        console.log('[App] Token验证HTTP状态:', res.statusCode);
         // 只有明确的 401 或者 success=false 且 code=401 时才登出
         if (res.statusCode === 401 || (res.data && res.data.code === 401)) {
           console.warn('[App] Token已失效(401)，执行登出');
@@ -224,7 +223,7 @@ App({
    * 用户登录
    */
   login(userInfo, token) {
-    console.log('开始保存登录信息:', { userInfo, token });
+    // 会话凭据及完整用户资料不输出日志。
 
     this.globalData.userInfo = userInfo;
     this.globalData.token = token;
@@ -236,12 +235,7 @@ App({
     wx.setStorageSync('userInfo', userInfo);
     wx.setStorageSync('token', token);
 
-    console.log('用户登录成功，全局数据已更新:', {
-      userInfo: this.globalData.userInfo,
-      token: this.globalData.token,
-      isLogin: this.globalData.isLogin,
-      currentRole: this.globalData.currentRole
-    });
+
   },
 
   /**
@@ -289,15 +283,13 @@ App({
    * 切换角色
    */
   switchRole(newRole) {
-    if (this.globalData.userInfo) {
-      this.globalData.userInfo.current_role = newRole;
-      this.globalData.currentRole = newRole;
-
-      // 更新本地存储
-      wx.setStorageSync('userInfo', this.globalData.userInfo);
-
-      console.log('角色切换成功:', newRole);
+    if (newRole === this.globalData.currentRole) return true;
+    if (newRole !== 'electrician') {
+      this.showToast('电工身份不能切回原下单身份');
+      return false;
     }
+    wx.navigateTo({ url: '/pages/login/login?entry=identity-conversion' });
+    return false;
   },
 
   /**

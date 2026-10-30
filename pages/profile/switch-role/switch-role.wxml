@@ -71,7 +71,7 @@
           <text>当前身份</text>
         </view>
         <view wx:else class="switch-btn">
-          <text>切换到{{item.name}}</text>
+          <text>{{item.id === 'electrician' ? '前往电工注册登录' : '不可恢复原下单身份'}}</text>
         </view>
       </view>
     </view>
@@ -83,7 +83,7 @@
     <view class="tips-content">
       <text class="tip-item">• 用户身份：可以发布维修需求，寻找专业电工服务</text>
       <text class="tip-item">• 电工身份：可以接单赚钱，需要先完成电工认证</text>
-      <text class="tip-item">• 可以随时切换身份，数据会自动同步</text>
+      <text class="tip-item">• 转电工须先处理完订单及推荐佣金，原下单身份将停用</text>
     </view>
   </view>
 </view>

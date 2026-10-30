@@ -16,7 +16,8 @@ class API {
         header = {},
         showLoading = false,
         loadingText = '加载中...',
-        showError = true
+        showError = true,
+        preserveSession = false
       } = options;
 
       // 显示加载提示
@@ -55,17 +56,20 @@ class API {
             } else {
               const error = new Error(res.data.message || '请求失败');
               error.code = res.data.code;
+              error.data = res.data.data || {};
               if (showError) {
                 app.showToast(error.message);
               }
               reject(error);
             }
-          } else if (res.statusCode === 401) {
+          } else if (res.statusCode === 401 && !preserveSession) {
             // token过期或无效
             app.logout();
             reject(new Error('登录已过期，请重新登录'));
           } else {
             const error = new Error(res.data?.message || `请求失败 (${res.statusCode})`);
+            error.code = res.statusCode;
+            error.data = res.data?.data || {};
             if (showError) {
               app.showToast(error.message);
             }
@@ -108,7 +112,7 @@ class API {
    * POST请求
    */
   static post(url, data = {}, options = {}) {
-    console.log(`API.post 调用: ${url}`, 'data:', data);
+    // 请求体可能含短信码或转换票据，不输出日志。
     return this.request({
       url,
       method: 'POST',
@@ -211,15 +215,14 @@ class AuthAPI {
    * 微信 code2session
    */
   static code2Session(code) {
-    return API.post('/auth/code2session', { code });
+    return API.post('/auth/code2session', { code }, { showError: false, preserveSession: true });
   }
 
   /**
    * 用户登录
    */
-  static login(phone, code, initialRole = null, openid = null) {
-    console.log('AuthAPI.login 调用参数:', { phone, code, initialRole, openid });
-    const data = { phone, code };
+  static login(phone, code, initialRole = null, openid = null, confirmIdentityConversion = false) {
+    const data = { phone, code, confirmIdentityConversion };
     // initialRole 仅在显式传入时才发送，让后端自行判断已有用户的角色
     if (initialRole) {
       data.initialRole = initialRole;
@@ -228,7 +231,7 @@ class AuthAPI {
     if (openid) {
       data.openid = openid;
     }
-    return API.post('/auth/login', data);
+    return API.post('/auth/login', data, { showError: false, preserveSession: true });
   }
 
   /**
