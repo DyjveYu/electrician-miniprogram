@@ -1,4 +1,5 @@
 <view class="page-container">
+  <view class="address-error" wx:if="{{submissionUncertain}}"><text>提交结果未确认，请先查看我的订单，避免重复下单</text><button bindtap="viewOrders">查看我的订单</button></view>
   <!-- 企业用户：下单模式选择 -->
   <view class="form-section" wx:if="{{userType === 'enterprise'}}">
     <view class="section-title">选择下单类型</view>
@@ -92,12 +93,7 @@
     <!-- 工单地址 -->
     <view class="form-section">
       <view class="section-title">工单地址（须与企业认证区一致）</view>
-      <picker mode="region" value="{{projectRegion}}" bindchange="onProjectRegionChange">
-        <view class="picker-display {{projectRegion[0] ? '' : 'placeholder'}}">
-          {{projectRegion[0] ? projectRegion[0] + ' ' + projectRegion[1] + ' ' + projectRegion[2] : '请选择省市区'}}
-        </view>
-      </picker>
-      <input class="form-input" placeholder="详细地址（街道、门牌号等）" value="{{projectAddressDetail}}" bindinput="onProjectAddressInput" maxlength="200" />
+      <view class="form-item" bindtap="openAddressSheet"><text>{{selectedAddressStr || '点击选择服务地址'}}</text></view>
       <text class="fee-hint" wx:if="{{enterpriseCertDistrict}}">企业认证区：{{enterpriseCertDistrict}}</text>
     </view>
 
@@ -264,7 +260,7 @@
           <text class="edit-icon">✎</text>
         </view>
       </view>
-      <view class="empty-tip" wx:if="{{!loadingAddresses && addresses.length === 0}}">暂无地址，请新增</view>
+      <view class="empty-tip" wx:if="{{!loadingAddresses && !addressError && addresses.length === 0}}">暂无地址，请新增</view>
     </scroll-view>
     <view class="sheet-footer">
       <button class="footer-btn-add" bindtap="addAddress">添加服务地址</button>

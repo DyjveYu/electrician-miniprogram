@@ -1,3 +1,4 @@
+const orderEntry = require('../../utils/orderEntry');
 // pages/login/login.js
 const app = getApp();
 const { AuthAPI } = require('../../utils/api');
@@ -31,6 +32,7 @@ Page({
 
   onLoad(options = {}) {
     this._unloaded = false;
+    this._orderRequested = false;
     this._conversionConsent = null;
     this._contentEntry = options.entry === 'electrician-home';
     this._identityEntry = options.entry === 'identity-conversion';
@@ -56,7 +58,7 @@ Page({
       });
 
       // 如果已经登录,直接返回首页
-      if (!this._unloaded && !this._identityEntry && !this._contentEntry && app.globalData.isLogin && app.globalData.token) {
+      if (!this._unloaded && !this.data.isLogging && !this._routingOrder && !this._identityEntry && !this._contentEntry && app.globalData.isLogin && app.globalData.token) {
         console.log('[登录页] 已登录,跳转到首页');
         wx.reLaunch({
           url: '/pages/index/index'
@@ -67,6 +69,8 @@ Page({
 
   enterElectricianHomeLogin() {
     if (this.data.isLogging) return;
+    this._orderRequested = false;
+    orderEntry.clear();
     this._contentEntry = true;
     app.globalData.contentLoginEntry = 'electrician-home';
     this.setData({ selectedRole: 'electrician', showLoginForm: true });
@@ -81,12 +85,16 @@ Page({
     this._conversionConsent = null;
     const role = e.currentTarget.dataset.role;
     if (!['user', 'electrician'].includes(role)) return;
+    this._orderRequested = role === 'user';
+    orderEntry.clear();
     this.selectRole(e);
     this.setData({ showLoginForm: true, phoneError: '', codeError: '', code: '', canLogin: false });
   },
 
   closeLoginForm() {
     if (this.data.isLogging || this.data.showWelcomeModal || this.data.showModal) return;
+    this._orderRequested = false;
+    orderEntry.clear();
     this._contentEntry = false;
     app.globalData.contentLoginEntry = null;
     this.setData({ showLoginForm: false, code: '', canLogin: false, phoneError: '', codeError: '' });
@@ -343,6 +351,9 @@ Page({
       // 保存登录信息
       app.login(res.data.user, res.data.token);
 
+      const orderIntent = this._orderRequested && role !== 'electrician' ? orderEntry.begin(app) : null;
+      this._routingOrder = !!orderIntent;
+
       // 保存企业认证信息到 globalData
       app.globalData.enterpriseCertification = res.data.enterpriseCertification || null;
 
@@ -352,6 +363,18 @@ Page({
       setTimeout(async () => {
         console.log('登录成功，准备跳转到首页');
         if (this._unloaded) return;
+
+        if (orderIntent && orderEntry.valid(app, orderIntent)) {
+          const enterprise = role === 'enterprise';
+          const approved = res.data.enterpriseCertification?.certStatus === 'approved';
+          if (enterprise && !approved) {
+            wx.reLaunch({ url: `/pages/enterprise/certification/certification?orderEntry=${orderIntent}` });
+          } else if (orderEntry.consume(app, orderIntent)) {
+            wx.reLaunch({ url: '/pages/order/create/create' });
+          }
+          return;
+        }
+        if (orderIntent) return;
 
         // 电工角色首次登录引导认证
         if (this.data.selectedRole === 'electrician') {

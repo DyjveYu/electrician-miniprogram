@@ -1,3 +1,4 @@
+const orderEntry = require('../../../utils/orderEntry');
 // pages/order/create/create.js
 const plugin = requirePlugin('WechatSI')
 const manager = plugin.getRecordRecognitionManager()
@@ -27,6 +28,9 @@ Page({
     contactPhone: '',
     showAddressSheet: false,
     loadingAddresses: false,
+    addressError: '',
+    addressNextPage: 0,
+    submissionUncertain: false,
     addresses: [],
     selectedAddress: null,
     selectedAddressStr: '',
@@ -73,13 +77,21 @@ Page({
 
   onLoad() {
     const app = getApp();
+    this._unloaded = false;
+    this._account = orderEntry.key(app);
+    this._addressGeneration = 0;
+    this._selectionVersion = 0;
     if (!app.globalData.token || !app.globalData.userInfo) {
       wx.showToast({ title: '请先登录', icon: 'none', duration: 1500 });
       setTimeout(() => { wx.reLaunch({ url: '/pages/login/login' }); }, 1500);
       return;
     }
     // 检查用户类型
-    const userType = app.globalData.currentRole || 'user';
+    const userType = app.globalData.userInfo.current_role;
+    if (!['user', 'enterprise'].includes(userType)) {
+      wx.reLaunch({ url: '/pages/index/index' });
+      return;
+    }
     this.setData({ userType });
     // 企业用户加载认证信息（用于区校验）
     if (userType === 'enterprise') {
@@ -93,10 +105,18 @@ Page({
   onShow() {
     const app = getApp();
     if (app.checkFrozenAndRedirect()) return;
-    if (this.data.showAddressSheet) this.loadAddresses();
+    if (!this._current()) {
+      this.setData({ selectedAddress: null, selectedAddressStr: '', canSubmit: false });
+      wx.reLaunch({ url: '/pages/index/index' });
+      return;
+    }
+    if (this.data.selectedAddress?.id) this.refreshSelectedAddress(this.data.selectedAddress.id);
+    else this.loadAddresses({ initial: true });
   },
 
   onUnload() {
+    this._unloaded = true;
+    this._addressGeneration++;
     clearInterval(this._waveTimer);
   },
 
@@ -295,93 +315,133 @@ Page({
     });
   },
 
-  openMapChoose() {
-    const that = this;
-    wx.chooseLocation({
-      success(res) {
-        const full = (res.address && res.name) ? `${res.address}${res.name}` : (res.address || res.name || '');
-        that.setData({
-          selectedAddress: { contactName: '', contactPhone: '', province: '', city: '', district: '', detail: full },
-          selectedAddressStr: full,
-          latitude: res.latitude,
-          longitude: res.longitude
-        });
-        that.updateSubmitEnable();
+  _current() { return !this._unloaded && !!this._account && this._account === orderEntry.key(getApp()); },
+
+  _requestAddress(path) {
+    const app = getApp();
+    return new Promise((resolve, reject) => wx.request({
+      url: `${app.globalData.baseUrl}/addresses${path}`,
+      header: { Authorization: `Bearer ${app.globalData.token}` },
+      success: res => {
+        if (res.statusCode === 200 && [0, 200].includes(res.data?.code)) resolve(res.data.data);
+        else reject({ status: res.statusCode, message: res.data?.message || '地址加载失败' });
       },
-      fail(err) {
-        console.error('chooseLocation 失败：', err);
-        wx.showToast({ title: '选择地址失败', icon: 'none' });
-      }
-    });
+      fail: () => reject({ message: '地址加载失败，请重试' })
+    }));
   },
 
+  _mapAddress(item) {
+    return { id: item.id, contactName: item.contact_name || item.contactName || '', contactPhone: item.contact_phone || item.contactPhone || '',
+      province: item.province || '', city: item.city || '', district: item.district || '', detail: item.detail_address || item.detail || '',
+      isDefault: !!item.is_default, latitude: item.latitude ?? null, longitude: item.longitude ?? null };
+  },
+
+  _addressUsable(address) {
+    return !!address?.id && [address.province, address.city, address.district, address.detail].every(v => typeof v === 'string' && v.trim()) &&
+      (this.data.orderMode !== 'project' || (!!this.data.enterpriseCertDistrict && address.district === this.data.enterpriseCertDistrict));
+  },
+
+  _applyAddress(address) {
+    if (!this._current()) return;
+    if (!this._addressUsable(address)) {
+      this.setData({ showAddressSheet: true, addressError: '请选择符合本次订单条件的服务地址' });
+      return;
+    }
+    this._selectionVersion++;
+    this.setData({ selectedAddress: address, selectedAddressStr: `${address.province}${address.city}${address.district}${address.detail}`,
+      contactName: address.contactName, contactPhone: address.contactPhone, latitude: address.latitude, longitude: address.longitude,
+      projectRegion: [address.province, address.city, address.district], projectAddressDetail: address.detail,
+      showAddressSheet: false, addressError: '' });
+    this.updateAddressSubmit();
+  },
+
+  updateAddressSubmit() {
+    if (this.data.orderMode === 'project') this.updateProjectSubmitEnable();
+    else this.updateSubmitEnable();
+  },
+
+  openMapChoose() { this.addAddress(); },
+
   openAddressSheet() {
+    if (!this._current()) return;
     this.setData({ showAddressSheet: true });
     this.loadAddresses();
   },
 
-  closeAddressSheet() {
-    this.setData({ showAddressSheet: false });
+  closeAddressSheet() { this.setData({ showAddressSheet: false }); },
+
+  async loadAddresses({ initial = false, page = 1 } = {}) {
+    if (!this._current()) return;
+    const generation = ++this._addressGeneration;
+    const selection = this._selectionVersion;
+    this.setData({ loadingAddresses: true, addressError: '' });
+    try {
+      const [result, defaults] = await Promise.all([
+        this._requestAddress(`?page=${page}&limit=30`),
+        initial ? this._requestAddress('/default') : Promise.resolve(null)
+      ]);
+      if (!this._current() || generation !== this._addressGeneration) return;
+      const list = (result.addresses || []).map(item => this._mapAddress(item));
+      this.setData({ addresses: page === 1 ? list : [...this.data.addresses, ...list], loadingAddresses: false,
+        addressNextPage: result.pagination?.pages > page ? page + 1 : 0 });
+      if (!initial || this._selectionVersion !== selection || this.data.selectedAddress || (this.data.isDirected && this.data.orderMode === 'quick')) return;
+      if (defaults?.address) this._applyAddress(this._mapAddress(defaults.address));
+      else if (list.length === 0 && (!result.pagination || result.pagination.total === 0) && !this._firstAddressPrompted) {
+        this._firstAddressPrompted = true;
+        this._promptFirstAddress();
+      } else this.setData({ showAddressSheet: true });
+    } catch (error) {
+      if (this._current() && generation === this._addressGeneration) this.setData({ loadingAddresses: false, addressError: error.message || '地址加载失败，请重试', showAddressSheet: true });
+    }
   },
 
-  loadAddresses() {
-    this.setData({ loadingAddresses: true });
-    const app = getApp();
-    wx.request({
-      url: `${app.globalData.baseUrl}/addresses`,
-      method: 'GET',
-      header: { 'Authorization': `Bearer ${app.globalData.token}` },
-      success: (res) => {
-        this.setData({ loadingAddresses: false });
-        if (res.data.code === 0 || res.data.code === 200) {
-          const list = (res.data.data && res.data.data.addresses) || [];
-          const mapped = list.map(item => ({
-            id: item.id,
-            contactName: item.contact_name || item.contactName || '',
-            contactPhone: item.contact_phone || item.contactPhone || '',
-            province: item.province || '',
-            city: item.city || '',
-            district: item.district || '',
-            detail: item.detail_address || item.detail || '',
-            isDefault: !!item.is_default,
-            latitude: item.latitude ?? null,
-            longitude: item.longitude ?? null
-          }));
-          this.setData({ addresses: mapped });
-        } else {
-          wx.showToast({ title: res.data.message || '加载失败', icon: 'none' });
-        }
-      },
-      fail: () => {
-        this.setData({ loadingAddresses: false });
-        wx.showToast({ title: '加载失败', icon: 'none' });
+  loadMoreAddresses() {
+    if (!this.data.loadingAddresses && this.data.addressNextPage) this.loadAddresses({ page: this.data.addressNextPage });
+  },
+
+  _promptFirstAddress() {
+    const proceed = () => { if (this._current() && (!this.data.isDirected || this.data.orderMode === 'project')) this.addAddress(); };
+    wx.getSetting({
+      success: result => {
+        if (!this._current()) return;
+        const status = result.authSetting?.['scope.userLocation'];
+        if (status !== undefined) return proceed();
+        wx.authorize({ scope: 'scope.userLocation', success: proceed, fail: proceed });
+      }, fail: proceed
+    });
+  },
+
+  selectAddress(e) { this._applyAddress(e.currentTarget.dataset.address); },
+
+  async refreshSelectedAddress(id) {
+    const selection = this._selectionVersion;
+    try {
+      const result = await this._requestAddress(`/${id}`);
+      if (this._current() && selection === this._selectionVersion) this._applyAddress(this._mapAddress(result.address));
+    } catch (error) {
+      if (!this._current() || selection !== this._selectionVersion) return;
+      if ([403, 404].includes(error.status)) {
+        this.setData({ selectedAddress: null, selectedAddressStr: '', projectRegion: ['', '', ''], projectAddressDetail: '', showAddressSheet: true });
+        this.updateAddressSubmit();
       }
+      this.setData({ addressError: error.message || '地址加载失败，请重试' });
+    }
+  },
+
+  _navigateAddress(id) {
+    if (!this._current()) return;
+    this._selectionVersion++;
+    const account = this._account;
+    wx.navigateTo({ url: `/pages/address/edit/edit?from=order-create${id ? `&id=${id}` : ''}`,
+      events: { addressSaved: result => {
+        if (this._current() && this._account === account && result.id) this.refreshSelectedAddress(result.id);
+      } }
     });
   },
 
-  selectAddress(e) {
-    const address = e.currentTarget.dataset.address;
-    const addrStr = `${address.province || ''}${address.city || ''}${address.district || ''}${address.detail || ''}`;
-    this.setData({
-      selectedAddress: address,
-      selectedAddressStr: addrStr,
-      contactName: address.contactName || '',
-      contactPhone: address.contactPhone || '',
-      latitude: address.latitude ?? null,
-      longitude: address.longitude ?? null
-    });
-    this.updateSubmitEnable();
-    this.closeAddressSheet();
-  },
-
-  editAddress(e) {
-    const id = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: `/pages/address/edit/edit?id=${id}` });
-  },
-
-  addAddress() {
-    wx.navigateTo({ url: '/pages/address/edit/edit' });
-  },
+  editAddress(e) { this._navigateAddress(e.currentTarget.dataset.id); },
+  addAddress() { this._navigateAddress(); },
+  viewOrders() { wx.switchTab({ url: '/pages/order/list/list' }); },
 
   onAgreeChange(e) {
     const values = e.detail.value || [];
@@ -449,6 +509,10 @@ Page({
   },
 
   validateForm() {
+    if (!this._current() || this.data.submissionUncertain) {
+      wx.showToast({ title: '请先在我的订单核对上次提交结果', icon: 'none' });
+      return false;
+    }
     if (!this.data.selectedServiceTypeId) {
       wx.showToast({ title: '请选择服务类型', icon: 'none' });
       return false;
@@ -457,7 +521,7 @@ Page({
       wx.showToast({ title: '请描述问题详情', icon: 'none' });
       return false;
     }
-    if (!this.data.isDirected && !this.data.selectedAddressStr) {
+    if (!this.data.isDirected && !this._addressUsable(this.data.selectedAddress)) {
       wx.showToast({ title: '请选择服务地址', icon: 'none' });
       return false;
     }
@@ -531,6 +595,7 @@ Page({
       }
     }
 
+    if (!this._current()) return;
     const payload = {
       service_type_id: this.data.selectedServiceType.id,
       title: this.data.selectedServiceType.name || '无标题',
@@ -549,7 +614,7 @@ Page({
       referrerId: wx.getStorageSync('referrer_id') || null
     };
 
-    console.log('提交的订单 payload:', payload);
+
 
     wx.request({
       url: `${app.globalData.baseUrl}/orders`,
@@ -557,21 +622,24 @@ Page({
       header: { 'Authorization': `Bearer ${app.globalData.token}`, 'Content-Type': 'application/json' },
       data: payload,
       success: (res) => {
-        this.setData({ submitting: false });
+        if (!this._current()) return;
         if (res && res.data && (res.data.code === 0 || res.data.code === 200)) {
           wx.showToast({ title: '正在支付', icon: 'none' });
           const orderId = res.data.data?.id || res.data.id;
           setTimeout(() => {
+            if (!this._current()) return;
             wx.navigateTo({ url: `/pages/payment/payment/payment?orderId=${orderId}` });
           }, 500);
         } else {
+          this.setData({ submitting: false });
           wx.showToast({ title: res.data?.message || '提交失败', icon: 'none' });
         }
       },
       fail: (err) => {
-        this.setData({ submitting: false });
+        if (!this._current()) return;
+        this.setData({ submitting: false, submissionUncertain: true, canSubmit: false });
         console.error('提交订单失败：', err);
-        wx.showToast({ title: '网络错误，请重试', icon: 'none' });
+        wx.showToast({ title: '结果未确认，请先查看我的订单', icon: 'none' });
       }
     });
   },
@@ -584,9 +652,9 @@ Page({
     if (this.data.isDirected) {
       ok = ok && !!this.data.searchedElectrician;
     } else {
-      ok = ok && !!this.data.selectedAddressStr;
+      ok = ok && this._addressUsable(this.data.selectedAddress);
     }
-    this.setData({ canSubmit: ok });
+    this.setData({ canSubmit: ok && !this.data.submissionUncertain });
   },
 
   // ─── 企业多日工程 ────────────────────────────────────────────
@@ -601,7 +669,10 @@ Page({
       success: (res) => {
         const ok = res?.data?.success === true || res?.data?.code === 0 || res?.data?.code === 200;
         if (ok && res.data.data && res.data.data.certStatus === 'approved') {
+          if (!this._current()) return;
           this.setData({ enterpriseCertDistrict: res.data.data.district || '' });
+          if (this.data.selectedAddress) this._applyAddress(this.data.selectedAddress);
+          this.updateAddressSubmit();
         }
       }
     });
@@ -610,8 +681,15 @@ Page({
   // 切换下单模式
   switchOrderMode(e) {
     const mode = e.currentTarget.dataset.mode;
+    if (!['quick', 'project'].includes(mode)) return;
     this.setData({ orderMode: mode });
-    this.updateProjectSubmitEnable();
+    if (this.data.selectedAddress && !this._addressUsable(this.data.selectedAddress)) {
+      this.setData({ selectedAddress: null, selectedAddressStr: '', projectRegion: ['', '', ''], projectAddressDetail: '', showAddressSheet: true, addressError: '请选择与企业认证区县一致的服务地址' });
+      this.loadAddresses();
+    } else if (!this.data.selectedAddress && mode === 'project') {
+      this.loadAddresses({ initial: true });
+    }
+    this.updateAddressSubmit();
   },
 
   // 多日工程 - 电工人数变更
@@ -678,12 +756,16 @@ Page({
     const ok = projStartDate && projStartTime && projEndDate && projEndTime
       && parseFloat(projTotalAmount) > 0
       && projectRegion[0] && projectRegion[1] && projectRegion[2]
-      && projectAddressDetail && projectAddressDetail.trim();
-    this.setData({ canSubmit: ok });
+      && projectAddressDetail && projectAddressDetail.trim() && this._addressUsable(this.data.selectedAddress) && !this.data.submissionUncertain;
+    this.setData({ canSubmit: !!ok });
   },
 
   // 多日工程 - 表单校验
   validateProjectForm() {
+    if (!this._current() || this.data.submissionUncertain || !this._addressUsable(this.data.selectedAddress)) {
+      wx.showToast({ title: this.data.submissionUncertain ? '请先核对我的订单' : '请选择符合条件的服务地址', icon: 'none' });
+      return false;
+    }
     const { projStartDate, projStartTime, projEndDate, projEndTime,
             projCertLowChecked, projCertHighChecked,
             projTotalAmount, projectRegion, projectAddressDetail,
@@ -757,6 +839,7 @@ Page({
     const endDateTime = projEndDate + ' ' + projEndTime + ':00';
 
     const payload = {
+      addressId: this.data.selectedAddress.id,
       description: description || '',
       projRequiredCount: projRequiredCount,
       projStartTime: startDateTime,
@@ -776,21 +859,24 @@ Page({
       header: { 'Authorization': `Bearer ${app.globalData.token}`, 'Content-Type': 'application/json' },
       data: payload,
       success: (res) => {
-        this.setData({ projectSubmitting: false });
+        if (!this._current()) return;
         if (res && res.data && (res.data.code === 0 || res.data.code === 200)) {
           wx.showToast({ title: '创建成功，跳转支付', icon: 'none' });
           const orderId = res.data.data?.orderId || res.data.data?.id;
           setTimeout(() => {
+            if (!this._current()) return;
             wx.navigateTo({ url: `/pages/payment/payment/payment?orderId=${orderId}` });
           }, 500);
         } else {
+          this.setData({ projectSubmitting: false });
           wx.showToast({ title: res.data?.message || '提交失败', icon: 'none' });
         }
       },
       fail: (err) => {
-        this.setData({ projectSubmitting: false });
+        if (!this._current()) return;
+        this.setData({ projectSubmitting: false, submissionUncertain: true, canSubmit: false });
         console.error('提交多日工程失败：', err);
-        wx.showToast({ title: '网络错误，请重试', icon: 'none' });
+        wx.showToast({ title: '结果未确认，请先查看我的订单', icon: 'none' });
       }
     });
   }

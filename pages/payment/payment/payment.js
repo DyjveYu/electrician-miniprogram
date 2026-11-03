@@ -1,3 +1,4 @@
+const orderEntry = require('../../../utils/orderEntry');
 // pages/payment/payment/payment.js
 const { PaymentAPI } = require('../../../utils/api');
 
@@ -61,6 +62,8 @@ Page({
   async startPayment() {
     if (this.data.paying) return;
     this.setData({ paying: true });
+    const session = orderEntry.key(getApp());
+    const current = () => !this._unloaded && session === orderEntry.key(getApp());
 
     try {
       const app = getApp();
@@ -75,7 +78,8 @@ Page({
         openid
       });
 
-      this.setData({ paying: false });
+      if (!current()) return;
+      // 测试确认完成前保持支付锁，防止重复提交。
 
       // API 封装返回的是 { code, message, data }
       const payload = result.data || result;
@@ -88,15 +92,20 @@ Page({
         // 保存payment_no用于后续查询支付状态
         this.setData({ paymentNo: payload.payment_no });
         if (method === 'wechat') {
+          this.setData({ paying: false });
           this.processPayment(payParams);
         } else {
-          // 测试支付：直接跳转为成功
+          const confirmed = await PaymentAPI.confirmTestPayment(payload.payment_no);
+          if (!current()) return;
+          if (![0, 200].includes(confirmed?.code)) throw new Error(confirmed?.message || '测试支付确认失败');
           this.paymentSuccess();
         }
       } else {
+        this.setData({ paying: false });
         wx.showToast({ title: (result.message || '支付创建失败'), icon: 'none' });
       }
     } catch (err) {
+      if (!current()) return;
       this.setData({ paying: false });
       wx.showToast({ title: err.message || '支付异常', icon: 'none' });
     }
@@ -294,6 +303,8 @@ Page({
       });
     });
   },
+
+  onUnload() { this._unloaded = true; },
 
   // 支付成功
   paymentSuccess() {

@@ -1,3 +1,4 @@
+const orderEntry = require('../../../utils/orderEntry');
 // pages/enterprise/certification/certification.js
 const app = getApp();
 
@@ -24,10 +25,20 @@ Page({
     region: ['', '', ''],
     customItem: '全部',
     licenseImagePath: '',
+    continuingOrder: false,
+    continuationMessage: '',
+    checkingContinuation: false,
     submitting: false
   },
 
-  onLoad(options) {
+  onLoad(options = {}) {
+    this._account = orderEntry.key(app);
+    this._entryId = options.orderEntry;
+    this._visible = false;
+    this._unloaded = false;
+    this._queryGeneration = 0;
+    this._pollAttempt = 0;
+    this.setData({ continuingOrder: !!this._entryId && orderEntry.valid(app, this._entryId) });
     if (options.mode) {
       this.setData({ mode: options.mode });
     }
@@ -47,18 +58,54 @@ Page({
     });
 
     // 查看模式加载认证信息
-    if (this.data.mode === 'view') {
+    if (this.data.mode === 'view' && !this.data.continuingOrder) {
       this.loadCertificationInfo();
     }
   },
 
   onShow() {
-    // 每次显示时刷新认证信息
+    if (!this._current()) { wx.reLaunch({ url: '/pages/index/index' }); return; }
+    this._visible = true;
+    this._pollAttempt = 0;
     this.loadCertificationInfo();
+  },
+
+  onHide() {
+    if (this.data.checkingContinuation) wx.hideLoading();
+    this._visible = false;
+    this._queryGeneration++;
+    clearTimeout(this._pollTimer);
+  },
+
+  onUnload() {
+    this.onHide();
+    this._unloaded = true;
+    if (orderEntry.valid(app, this._entryId) && this._entryId) orderEntry.clear();
+  },
+
+  _current() { return !this._unloaded && this._account === orderEntry.key(app); },
+
+  retryContinuation() {
+    if (!this._current() || !this._visible || this.data.checkingContinuation) return;
+    this._pollAttempt = 0;
+    this.loadCertificationInfo();
+  },
+
+  cancelContinuation() {
+    if (this._entryId && orderEntry.valid(app, this._entryId)) orderEntry.clear();
+    this._entryId = null;
+    this._queryGeneration++;
+    clearTimeout(this._pollTimer);
+    this.setData({ continuingOrder: false, checkingContinuation: false, continuationMessage: '' });
   },
 
   // 加载企业认证信息
   loadCertificationInfo() {
+    if (!this._current() || !this._visible) return;
+    clearTimeout(this._pollTimer);
+    const generation = ++this._queryGeneration;
+    const current = () => this._current() && this._visible && generation === this._queryGeneration;
+    this.setData({ checkingContinuation: true });
     wx.showLoading({ title: '加载中' });
 
     wx.request({
@@ -68,9 +115,22 @@ Page({
         'Authorization': `Bearer ${app.globalData.token}`
       },
       success: (res) => {
+        if (!current()) return;
         const ok = res?.data?.success === true || res?.data?.code === 0 || res?.data?.code === 200;
         if (ok) {
           const data = res?.data?.data || {};
+          if (this.data.continuingOrder && orderEntry.valid(app, this._entryId)) {
+            if (data.certStatus === 'approved' && orderEntry.consume(app, this._entryId)) {
+              app.globalData.enterpriseCertification = data;
+              this._entryId = null;
+              wx.reLaunch({ url: '/pages/order/create/create' });
+              return;
+            }
+            this.setData({ continuationMessage: data.certStatus === 'pending' ? '资料审核中，通过后继续下单' : '资料尚未满足下单条件，可稍后重新查询' });
+            if (data.certStatus === 'pending' && this._pollAttempt++ < 4) {
+              this._pollTimer = setTimeout(() => this.loadCertificationInfo(), 1000);
+            }
+          }
           // 如果有认证记录，填充表单并切换到查看模式
           if (data && data.certStatus) {
             this.setData({
@@ -97,6 +157,7 @@ Page({
             this.setData({ mode: 'apply', certStatus: '' });
           }
         } else {
+          this.setData({ continuationMessage: '查询失败，请重新查询' });
           log.warn('load_certification_biz_fail', {
             code: res?.data?.code,
             message: res?.data?.message
@@ -104,11 +165,13 @@ Page({
         }
       },
       fail: (err) => {
+        if (!current()) return;
+        this.setData({ continuationMessage: '查询失败，请重新查询' });
         log.error('load_certification_fail', { errMsg: err.errMsg });
         wx.showToast({ title: '加载失败', icon: 'none' });
       },
       complete: () => {
-        wx.hideLoading();
+        if (current()) { this.setData({ checkingContinuation: false }); wx.hideLoading(); }
       }
     });
   },
@@ -318,7 +381,7 @@ Page({
 
   // 提交认证申请
   async submitCertification() {
-    if (this.data.submitDisabled || this.data.submitting) {
+    if (!this._current() || this.data.submitDisabled || this.data.submitting) {
       wx.showToast({ title: '请完善信息后再提交', icon: 'none' });
       return;
     }
@@ -352,6 +415,7 @@ Page({
         throw new Error('请上传营业执照副本');
       }
 
+      if (!this._current() || !this._visible) return;
       wx.showLoading({ title: '提交认证...', mask: true });
 
       const requestData = {
@@ -394,6 +458,7 @@ Page({
         });
       });
 
+      if (!this._current() || !this._visible) return;
       wx.hideLoading();
       wx.showToast({ title: '提交成功', icon: 'success' });
 
@@ -404,14 +469,22 @@ Page({
         licenseImagePath: licenseImagePath
       });
 
+      if (this.data.continuingOrder && orderEntry.valid(app, this._entryId)) {
+        this._pollAttempt = 0;
+        this.loadCertificationInfo();
+        return;
+      }
+
       // 跳转到「我的」页面
       setTimeout(() => {
+        if (!this._current() || !this._visible) return;
         wx.switchTab({
           url: '/pages/profile/profile/profile'
         });
       }, 1500);
 
     } catch (error) {
+      if (!this._current() || !this._visible) return;
       log.error('cert_submit_catch', { message: error.message });
       wx.hideLoading();
       wx.showModal({
@@ -427,7 +500,7 @@ Page({
         }
       });
     } finally {
-      this.setData({ submitting: false });
+      if (this._current()) this.setData({ submitting: false });
     }
   }
 });

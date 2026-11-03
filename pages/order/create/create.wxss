@@ -846,3 +846,5 @@
 .agreement-close-btn::after {
   border: none;
 }
+
+.address-error { padding: 20rpx; color: #b45309; background: #fff7ed; }

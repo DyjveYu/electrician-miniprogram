@@ -1,3 +1,4 @@
+const orderEntry = require('./utils/orderEntry');
 // app.js
 const log = require('./utils/log.js');
 const runtimeConfig = require('./config/index');
@@ -223,6 +224,8 @@ App({
    * 用户登录
    */
   login(userInfo, token) {
+    orderEntry.clear();
+    this._orderSessionVersion = (this._orderSessionVersion || 0) + 1;
     // 会话凭据及完整用户资料不输出日志。
 
     this.globalData.userInfo = userInfo;
@@ -242,6 +245,8 @@ App({
    * 用户登出
    */
   logout(options = {}) {
+    orderEntry.clear();
+    this._orderSessionVersion = (this._orderSessionVersion || 0) + 1;
     const pages = getCurrentPages();
     const current = pages[pages.length - 1];
     const contentEntry = options.entry === 'electrician-home' ||
