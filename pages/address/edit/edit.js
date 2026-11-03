@@ -1,3 +1,4 @@
+const orderEntry = require('../../../utils/orderEntry');
 // pages/address/edit/edit.js
 Page({
   data: {
@@ -18,12 +19,17 @@ Page({
     isEdit: false
   },
 
-  onLoad(options) {
+  onLoad(options = {}) {
+    this._account = orderEntry.key(getApp());
+    this._unloaded = false;
     if (options.id) {
       this.setData({ addressId: options.id, isEdit: true });
       this.loadAddressDetail();
     }
   },
+
+  onUnload() { this._unloaded = true; },
+  _current() { return !this._unloaded && !!this._account && this._account === orderEntry.key(getApp()); },
 
   // 加载地址详情
   loadAddressDetail() {
@@ -35,6 +41,7 @@ Page({
         'Authorization': `Bearer ${app.globalData.token}`
       },
       success: (res) => {
+        if (!this._current()) return;
         const ok = res?.data?.code === 0 || res?.data?.code === 200;
         const payload = res?.data?.data;
         if (ok && payload) {
@@ -71,6 +78,7 @@ Page({
 
   // 选择地区 (调用微信地图选点)
   chooseLocation() {
+    if (!this._current()) return;
     const that = this;
     const app = getApp();
 
@@ -92,6 +100,7 @@ Page({
       latitude: latitude,
       longitude: longitude,
       success(res) {
+        if (!that._current()) return;
         console.log('地图选点结果:', res);
         // 解析地址 (简单解析，为了满足后端必填校验)
         // 腾讯地图返回的 address 通常格式为 "北京市海淀区..." 或 "广东省深圳市南山区..."
@@ -111,7 +120,7 @@ Page({
       fail(err) {
         console.error('地图选点失败/取消:', err);
         // 如果是权限问题，可能需要引导用户打开权限
-        if (err.errMsg.indexOf('auth deny') >= 0) {
+        if ((err.errMsg || '').includes('auth deny')) {
           wx.showModal({ confirmColor: '#16835c',
             title: '提示',
             content: '需要获取您的地理位置授权，请在设置中打开',
@@ -265,7 +274,7 @@ parseAddress(addressStr) {
 
   // 保存地址
   saveAddress() {
-    if (!this.validateForm()) return;
+    if (!this._current() || !this.validateForm()) return;
     if (this.data.saving) return;
 
     this.setData({ saving: true });
@@ -276,11 +285,11 @@ parseAddress(addressStr) {
       : `${app.globalData.baseUrl}/addresses`;
     const method = this.data.isEdit ? 'PUT' : 'POST';
 
-    console.log('提交地址前的数据:', this.data.formData);
+
     // ① 直接使用 formData
     const formData = this.data.formData;
     // ② 打印确认实际提交的数据
-    console.log('实际提交到后端的数据:', formData);
+
     // ③ 调用接口
     wx.request({
       url,
@@ -291,10 +300,14 @@ parseAddress(addressStr) {
 
       data: formData,
       success: (res) => {
+        if (!this._current()) return;
         this.setData({ saving: false });
         if (res.data.code === 0 || res.data.code === 200) {
+          const address = res.data.data?.address;
+          if (address?.id && this.getOpenerEventChannel) this.getOpenerEventChannel()?.emit?.('addressSaved', { id: address.id });
           wx.showToast({ title: '保存成功！', icon: 'none', duration: 1500 });
           setTimeout(() => {
+            if (!this._current()) return;
             const pages = getCurrentPages();
             if (pages.length > 1) {
               wx.navigateBack();
@@ -307,6 +320,7 @@ parseAddress(addressStr) {
         }
       },
       fail: () => {
+        if (!this._current()) return;
         this.setData({ saving: false });
         wx.showToast({ title: '网络错误', icon: 'none' });
       }

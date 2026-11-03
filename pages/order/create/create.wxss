@@ -101,3 +101,6 @@
 .agreement-date { text-align: right; margin-top: 32rpx; }
 .agreement-footer { flex-shrink: 0; padding: 20rpx 32rpx; padding-bottom: calc(24rpx + env(safe-area-inset-bottom)); }
 .agreement-close-btn { width: 100%; }
+
+.address-error { padding: 20rpx 24rpx; margin: 16rpx 0; color: var(--clean-warn); background: #fff7ed; border-radius: 22rpx; word-break: break-all; }
+.address-error button { width: 100%; margin-top: 16rpx; white-space: normal; background: var(--clean-mint); color: var(--clean-green); border-color: var(--clean-green); }

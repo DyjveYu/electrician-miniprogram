@@ -132,7 +132,7 @@ test('R6: 原登录提交仍传递所选个人／企业／电工角色并保存�
     page.login();
     assert.equal(page.data.showWelcomeModal, true);
     await page.onAgree();
-    assert.deepEqual(received, ['13800000000', '123456', role, 'isolated-openid']);
+    assert.deepEqual(received, ['13800000000', '123456', role, 'isolated-openid', role === 'electrician']);
     assert.equal(h.app.globalData.token, 'new-test-token');
     assert.equal(h.app.globalData.userInfo.current_role, role);
   }

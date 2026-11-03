@@ -95,4 +95,9 @@
     <view class="pending-title" style="color:#16835c;">认证已通过</view>
     <view class="pending-desc">您的企业已通过认证，可以使用全部企业功能</view>
   </view>
+  <view class="continuation-panel" wx:if="{{continuingOrder}}">
+    <text>{{continuationMessage || '请完善资料，通过后继续下单'}}</text>
+    <button bindtap="retryContinuation" loading="{{checkingContinuation}}" disabled="{{checkingContinuation || submitting}}">重新查询</button>
+    <button bindtap="cancelContinuation">取消继续下单</button>
+  </view>
 </view>
