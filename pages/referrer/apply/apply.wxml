@@ -75,7 +75,7 @@
   <!-- 成功提示弹窗 -->
   <view class="modal-mask" wx:if="{{showSuccessModal}}" bindtap="closeSuccessModal">
     <view class="modal-dialog" catchtap="">
-      <view class="modal-icon">✅</view>
+      <image class="modal-icon ui-icon" src="/images/content-ui/check-circle.svg" mode="aspectFit" aria-hidden="true" />
       <view class="modal-title">申请已提交</view>
       <view class="modal-desc">您的推荐达人申请已提交，请等待审核</view>
       <button class="modal-btn" bindtap="closeSuccessModal">我知道了</button>

@@ -325,7 +325,7 @@ App({
    */
   showModal(title, content) {
     return new Promise((resolve) => {
-      wx.showModal({
+      wx.showModal({ confirmColor: '#16835c',
         title: title,
         content: content,
         success: (res) => {

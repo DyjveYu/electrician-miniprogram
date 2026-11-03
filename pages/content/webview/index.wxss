@@ -1,2 +1,3 @@
-.state { padding: 120rpx 40rpx; text-align: center; color: #606266; }
+@import "../../../styles/clean-surfaces.wxss";
+.state { padding: 120rpx 40rpx; text-align: center; color: #687a71; }
 .state button { margin-top: 24rpx; }

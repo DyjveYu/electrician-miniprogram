@@ -151,7 +151,7 @@ Page({
     if (this.data.paying) return;
 
     const amount = this.data.configuredAmount;
-    wx.showModal({
+    wx.showModal({ confirmColor: '#16835c',
       title: '确认缴纳',
       content: `确定要缴纳${amount}元押金吗？`,
       success: (res) => {
@@ -260,7 +260,7 @@ Page({
   handleRefund() {
     if (this.data.refunding) return;
 
-    wx.showModal({
+    wx.showModal({ confirmColor: '#16835c',
       title: '申请退款',
       content: '确定要申请退回押金吗？审核通过后将在1-3个工作日内原路退回。',
       success: (res) => {

@@ -1,7 +1,8 @@
+@import "../../../styles/clean-surfaces.wxss";
 /* pages/profile/certification/certification.wxss */
 .container {
-  padding: 30rpx;
-  background-color: #f5f5f5;
+  padding: 32rpx 44rpx 48rpx;
+  background-color: #fff;
   min-height: 100vh;
 }
 
@@ -12,14 +13,14 @@
 
 .title {
   font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: #172d25;
   margin-bottom: 10rpx;
 }
 
 .subtitle {
   font-size: 28rpx;
-  color: #666;
+  color: #687a71;
 }
 
 .status-tag {
@@ -31,24 +32,24 @@
 }
 
 .status-tag.approved {
-  background-color: #07c160;
+  background-color: #16835c;
 }
 
 .status-tag.rejected {
-  background-color: #fa5151;
+  background-color: #b74434;
 }
 
 .status-tag.pending {
-  background-color: #ffc300;
-  color: #333;
+  background-color: #956321;
+  color: #172d25;
 }
 
 .form-container {
   background-color: #fff;
-  border-radius: 12rpx;
+  border-radius: 22rpx;
   padding: 30rpx;
   margin-bottom: 30rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  box-shadow: none;
 }
 
 .form-group {
@@ -57,7 +58,7 @@
 
 .form-label {
   font-size: 28rpx;
-  color: #333;
+  color: #172d25;
   margin-bottom: 10rpx;
   font-weight: 500;
 }
@@ -73,7 +74,7 @@
   display: flex;
   align-items: center;
   font-size: 28rpx;
-  color: #333;
+  color: #172d25;
 }
 
 .checkbox-item checkbox {
@@ -82,17 +83,17 @@
 
 .form-input {
   width: 100%;
-  height: 80rpx;
-  background-color: #f5f7fa;
-  border-radius: 8rpx;
+  height: 96rpx;
+  background-color: #f5f7f5;
+  border-radius: 22rpx;
   padding: 0 20rpx;
   font-size: 28rpx;
-  color: #333;
+  color: #172d25;
   box-sizing: border-box;
 }
 
 .placeholder {
-  color: #999;
+  color: #687a71;
 }
 
 .location-wrapper {
@@ -110,8 +111,8 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: #f5f7fa;
-  border-radius: 8rpx;
+  background-color: #f5f7f5;
+  border-radius: 22rpx;
   margin-left: 20rpx;
 }
 
@@ -120,22 +121,22 @@
 }
 
 .tips {
-  background-color: #f0f9ff;
+  background-color: #eff7f1;
   padding: 20rpx;
-  border-radius: 8rpx;
+  border-radius: 22rpx;
   margin-bottom: 40rpx;
 }
 
 .tips-title {
   font-size: 28rpx;
-  color: #1890ff;
+  color: #16835c;
   margin-bottom: 10rpx;
   font-weight: 500;
 }
 
 .tips-content {
   font-size: 24rpx;
-  color: #666;
+  color: #687a71;
 }
 
 .tips-content text {
@@ -145,11 +146,11 @@
 
 .submit-btn {
   width: 100%;
-  height: 90rpx;
-  background: linear-gradient(to right, #1890ff, #0076e4);
+  height: auto;
+  background: #16835c;
   color: #fff;
-  font-size: 32rpx;
-  border-radius: 45rpx;
+  font-size: 30rpx;
+  border-radius: 22rpx;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -158,57 +159,59 @@
 }
 
 .submit-btn.disabled {
-  background: linear-gradient(to right, #ccc, #999);
+  background: #16835c;
   color: #fff;
+  opacity: .5;
 }
 
 .reject-reason {
   background-color: #fff;
-  border-radius: 12rpx;
+  border-radius: 22rpx;
   padding: 30rpx;
   margin-bottom: 30rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  box-shadow: none;
 }
 
 .reason-title {
   font-size: 28rpx;
-  color: #333;
+  color: #172d25;
   font-weight: 500;
   margin-bottom: 10rpx;
 }
 
 .reason-content {
   font-size: 28rpx;
-  color: #fa5151;
+  color: #b74434;
   padding: 20rpx;
-  background-color: #fff2f0;
-  border-radius: 8rpx;
+  background-color: #faf0ed;
+  border-radius: 22rpx;
   margin-bottom: 30rpx;
 }
 
 .reapply-btn {
   width: 100%;
-  height: 90rpx;
-  background: linear-gradient(to right, #1890ff, #0076e4);
+  height: auto;
+  background: #16835c;
   color: #fff;
-  font-size: 32rpx;
-  border-radius: 45rpx;
+  font-size: 30rpx;
+  border-radius: 22rpx;
   display: flex;
   justify-content: center;
   align-items: center;
   font-weight: 500;
 }
 .reapply-btn.disabled {
-  background: linear-gradient(to right, #ccc, #999);
+  background: #16835c;
   color: #fff;
+  opacity: .5;
 }
 
 
 .pending-container {
   background-color: #fff;
-  border-radius: 12rpx;
+  border-radius: 22rpx;
   padding: 60rpx 30rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  box-shadow: none;
   text-align: center;
 }
 
@@ -219,14 +222,14 @@
 
 .pending-title {
   font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: #172d25;
   margin-bottom: 20rpx;
 }
 
 .pending-desc {
   font-size: 28rpx;
-  color: #666;
+  color: #687a71;
   margin-bottom: 30rpx;
 }
 
@@ -236,9 +239,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #f8f9fa;
+  background-color: #f5f7f5;
   padding: 30rpx;
-  border-radius: 12rpx;
+  border-radius: 22rpx;
   margin-bottom: 20rpx;
 }
 
@@ -249,29 +252,29 @@
 
 .cert-name {
   font-size: 30rpx;
-  color: #333;
+  color: #172d25;
   font-weight: 500;
   margin-right: 20rpx;
 }
 
 .cert-status {
   font-size: 24rpx;
-  color: #999;
-  background-color: #eee;
+  color: #687a71;
+  background-color: #e9efeb;
   padding: 4rpx 12rpx;
-  border-radius: 4rpx;
+  border-radius: 22rpx;
 }
 
 .cert-status.done {
-  color: #52c41a;
-  background-color: #f6ffed;
-  border: 1rpx solid #b7eb8f;
+  color: #16835c;
+  background-color: #eff7f1;
+  border: 1rpx solid #e9efeb;
 }
 
 .arrow {
   font-family: "SimSun", sans-serif; /* Use font that supports > well or simple arrow icon */
-  color: #ccc;
-  font-weight: bold;
+  color: #687a71;
+  font-weight: 600;
 }
 
 /* 特种作业操作证单选组样式 */
@@ -285,7 +288,7 @@
   display: flex;
   align-items: center;
   font-size: 28rpx;
-  color: #333;
+  color: #172d25;
 }
 
 .cert-type-item radio {
@@ -306,7 +309,7 @@
   display: flex;
   align-items: center;
   font-size: 28rpx;
-  color: #666;
+  color: #687a71;
 }
 
 .notice-label checkbox {
@@ -314,6 +317,10 @@
 }
 
 .notice-link {
-  color: #1890ff;
+  color: #16835c;
   margin-left: 6rpx;
 }
+
+
+/* UI1.1：页面布局及状态精调。 */
+.container { padding: 32rpx 44rpx 48rpx; } .form-container, .reject-reason { border: none; padding: 0; box-shadow: none; } .form-group { margin-bottom: 28rpx; } .header { text-align: left; margin-bottom: 32rpx; } .region-input { height: auto; min-height: 96rpx; padding: 20rpx 24rpx; } .location-wrapper { align-items: stretch; gap: 16rpx; } .location-wrapper picker { flex: 1; min-width: 0; } .location-btn { width: 88rpx; min-height: 96rpx; height: auto; margin: 0; border-radius: 22rpx; background: #eff7f1; flex-shrink: 0; } .location-icon.ui-icon { width: 36rpx; height: 36rpx; } .checkbox-group, .cert-type-group { flex-wrap: wrap; gap: 16rpx 24rpx; } .cert-type-gap { display: none; } .cert-upload-item, .license-upload { box-sizing: border-box; border: 2rpx solid #e9efeb; border-radius: 22rpx; } .cert-info { flex-wrap: wrap; gap: 8rpx; min-width: 0; } .cert-name { margin: 0; font-size: 28rpx; } .tips { border-radius: 22rpx; background: #f5f7f5; } .tips-title { color: #172d25; } .submit-btn, .reapply-btn { height: auto; min-height: 96rpx; padding: 20rpx 24rpx; line-height: 1.6; font-size: 30rpx; border-radius: 22rpx; background: #16835c; color: #fff; } .submit-btn.disabled, .reapply-btn.disabled { background: #16835c; opacity: .5; } .upload-icon.ui-icon { width: 56rpx; height: 56rpx; margin: 0 auto 16rpx; }

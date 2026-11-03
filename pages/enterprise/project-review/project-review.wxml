@@ -66,7 +66,7 @@
 
   <!-- 空状态 -->
   <view class="empty-state" wx:if="{{!loading && electricians.length === 0}}">
-    <text class="empty-icon">📋</text>
+    <image class="empty-icon ui-icon" src="/images/content-ui/clipboard.svg" mode="aspectFit" aria-hidden="true" />
     <text class="empty-text">暂无电工信息</text>
   </view>
 

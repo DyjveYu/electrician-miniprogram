@@ -1,0 +1,45 @@
+/* 全量页面的共用展示规则；保留各页自己的数据、事件与定位层级。 */
+@import "./clean-page.wxss";
+.container, .page-container, .landing-container, .about-container { box-sizing: border-box; min-height: 100vh; background: #fff; color: var(--clean-text); }
+.container, .about-container { padding: 32rpx 44rpx 48rpx; }
+.page { box-sizing: border-box; background: #fff; color: var(--clean-text); padding: 36rpx 44rpx; }
+.card, .content-card, .info-card, .detail-card, .review-card, .form-container, .stats-card, .withdraw-form, .withdraw-section, .order-section, .payment-section, .rule-section, .share-section { box-sizing: border-box; background: #fff; border: 2rpx solid var(--clean-line); border-radius: 24rpx; box-shadow: none; }
+.header { text-align: left; margin-bottom: 32rpx; }
+.title, .header-title { color: var(--clean-text); font-weight: 600; line-height: 1.5; }
+.subtitle, .header-desc, .card-desc, .empty-desc, .loading-state, .loading-wrap, .loading-tip, .empty-text, .empty-tip, .privacy-tip, .meta { color: var(--clean-muted); line-height: 1.8; }
+.subtitle, .header-desc { display: block; font-size: 26rpx; margin-top: 12rpx; }
+.section-title, .card-title, .info-title, .detail-title, .notice-title, .upload-title { color: var(--clean-text); font-weight: 600; }
+.form-label, .label { color: var(--clean-muted); }
+.value, .form-value, .detail-value, .cert-value, .body-text, .content-text { min-width: 0; word-break: break-all; color: var(--clean-text); }
+.form-input, .input, .textarea, .comment-input, .review-input, .work-content-input { box-sizing: border-box; min-width: 0; border: 2rpx solid var(--clean-line); background: var(--clean-soft); color: var(--clean-text); border-radius: 22rpx; font-size: 30rpx; }
+input.form-input, input.input { min-height: 96rpx; height: 96rpx; padding: 20rpx 24rpx; }
+textarea.textarea, .comment-input, .review-input, .work-content-input { width: 100%; padding: 24rpx; line-height: 1.8; }
+.placeholder, .readonly, .tips, .notice-item { color: var(--clean-muted); }
+.required, .error-msg, .record-fail, .reason-content { color: var(--clean-danger); }
+.highlight, .amount, .amount-value, .record-amount, .service-price, .value.amount, .fee-num { color: var(--clean-green); }
+button, .submit-btn, .save-btn, .pay-btn, .confirm-btn, .withdraw-btn, .reapply-btn, .add-btn, .add-first-btn, .modal-btn, .booking-btn { box-sizing: border-box; min-height: 88rpx; height: auto; padding: 20rpx 24rpx; line-height: 1.6; font-size: 30rpx; border-radius: 22rpx; background: var(--clean-green); color: #fff; border: 2rpx solid transparent; box-shadow: none; white-space: normal; }
+button[type="primary"] { background: var(--clean-green); color: #fff; }
+button::after { border: none; }
+button[disabled], .submit-btn.disabled, .confirm-btn.disabled, .pay-btn.disabled, .save-btn.disabled, .reapply-btn.disabled, .withdraw-btn.disabled { background: var(--clean-green); color: #fff; opacity: .5; }
+.secondary, .btn-secondary, .cancel-btn, .refund-btn, .send-code-btn, .contact-btn, .refresh-btn, .current-role-btn { border-color: var(--clean-green); background: var(--clean-mint); color: var(--clean-green); border-radius: 22rpx; box-shadow: none; }
+.delete, .danger, .btn-danger { background: #faf0ed; color: var(--clean-danger); border-color: #e7b9af; }
+.edit { background: var(--clean-mint); color: var(--clean-green); border-radius: 18rpx; }
+.all-btn { color: var(--clean-green); }
+.empty-icon.ui-icon { display: block; width: 64rpx; height: 64rpx; padding: 20rpx; box-sizing: content-box; border-radius: 28rpx; background: var(--clean-mint); opacity: 1; margin: 0 auto 24rpx; }
+.ui-icon-inline { display: inline-block; width: 32rpx; height: 32rpx; vertical-align: middle; flex-shrink: 0; }
+.share-icon.ui-icon, .menu-icon.ui-icon { width: 36rpx; height: 36rpx; padding: 18rpx; box-sizing: content-box; background: var(--clean-mint); border-radius: 22rpx; }
+.modal-mask, .agreement-mask, .sheet-mask, .record-mask { background: rgba(7,29,23,.65); }
+.modal-dialog { box-sizing: border-box; width: calc(100% - 64rpx); max-height: 80vh; overflow-y: auto; border-radius: 40rpx; padding: 40rpx 32rpx; background: #fff; }
+.modal-title { color: var(--clean-text); font-size: 36rpx; font-weight: 600; }
+.modal-desc { color: var(--clean-muted); font-size: 28rpx; line-height: 1.8; }
+.modal-icon.ui-icon, .success-icon.ui-icon, .pending-icon.ui-icon { width: 76rpx; height: 76rpx; margin: 0 auto 24rpx; }
+.pending-container { box-sizing: border-box; padding: 48rpx 28rpx; background: var(--clean-soft); border-radius: 24rpx; box-shadow: none; }
+.status-tag, .status-badge, .record-status, .default-badge, .current-badge, .skill-tag, .feature-tag, .area-tag { border-radius: 10rpx; }
+.status-tag.approved, .status-tag.completed_settled, .record-status.success { background: var(--clean-mint); color: var(--clean-green); }
+.status-tag.pending, .status-tag.pending_review, .status-tag.pending_second_review, .record-status.pending { background: #faf4e9; color: var(--clean-warn); }
+.status-tag.rejected, .record-status.failed, .record-status.rejected { background: #faf0ed; color: var(--clean-danger); }
+.star.active { color: var(--clean-warn); }
+.code-row { gap: 16rpx; }
+.code-row .code-input { width: 0; flex: 1; min-width: 0; }
+.code-row .send-code-btn { flex-shrink: 0; max-width: 48%; }
+.footer { padding-bottom: calc(32rpx + env(safe-area-inset-bottom)); }

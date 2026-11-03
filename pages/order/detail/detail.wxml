@@ -3,7 +3,7 @@
   <view wx:if="{{!loading && order}}" class="content-wrapper">
     <!-- 电工和用户双视角：订单状态 -->
     <view class="status-section card">
- 
+
       <view class="status-text">
         <text class="status-title">{{order.statusText}}</text>
         <text class="status-desc">{{order.statusDesc}}</text>
@@ -39,7 +39,7 @@
       <view class="images" wx:if="{{order.images && order.images.length > 0}}">
         <view class="image-title">问题图片：</view>
         <view class="image-list">
-          <image 
+          <image
             class="image-item"
             wx:for="{{order.images}}"
             wx:key="*this"
@@ -69,9 +69,9 @@
           <text class="value amount">{{order.amount}}元</text>
         </view>
       </block>
-      
+
     </view>
-   
+
     <!-- 多日工程专属信息 -->
     <view class="section card" wx:if="{{order.projRequiredCount}}">
       <view class="section-title">工程信息</view>
@@ -85,7 +85,7 @@
 
       </view>
       <view class="info-row" wx:if="{{order.projStartTimeShort}}">
-       
+
         <text class="label"></text>
         <text class="value">{{order.projEndTimeShort}}</text>
       </view>
@@ -116,12 +116,12 @@
           <text class="electrician-workno">工号：{{item.workNo}}</text>
         </view>
         <view class="electrician-phone-icon" wx:if="{{item.phone}}" data-phone="{{item.phone}}" bindtap="makePhoneCall">
-          <text class="phone-icon">📞</text>
+          <image class="phone-icon ui-icon" src="/images/content-ui/phone.svg" mode="aspectFit" aria-hidden="true" />
         </view>
       </view>
     </view>
 
- 
+
 
     <!-- 服务地址 -->
     <view class="section card">
@@ -152,7 +152,7 @@
     </button>
       </view>
     </view>
-    
+
 
     <!-- 电工视角：维修明细（已接单/待支付维修费） -->
     <view class="section card" wx:if="{{(order.status === 'accepted' || order.status === 'pending_repair_payment') && !(currentRole === 'electrician' && order.projRequiredCount)}}">
@@ -234,7 +234,7 @@
        <view class="work-images-display" wx:if="{{order.workImages && order.workImages.length > 0}}">
           <view class="image-title">维修图片：</view>
           <view class="image-list">
-            <image 
+            <image
               class="image-item"
               wx:for="{{order.workImages}}"
               wx:key="*this"
@@ -245,7 +245,7 @@
               bindtap="previewImage"
             ></image>
           </view>
-          
+
         </view>
 
 
@@ -253,7 +253,7 @@
       <view wx:if="{{action === 'complete'}}" class="work-form">
         <view class="form-item">
           <text class="form-label">维修内容：</text>
-          <textarea 
+          <textarea
             class="work-content-input"
             placeholder="请详细描述维修过程和结果"
             value="{{workContent}}"
@@ -261,11 +261,11 @@
             maxlength="500"
           ></textarea>
         </view>
-        
+
         <view class="form-item">
           <text class="form-label">维修图片：</text>
           <view class="work-images">
-            <view 
+            <view
               class="work-image-item"
               wx:for="{{workImages}}"
               wx:key="*this"
@@ -273,7 +273,7 @@
               <image src="{{item}}" mode="aspectFill"></image>
               <view class="delete-btn" data-index="{{index}}" bindtap="deleteWorkImage">×</view>
             </view>
-            <view 
+            <view
               class="add-work-image-btn"
               wx:if="{{workImages.length < 3}}"
               bindtap="chooseWorkImage"
@@ -282,15 +282,15 @@
             </view>
           </view>
         </view>
-        
+
       </view>
-      
+
       <!-- 显示已填写的维修内容 -->
       <view wx:else>
-     
-        
-       
-        
+
+
+
+
         <view wx:if="{{!order.workContent}}" class="no-work-content">
           <text>电工暂未填写维修内容</text>
         </view>
@@ -320,7 +320,7 @@
       <view class="section-title">提交评价</view>
       <view class="rating-stars">
         <block wx:for="{{[1,2,3,4,5]}}" wx:for-item="star" wx:key="star">
-          <view 
+          <view
             class="star {{star <= rating ? 'active' : ''}}"
             data-value="{{star}}"
             bindtap="setRating"
@@ -340,7 +340,7 @@
     <view class="section card" wx:if="{{order.timeline && order.timeline.length > 0}}">
       <view class="section-title">订单进度</view>
       <view class="timeline">
-        <view 
+        <view
           class="timeline-item"
           wx:for="{{order.timeline}}"
           wx:key="id"
@@ -363,7 +363,7 @@
     <button class="service-btn" open-type="contact">
       <text class="service-text">客服</text>
     </button>
- 
+
     <!-- 右侧操作按钮区域 -->
     <view class="action-area">
       <!-- 待接单 / 招募中状态（电工视角） -->
@@ -429,7 +429,7 @@
 
       <!-- 待支付状态 -->
       <block wx:if="{{order.status === 'pending_payment'}}">
-        
+
        <button
           wx:if="{{order.canCancel}}"
           class="service-btn"
@@ -437,17 +437,17 @@
         >
            <text class="service-text">取消订单</text>
         </button>
-       
 
 
-        <button 
+
+        <button
           wx:if="{{order.canPay}}"
           class="main-action-btn pay"
           bindtap="goToPay"
         >
           去支付¥{{order.amount || '30.00'}}
         </button>
-   
+
       </block>
 
       <!-- 待支付维修费状态 -->
@@ -508,7 +508,7 @@
 
       <!-- 已完成状态 -->
       <block wx:if="{{order.status === 'completed_settled'}}">
-        <button 
+        <button
           wx:if="{{order.canReview}}"
           class="main-action-btn primary"
           bindtap="goToReview"
@@ -530,7 +530,7 @@
 
   <!-- 订单不存在 -->
   <view wx:if="{{!loading && !order}}" class="empty-state">
-    <text class="empty-icon">📋</text>
+    <image class="empty-icon ui-icon" src="/images/content-ui/clipboard.svg" mode="aspectFit" aria-hidden="true" />
     <text class="empty-text">订单不存在</text>
   </view>
 

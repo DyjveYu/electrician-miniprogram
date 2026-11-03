@@ -3,7 +3,7 @@
   <!-- 顶部位置栏 - 固定在页面最顶部最左侧 2025.11.3
   <view class="location-bar" bindtap="onLocationTap">
     <view class="location-content">
-      <text class="location-icon">📍</text>
+      <image class="location-icon ui-icon" src="/images/content-ui/map-pin.svg" mode="aspectFit" aria-hidden="true" />
       <text class="location-text">{{locationText}}</text>
     </view>
     <text class="location-arrow"></text>
@@ -13,7 +13,7 @@
   <view wx:if="{{currentRole === 'user' || currentRole === 'enterprise'}}" class="user-content">
     <!-- 主要服务卡片 -->
     <view class="service-card" bindtap="createOrder">
-      <view class="service-icon">⚡</view>
+      <view class="service-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/zap.svg" mode="aspectFit" aria-hidden="true" /></view>
       <view class="service-info">
         <text class="service-title">立即下单</text>
         <text class="service-desc">专业电工上门服务</text>
@@ -67,11 +67,11 @@
     <!-- 电工工作台 -->
     <view class="electrician-dashboard">
       <view class="dashboard-item" bindtap="viewAllOrders">
-        <text class="dashboard-icon">📋</text>
+        <image class="dashboard-icon ui-icon" src="/images/content-ui/clipboard.svg" mode="aspectFit" aria-hidden="true" />
         <text class="dashboard-title">我的订单</text>
       </view>
       <view class="dashboard-item" bindtap="refreshOrders">
-        <text class="dashboard-icon">🔄</text>
+        <image class="dashboard-icon ui-icon" src="/images/content-ui/refresh.svg" mode="aspectFit" aria-hidden="true" />
         <text class="dashboard-title">刷新订单</text>
       </view>
     </view>
@@ -172,4 +172,3 @@
 </view>
 
 <!-- 已移除报价弹窗：接单改为直接调用接口 -->
-

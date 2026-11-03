@@ -1,4 +1,9 @@
 {
   "navigationBarTitleText": "我的收入",
-  "usingComponents": {}
+  "usingComponents": {},
+  "backgroundColor": "#ffffff",
+  "backgroundColorTop": "#ffffff",
+  "backgroundColorBottom": "#ffffff",
+  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarTextStyle": "black"
 }

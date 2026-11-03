@@ -112,7 +112,7 @@ Page({
         console.error('地图选点失败/取消:', err);
         // 如果是权限问题，可能需要引导用户打开权限
         if (err.errMsg.indexOf('auth deny') >= 0) {
-          wx.showModal({
+          wx.showModal({ confirmColor: '#16835c',
             title: '提示',
             content: '需要获取您的地理位置授权，请在设置中打开',
             success(modalRes) {

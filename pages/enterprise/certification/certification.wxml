@@ -57,7 +57,7 @@
       <view class="upload-title">营业执照副本 <text class="required">*</text></view>
       <view class="license-upload" bindtap="chooseLicenseImage" wx:if="{{!licenseImagePath}}">
         <view class="upload-placeholder">
-          <text class="upload-icon">📷</text>
+          <image class="upload-icon ui-icon" src="/images/content-ui/camera.svg" mode="aspectFit" aria-hidden="true" />
           <text class="upload-text">点击上传营业执照副本</text>
         </view>
       </view>
@@ -84,15 +84,15 @@
 
   <!-- 认证中状态 -->
   <view class="pending-container" wx:if="{{mode === 'view' && certStatus === 'pending'}}">
-    <view class="pending-icon">⏳</view>
+    <image class="pending-icon ui-icon" src="/images/content-ui/clock.svg" mode="aspectFit" aria-hidden="true" />
     <view class="pending-title">认证审核中</view>
     <view class="pending-desc">您的企业认证申请已提交，系统将自动审核，请稍候片刻</view>
   </view>
 
   <!-- 已认证状态 -->
   <view class="pending-container" wx:if="{{mode === 'view' && certStatus === 'approved'}}">
-    <view class="pending-icon">✅</view>
-    <view class="pending-title" style="color:#07c160;">认证已通过</view>
+    <image class="pending-icon ui-icon" src="/images/content-ui/check-circle.svg" mode="aspectFit" aria-hidden="true" />
+    <view class="pending-title" style="color:#16835c;">认证已通过</view>
     <view class="pending-desc">您的企业已通过认证，可以使用全部企业功能</view>
   </view>
 </view>

@@ -16,7 +16,7 @@
   <view wx:if="{{!loading && messages.length > 0}}" class="message-list">
     <view wx:for="{{messages}}" wx:key="id" class="message-item" bindtap="viewMessageDetail" data-id="{{item.id}}">
       <view class="message-icon">
-        <view class="icon {{currentTab === 'order' ? 'order-icon' : 'system-icon'}}"></view>
+        <view class="ui-icon-tile"><image class="ui-icon" src="/images/content-ui/{{currentTab === 'order' ? 'clipboard' : 'megaphone'}}.svg" mode="aspectFit" aria-hidden="true" /></view>
       </view>
       <view class="message-content">
         <view class="message-header">
@@ -27,14 +27,14 @@
         <view class="message-time">{{formatTime(item.created_at)}}</view>
       </view>
       <view class="message-arrow">
-        <text class="iconfont icon-arrow-right"></text>
+        <text aria-hidden="true">›</text>
       </view>
     </view>
   </view>
 
     <!-- 空状态 -->
     <view class="empty-state" wx:if="{{!loading && messages.length === 0}}">
-      <text class="empty-icon">💬</text>
+      <view class="empty-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/message-circle.svg" mode="aspectFit" aria-hidden="true" /></view>
       <text class="empty-text">暂无消息</text>
     </view>
 

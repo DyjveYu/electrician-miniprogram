@@ -112,7 +112,7 @@
           <text class="electrician-workno">工号：{{item.workNo}}</text>
         </view>
         <view class="electrician-phone-icon" wx:if="{{item.phone}}" data-phone="{{item.phone}}" bindtap="makePhoneCall">
-          <text class="phone-icon">📞</text>
+          <image class="phone-icon ui-icon" src="/images/content-ui/phone.svg" mode="aspectFit" aria-hidden="true" />
         </view>
       </view>
     </view>
@@ -350,7 +350,7 @@
 
   <!-- 空状态 -->
   <view wx:if="{{!loading && !order}}" class="empty-state">
-    <text class="empty-icon">📋</text>
+    <image class="empty-icon ui-icon" src="/images/content-ui/clipboard.svg" mode="aspectFit" aria-hidden="true" />
     <text class="empty-text">订单不存在</text>
   </view>
 

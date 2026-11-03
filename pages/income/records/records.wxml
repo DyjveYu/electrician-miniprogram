@@ -15,7 +15,7 @@
 
   <!-- 空状态 -->
   <view class="empty" wx:if="{{records.length === 0 && !loading}}">
-    <text class="empty-icon">📋</text>
+    <image class="empty-icon ui-icon" src="/images/content-ui/clipboard.svg" mode="aspectFit" aria-hidden="true" />
     <text class="empty-text">暂无提现记录</text>
   </view>
 

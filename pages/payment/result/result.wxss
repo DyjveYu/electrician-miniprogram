@@ -1,15 +1,16 @@
+@import "../../../styles/clean-surfaces.wxss";
 /* pages/payment/result/result.wxss */
 .container {
-  background-color: #f5f5f5;
+  background-color: #fff;
   min-height: 100vh;
-  padding: 40rpx 20rpx;
+  padding: 32rpx 44rpx 48rpx;
 }
 
 /* 支付结果 */
 .result-section {
   background-color: #fff;
   padding: 60rpx 30rpx;
-  border-radius: 12rpx;
+  border-radius: 22rpx;
   text-align: center;
   margin-bottom: 30rpx;
 }
@@ -27,23 +28,23 @@
 }
 
 .result-icon.success {
-  background-color: #4caf50;
+  background-color: #16835c;
 }
 
 .result-icon.fail {
-  background-color: #f44336;
+  background-color: #b74434;
 }
 
 .result-title {
   font-size: 36rpx;
   font-weight: 600;
-  color: #333;
+  color: #172d25;
   margin-bottom: 15rpx;
 }
 
 .result-desc {
   font-size: 26rpx;
-  color: #666;
+  color: #687a71;
   line-height: 1.5;
 }
 
@@ -51,7 +52,7 @@
 .order-section {
   background-color: #fff;
   padding: 30rpx;
-  border-radius: 12rpx;
+  border-radius: 22rpx;
   margin-bottom: 30rpx;
 }
 
@@ -59,7 +60,7 @@
   display: flex;
   align-items: center;
   padding: 20rpx 0;
-  border-bottom: 2rpx solid #f0f0f0;
+  border-bottom: 2rpx solid #e9efeb;
   font-size: 28rpx;
 }
 
@@ -68,17 +69,17 @@
 }
 
 .label {
-  color: #666;
+  color: #687a71;
   width: 160rpx;
 }
 
 .value {
-  color: #333;
+  color: #172d25;
   flex: 1;
 }
 
 .value.amount {
-  color: #f44336;
+  color: #16835c;
   font-weight: 600;
 }
 
@@ -91,9 +92,9 @@
 
 .action-btn {
   width: 100%;
-  height: 88rpx;
-  border-radius: 8rpx;
-  font-size: 28rpx;
+  height: auto;
+  border-radius: 22rpx;
+  font-size: 30rpx;
   font-weight: 600;
   border: none;
   display: flex;
@@ -106,12 +107,15 @@
 }
 
 .action-btn.primary {
-  background-color: #1976d2;
+  background-color: #16835c;
   color: #fff;
 }
 
 .action-btn.secondary {
   background-color: #fff;
-  color: #666;
-  border: 2rpx solid #e0e0e0;
+  color: #687a71;
+  border: 2rpx solid #e9efeb;
 }
+
+/* UI1.1：页面布局及状态精调。 */
+.result-section { background: #eff7f1; border-radius: 26rpx; padding: 48rpx 24rpx; margin-bottom: 28rpx; } .result-icon { margin: 0 auto 24rpx; } .order-section { padding: 28rpx 24rpx; margin: 0 0 24rpx; } .order-item { gap: 16rpx; align-items: flex-start; } .value { word-break: break-all; } .action-section { display: flex; flex-direction: column; gap: 16rpx; padding: 0; } .action-btn { margin: 0; width: 100%; height: auto; border-radius: 22rpx; padding: 20rpx 24rpx; line-height: 1.6; } .action-btn.primary { background: #16835c; color: #fff; } .action-btn.secondary { background: #eff7f1; color: #16835c; border-color: #16835c; }

@@ -198,7 +198,7 @@ Page({
     const orderId = e.currentTarget.dataset.id;
     const that = this;
     
-    wx.showModal({
+    wx.showModal({ confirmColor: '#16835c',
       title: '确认取消',
       content: '确定要取消这个订单吗？',
       success(res) {

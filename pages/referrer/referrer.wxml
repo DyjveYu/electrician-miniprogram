@@ -22,7 +22,7 @@
 
     <!-- 1. 我的推荐二维码 -->
     <view class="share-item" bindtap="downloadQRCode">
-      <text class="share-icon">📱</text>
+      <image class="share-icon ui-icon" src="/images/content-ui/qr-code.svg" mode="aspectFit" aria-hidden="true" />
       <view class="share-content">
         <text class="share-title">我的推荐二维码</text>
         <text class="share-desc">保存图片后分享给好友扫码</text>
@@ -32,7 +32,7 @@
 
     <!-- 3. 复制链接 -->
     <view class="share-item" bindtap="copyShareLink">
-      <text class="share-icon">🔗</text>
+      <image class="share-icon ui-icon" src="/images/content-ui/link.svg" mode="aspectFit" aria-hidden="true" />
       <view class="share-content">
         <text class="share-title">复制分享链接</text>
         <text class="share-desc">将链接发送给微信好友</text>
@@ -42,7 +42,7 @@
 
     <!-- 4. 测试入口：跳转到分享落地页 -->
     <view class="share-item" bindtap="jumpToShareLink">
-      <text class="share-icon">▶️</text>
+      <image class="share-icon ui-icon" src="/images/content-ui/arrow-right.svg" mode="aspectFit" aria-hidden="true" />
       <view class="share-content">
         <text class="share-title">点击跳转到分享链接</text>
         <text class="share-desc">直接打开下单落地页测试</text>

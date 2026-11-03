@@ -212,7 +212,7 @@ Page({
     const isPaid = order.status === 'pending';
     let content = '确定要取消这个订单吗？';
     if (isPaid) content = '取消订单后将原路退回预付款，是否继续？';
-    wx.showModal({
+    wx.showModal({ confirmColor: '#16835c',
       title: '确认取消',
       content,
       success: (res) => {
@@ -254,14 +254,14 @@ Page({
     }
     const hour = new Date().getHours();
     if (hour >= 22 || hour < 5) {
-      wx.showModal({
+      wx.showModal({ confirmColor: '#16835c',
         title: '安全提示',
         content: '涉及夜间工作，如遇到危险，请随时报警处理。',
         showCancel: false,
         confirmText: '我已知晓'
       });
     }
-    wx.showModal({
+    wx.showModal({ confirmColor: '#16835c',
       title: '确认接单',
       content: '确认接下此订单？',
       confirmText: '接单',
@@ -292,7 +292,7 @@ Page({
 
   // ── 退单 ──
   withdrawOrder() {
-    wx.showModal({
+    wx.showModal({ confirmColor: '#b74434',
       title: '确认退单',
       content: '确认退出此多日工程订单？',
       confirmText: '退单',

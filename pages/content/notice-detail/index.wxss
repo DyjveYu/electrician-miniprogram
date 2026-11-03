@@ -1,2 +1,3 @@
+@import "../../../styles/clean-surfaces.wxss";
 /* 通知与用电安全知识详情保持同一套阅读样式，通知数据与行为独立。 */
 @import "../safety-knowledge-detail/index.wxss";

@@ -1,16 +1,20 @@
+@import "../../../styles/clean-surfaces.wxss";
+
 .container {
-  padding: 30rpx;
-  background-color: #f5f7fa;
+  padding: 32rpx 44rpx 48rpx;
+  background-color: #fff;
   min-height: 100vh;
 }
 
 .balance-card {
-  background: linear-gradient(135deg, #0F9D58 0%, #A5D6A7 100%);
-  border-radius: 20rpx;
+  background: #eff7f1;
+  border-radius: 22rpx;
   padding: 40rpx;
   color: #fff;
   margin-bottom: 30rpx;
-  box-shadow: 0 10rpx 20rpx rgba(79, 172, 254, 0.3);
+  box-shadow: none;
+  color: #172d25;
+  color: #172d25;
 }
 
 .label {
@@ -21,7 +25,7 @@
 
 .amount {
   font-size: 64rpx;
-  font-weight: bold;
+  font-weight: 600;
   margin-bottom: 40rpx;
 }
 
@@ -50,7 +54,7 @@
 
 .withdraw-section {
   background: #fff;
-  border-radius: 20rpx;
+  border-radius: 22rpx;
   padding: 30rpx;
   margin-bottom: 30rpx;
 }
@@ -59,21 +63,21 @@
   font-size: 30rpx;
   font-weight: 500;
   margin-bottom: 30rpx;
-  color: #333;
+  color: #172d25;
 }
 
 .input-group {
   display: flex;
   align-items: center;
-  border-bottom: 1rpx solid #eee;
+  border-bottom: 1rpx solid #e9efeb;
   padding-bottom: 20rpx;
   margin-bottom: 20rpx;
 }
 
 .currency {
   font-size: 40rpx;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: #172d25;
   margin-right: 20rpx;
 }
 
@@ -85,28 +89,28 @@
 
 .all-btn {
   font-size: 28rpx;
-  color: #4facfe;
+  color: #16835c;
   padding-left: 20rpx;
-  border-left: 1rpx solid #eee;
+  border-left: 1rpx solid #e9efeb;
 }
 
 .tips {
   font-size: 24rpx;
-  color: #999;
+  color: #687a71;
   margin-bottom: 10rpx;
 }
 
 .today-tip {
   font-size: 24rpx;
-  color: #e6a23c;
+  color: #956321;
   margin-bottom: 40rpx;
 }
 
 .withdraw-btn {
-  background: #4facfe;
+  background: #16835c;
   color: #fff;
-  border-radius: 50rpx;
-  font-size: 32rpx;
+  border-radius: 22rpx;
+  font-size: 30rpx;
 }
 
 .withdraw-btn[disabled] {
@@ -120,13 +124,18 @@
 
 .notice-title {
   font-size: 28rpx;
-  color: #666;
+  color: #687a71;
   margin-bottom: 20rpx;
 }
 
 .notice-item {
   font-size: 24rpx;
-  color: #999;
+  color: #687a71;
   margin-bottom: 10rpx;
   line-height: 1.5;
 }
+
+/* UI1.1：页面布局及状态精调。 */
+.balance-card { background: #eff7f1; color: #172d25; padding: 32rpx 28rpx; border-radius: 26rpx; } .amount, .amount-value { color: #16835c; font-size: 52rpx; word-break: break-all; } .amount-label, .stat-label, .offline-tip { color: #687a71; opacity: 1; } .stats-row { border-color: #d9e8dd; flex-wrap: wrap; gap: 24rpx; } .role-tag { color: #16835c; background: #fff; position: static; display: inline-block; margin-bottom: 20rpx; } .stat-item { min-width: 0; } .stat-value { word-break: break-all; } .withdraw-btn { border-radius: 22rpx; background: #16835c; color: #fff; } .input-group { gap: 12rpx; flex-wrap: wrap; } .amount-input { min-width: 0; width: 0; height: 88rpx; } .currency { margin-right: 0; } .all-btn { color: #16835c; } .menu-section { border: 2rpx solid #e9efeb; } .menu-content { min-width: 0; } .menu-item { gap: 20rpx; } .menu-icon.ui-icon { margin-right: 0; }
+
+.withdraw-btn { width: 100%; } .withdraw-btn[disabled] { background: #16835c; color: #fff; opacity: .5; } .input-group { box-sizing: border-box; padding: 20rpx; border: 2rpx solid #e9efeb; border-radius: 22rpx; background: #f5f7f5; } .amount-input { font-size: 32rpx; }

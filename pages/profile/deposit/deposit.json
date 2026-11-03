@@ -1,4 +1,9 @@
 {
   "navigationBarTitleText": "押金管理",
-  "enablePullDownRefresh": false
+  "enablePullDownRefresh": false,
+  "backgroundColor": "#ffffff",
+  "backgroundColorTop": "#ffffff",
+  "backgroundColorBottom": "#ffffff",
+  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarTextStyle": "black"
 }

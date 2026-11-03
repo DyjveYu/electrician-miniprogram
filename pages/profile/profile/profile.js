@@ -375,7 +375,7 @@ loadUserInfo() {
 
   // 退出登录
   logout() {
-    wx.showModal({
+    wx.showModal({ confirmColor: '#16835c',
       title: '确认退出',
       content: '确定要退出登录吗？',
       success: (res) => {

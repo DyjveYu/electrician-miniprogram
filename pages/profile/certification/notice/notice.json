@@ -1,4 +1,9 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "认证须知"
+  "navigationBarTitleText": "认证须知",
+  "backgroundColor": "#ffffff",
+  "backgroundColorTop": "#ffffff",
+  "backgroundColorBottom": "#ffffff",
+  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarTextStyle": "black"
 }

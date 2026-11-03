@@ -273,7 +273,7 @@ Page({
       content = '取消订单后将原路退回预付款，是否继续？';
     }
 
-    wx.showModal({
+    wx.showModal({ confirmColor: '#16835c',
       title: '确认取消',
       content: content,
       success(res) {
@@ -338,7 +338,7 @@ Page({
     // 夜间接单安全提示（22:00-次日05:00）
     const hour = new Date().getHours();
     if (hour >= 22 || hour < 5) {
-      wx.showModal({
+      wx.showModal({ confirmColor: '#16835c',
         title: '安全提示',
         content: '涉及夜间工作，如遇到危险，请随时报警处理。',
         showCancel: false,
@@ -346,7 +346,7 @@ Page({
       });
     }
 
-    wx.showModal({
+    wx.showModal({ confirmColor: '#16835c',
       title: '确认接单',
       content: '确认接下此订单？',
       confirmText: '接单',
@@ -392,7 +392,7 @@ Page({
   withdrawOrder() {
     const app = getApp();
 
-    wx.showModal({
+    wx.showModal({ confirmColor: '#b74434',
       title: '确认退单',
       content: '确认退出此多日工程订单？',
       confirmText: '退单',
@@ -963,7 +963,7 @@ Page({
       const res = await ReferrerAPI.getQualification();
       const data = res?.data;
       if (data && data.is_qualified && !data.is_referrer) {
-        wx.showModal({
+        wx.showModal({ confirmColor: '#16835c',
           title: '成为推荐达人',
           content: '恭喜您已达到推荐达人条件！分享给好友下单可获得 3% 的佣金奖励。立即开通？',
           confirmText: '立即开通',

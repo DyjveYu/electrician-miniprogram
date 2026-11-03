@@ -87,7 +87,7 @@ Page({
     if (this.data.submitting) return;
 
     if (!this.canWithdrawToday()) {
-      wx.showModal({
+      wx.showModal({ confirmColor: '#16835c',
         title: '提示',
         content: '今日提现次数已达上限（10次），请明天再试',
         showCancel: false
@@ -100,7 +100,7 @@ Page({
     const amount = parseFloat(this.data.withdrawAmount);
 
     if (amount + (this.data.todayWithdrawnAmount || 0) > 2000) {
-      wx.showModal({
+      wx.showModal({ confirmColor: '#16835c',
         title: '提示',
         content: '今日累计提现金额已达上限¥2,000，请明天再试',
         showCancel: false
@@ -108,7 +108,7 @@ Page({
       return;
     }
 
-    wx.showModal({
+    wx.showModal({ confirmColor: '#16835c',
       title: '确认提现',
       content: `确认提现 ¥${amount.toFixed(2)} 到微信零钱？`,
       success: (res) => {
@@ -155,7 +155,7 @@ Page({
             }, 1500);
           }
         } else {
-          wx.showModal({
+          wx.showModal({ confirmColor: '#16835c',
             title: '提现失败',
             content: res.data.message || '未知错误',
             showCancel: false
@@ -164,7 +164,7 @@ Page({
       },
       fail: (err) => {
         console.error('❌ 提现请求失败:', err);
-        wx.showModal({
+        wx.showModal({ confirmColor: '#16835c',
           title: '请求失败',
           content: '网络错误，请稍后重试',
           showCancel: false
@@ -183,7 +183,7 @@ Page({
     console.log('📱 准备调起用户确认收款页, out_batch_no:', outBatchNo);
 
     if (!wx.canIUse('requestMerchantTransfer')) {
-      wx.showModal({
+      wx.showModal({ confirmColor: '#16835c',
         title: '提示',
         content: '你的微信版本过低，请更新至最新版本后重试',
         showCancel: false
@@ -241,7 +241,7 @@ Page({
               wx.hideLoading();
 
               if (cancelRes.data && cancelRes.data.success) {
-                wx.showModal({
+                wx.showModal({ confirmColor: '#16835c',
                   title: '已取消',
                   content: '您已取消本次提现',
                   showCancel: false,
@@ -250,7 +250,7 @@ Page({
                   }
                 });
               } else {
-                wx.showModal({
+                wx.showModal({ confirmColor: '#16835c',
                   title: '撤销失败',
                   content: (cancelRes.data && cancelRes.data.message) || '撤销失败，请稍后重试',
                   showCancel: false,
@@ -264,7 +264,7 @@ Page({
               console.error('❌ 撤销请求失败:', cancelErr);
               wx.hideLoading();
 
-              wx.showModal({
+              wx.showModal({ confirmColor: '#16835c',
                 title: '网络错误',
                 content: '撤销请求失败，请稍后在提现记录中确认结果',
                 showCancel: false,
@@ -276,7 +276,7 @@ Page({
           });
         } else {
           wx.hideLoading();
-          wx.showModal({
+          wx.showModal({ confirmColor: '#16835c',
             title: '提示',
             content: err.errMsg || '操作失败，请稍后重试',
             showCancel: false,
@@ -303,7 +303,7 @@ Page({
     if (!token) {
       console.error('❌ token 为空');
       wx.hideLoading();
-      wx.showModal({
+      wx.showModal({ confirmColor: '#16835c',
         title: '提示',
         content: '登录状态失效，请重新登录',
         showCancel: false,
@@ -348,7 +348,7 @@ Page({
             // 达到最大重试次数
             console.log('⚠️ 达到最大重试次数');
             wx.hideLoading();
-            wx.showModal({
+            wx.showModal({ confirmColor: '#16835c',
               title: '提示',
               content: '转账正在处理中，请稍后在提现记录中查看结果',
               showCancel: false,
@@ -359,7 +359,7 @@ Page({
           }
         } else {
           wx.hideLoading();
-          wx.showModal({
+          wx.showModal({ confirmColor: '#16835c',
             title: '查询失败',
             content: res.data.message || '状态查询失败',
             showCancel: false
@@ -369,7 +369,7 @@ Page({
       fail: (err) => {
         console.error('❌ 查询失败:', err);
         wx.hideLoading();
-        wx.showModal({
+        wx.showModal({ confirmColor: '#16835c',
           title: '网络错误',
           content: '状态查询失败，请稍后在提现记录中查看',
           showCancel: false
@@ -399,7 +399,7 @@ Page({
       }, 2000);
 
     } else if (status === 'cancelled') {
-      wx.showModal({
+      wx.showModal({ confirmColor: '#16835c',
         title: '已取消',
         content: '转账已撤销',
         showCancel: false,
@@ -409,7 +409,7 @@ Page({
       });
 
     } else if (status === 'failed') {
-      wx.showModal({
+      wx.showModal({ confirmColor: '#16835c',
         title: '提现失败',
         content: failReason || '转账失败，请稍后重试',
         showCancel: false,

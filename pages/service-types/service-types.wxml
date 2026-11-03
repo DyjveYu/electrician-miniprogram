@@ -2,7 +2,7 @@
 <view class="container">
   <!-- 服务类型列表 -->
   <view class="service-list">
-    <view 
+    <view
       class="service-item"
       wx:for="{{serviceTypes}}"
       wx:key="id"
@@ -10,18 +10,18 @@
       bindtap="selectServiceType"
     >
       <view class="service-header">
-        <view class="service-icon">{{item.icon}}</view>
+        <view class="service-icon"><image class="ui-icon" src="/images/content-ui/zap.svg" mode="aspectFit" aria-hidden="true" /></view>
         <view class="service-info">
           <view class="service-name">{{item.name}}</view>
           <view class="service-price">{{item.price}}</view>
         </view>
         <text class="arrow">></text>
       </view>
-      
+
       <view class="service-desc">{{item.desc}}</view>
-      
+
       <view class="service-features">
-        <text 
+        <text
           class="feature-tag"
           wx:for="{{item.features}}"
           wx:key="*this"

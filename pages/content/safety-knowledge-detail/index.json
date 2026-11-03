@@ -1,1 +1,9 @@
-{ "navigationBarTitleText": "用电安全知识文章", "usingComponents": {} }
+{
+  "navigationBarTitleText": "用电安全知识文章",
+  "usingComponents": {},
+  "backgroundColor": "#ffffff",
+  "backgroundColorTop": "#ffffff",
+  "backgroundColorBottom": "#ffffff",
+  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarTextStyle": "black"
+}

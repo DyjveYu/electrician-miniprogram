@@ -163,7 +163,7 @@ Page({
         manager.start({ duration: 60000, lang: 'zh_CN' });
       },
       fail: () => {
-        wx.showModal({
+        wx.showModal({ confirmColor: '#16835c',
           title: '需要麦克风权限',
           content: '请在右上角菜单 → 设置 中开启麦克风权限',
           showCancel: false

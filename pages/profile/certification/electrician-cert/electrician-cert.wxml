@@ -19,9 +19,9 @@
   <view class="upload-section">
     <view class="upload-card" bindtap="chooseImage">
       <block wx:if="{{displayPath}}">
-        <image 
-          class="preview-image" 
-          src="{{displayPath}}" 
+        <image
+          class="preview-image"
+          src="{{displayPath}}"
           mode="aspectFill"
           binderror="imageError"
           bindload="imageLoad"
@@ -32,7 +32,7 @@
       </block>
       <block wx:else>
         <view class="placeholder-content">
-          <image class="camera-icon" src="/images/icons/camera.png" mode="aspectFit"></image>
+          <image class="camera-icon" src="/images/content-ui/camera.svg" mode="aspectFit"></image>
           <text>点击上传电工证照片</text>
         </view>
         <image class="card-bg" src="/images/bg/certificate-bg.png" mode="aspectFit"></image>
@@ -72,9 +72,9 @@
   </view>
 
   <view class="footer">
-    <button 
-      class="confirm-btn {{canSubmit ? '' : 'disabled'}}" 
-      bindtap="submit" 
+    <button
+      class="confirm-btn {{canSubmit ? '' : 'disabled'}}"
+      bindtap="submit"
       disabled="{{!canSubmit}}"
     >
       确认

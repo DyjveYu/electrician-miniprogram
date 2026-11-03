@@ -1,1 +1,9 @@
-{ "navigationBarTitleText": "电工之家文章", "usingComponents": {} }
+{
+  "navigationBarTitleText": "电工之家文章",
+  "usingComponents": {},
+  "backgroundColor": "#ffffff",
+  "backgroundColorTop": "#ffffff",
+  "backgroundColorBottom": "#ffffff",
+  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarTextStyle": "black"
+}

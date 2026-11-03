@@ -1,4 +1,9 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "企业认证"
+  "navigationBarTitleText": "企业认证",
+  "backgroundColor": "#ffffff",
+  "backgroundColorTop": "#ffffff",
+  "backgroundColorBottom": "#ffffff",
+  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarTextStyle": "black"
 }

@@ -7,7 +7,7 @@
   <view class="content" wx:else>
     <!-- 不是推荐达人/合作伙伴 -->
     <view class="empty-state" wx:if="{{!balance.is_referrer}}">
-      <text class="empty-icon">💰</text>
+      <image class="empty-icon ui-icon" src="/images/content-ui/wallet.svg" mode="aspectFit" aria-hidden="true" />
       <text class="empty-text">暂无收入数据</text>
       <text class="empty-desc">成为推荐达人后可查看收入</text>
     </view>
@@ -57,7 +57,7 @@
     <!-- 功能入口（合作伙伴不显示提现记录） -->
     <view class="menu-section" wx:if="{{balance.is_referrer && balance.referrer_type !== 'partner'}}">
       <view class="menu-item" bindtap="navigateToRecords">
-        <text class="menu-icon">📋</text>
+        <image class="menu-icon ui-icon" src="/images/content-ui/clipboard.svg" mode="aspectFit" aria-hidden="true" />
         <view class="menu-content">
           <text class="menu-title">提现记录</text>
           <text class="menu-desc">查看所有提现申请记录</text>

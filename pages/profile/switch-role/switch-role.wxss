@@ -1,30 +1,31 @@
+@import "../../../styles/clean-surfaces.wxss";
 /* pages/profile/switch-role/switch-role.wxss */
 .container {
-  background-color: #f5f5f5;
+  background-color: #fff;
   min-height: 100vh;
-  padding: 20rpx;
+  padding: 32rpx 44rpx 48rpx;
 }
 
 /* 当前角色 */
 .current-role {
   background-color: #fff;
   padding: 30rpx;
-  border-radius: 12rpx;
+  border-radius: 22rpx;
   margin-bottom: 30rpx;
   text-align: center;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  box-shadow: none;
 }
 
 .current-text {
   font-size: 28rpx;
-  color: #666;
+  color: #687a71;
   margin-right: 10rpx;
 }
 
 .role-name {
   font-size: 32rpx;
   font-weight: 600;
-  color: #1976d2;
+  color: #16835c;
 }
 
 /* 角色选择区域 */
@@ -35,7 +36,7 @@
 .section-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: #172d25;
   margin-bottom: 20rpx;
   padding-left: 10rpx;
 }
@@ -43,17 +44,17 @@
 /* 角色卡片 */
 .role-card {
   background-color: #fff;
-  border-radius: 16rpx;
+  border-radius: 22rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
   border: 3rpx solid transparent;
   transition: all 0.3s;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  box-shadow: none;
 }
 
 .role-card.active {
-  border-color: #1976d2;
-  box-shadow: 0 4rpx 16rpx rgba(25, 118, 210, 0.2);
+  border-color: #16835c;
+  box-shadow: none;
 }
 
 .role-header {
@@ -69,7 +70,7 @@
   align-items: center;
   justify-content: center;
   font-size: 40rpx;
-  background-color: #f0f0f0;
+  background-color: #e9efeb;
   border-radius: 50%;
   margin-right: 20rpx;
 }
@@ -87,21 +88,21 @@
 .role-title .role-name {
   font-size: 32rpx;
   font-weight: 600;
-  color: #333;
+  color: #172d25;
   margin-right: 15rpx;
 }
 
 .current-badge {
-  background-color: #1976d2;
+  background-color: #16835c;
   color: #fff;
-  font-size: 20rpx;
+  font-size: 22rpx;
   padding: 4rpx 8rpx;
   border-radius: 8rpx;
 }
 
 .role-desc {
   font-size: 26rpx;
-  color: #666;
+  color: #687a71;
   line-height: 1.4;
 }
 
@@ -116,15 +117,15 @@
 
 .feature-text {
   font-size: 24rpx;
-  color: #888;
+  color: #687a71;
   line-height: 1.5;
 }
 
 /* 认证要求 */
 .certification-requirement {
-  background-color: #f8f9fa;
+  background-color: #f5f7f5;
   padding: 20rpx;
-  border-radius: 8rpx;
+  border-radius: 22rpx;
   margin-bottom: 20rpx;
 }
 
@@ -133,7 +134,7 @@
   align-items: center;
   margin-bottom: 15rpx;
   font-size: 26rpx;
-  color: #666;
+  color: #687a71;
 }
 
 .requirement-icon {
@@ -157,15 +158,15 @@
 }
 
 .status.certified {
-  color: #4caf50;
+  color: #16835c;
 }
 
 .status.uncertified {
-  color: #ff9800;
+  color: #956321;
 }
 
 .go-certification {
-  color: #1976d2;
+  color: #16835c;
   font-size: 24rpx;
   margin-left: 20rpx;
 }
@@ -176,40 +177,40 @@
 }
 
 .current-role-btn {
-  background-color: #e0e0e0;
-  color: #999;
-  padding: 16rpx 40rpx;
-  border-radius: 25rpx;
-  font-size: 26rpx;
+  background-color: #e9efeb;
+  color: #687a71;
+  padding: 20rpx 24rpx;
+  border-radius: 22rpx;
+  font-size: 30rpx;
   display: inline-block;
 }
 
 .switch-btn {
-  background-color: #1976d2;
+  background-color: #16835c;
   color: #fff;
-  padding: 16rpx 40rpx;
-  border-radius: 25rpx;
-  font-size: 26rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 22rpx;
+  font-size: 30rpx;
   display: inline-block;
   transition: background-color 0.3s;
 }
 
 .switch-btn:active {
-  background-color: #1565c0;
+  background-color: #16835c;
 }
 
 /* 提示区域 */
 .tips-section {
   background-color: #fff;
   padding: 30rpx;
-  border-radius: 12rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  border-radius: 22rpx;
+  box-shadow: none;
 }
 
 .tips-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: #172d25;
   margin-bottom: 15rpx;
 }
 
@@ -220,7 +221,7 @@
 .tip-item {
   display: block;
   font-size: 24rpx;
-  color: #666;
+  color: #687a71;
   line-height: 1.6;
   margin-bottom: 10rpx;
 }
@@ -228,3 +229,6 @@
 .tip-item:last-child {
   margin-bottom:0;
 }
+
+.role-icon { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 76rpx; height: 76rpx; background: #eff7f1; border-radius: 24rpx; }
+.role-info { min-width: 0; } .role-header, .role-title { flex-wrap: wrap; gap: 12rpx; } .role-card { border-radius: 24rpx; }

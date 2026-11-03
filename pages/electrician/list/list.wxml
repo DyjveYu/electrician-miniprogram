@@ -2,7 +2,7 @@
 <view class="container">
   <!-- 电工列表 -->
   <view class="electrician-list">
-    <view 
+    <view
       class="electrician-item"
       wx:for="{{electricians}}"
       wx:key="id"
@@ -12,7 +12,7 @@
       <view class="electrician-avatar">
         <image src="{{item.avatar || '/images/default-avatar.png'}}" mode="aspectFill"></image>
       </view>
-      
+
       <view class="electrician-info">
         <view class="electrician-header">
           <text class="electrician-name">{{item.name}}</text>
@@ -20,14 +20,14 @@
             <text class="rating-text">{{item.rating}}分</text>
           </view>
         </view>
-        
+
         <view class="electrician-details">
           <text class="detail-item">经验：{{item.experience || '暂无'}}年</text>
           <text class="detail-item">服务次数：{{item.serviceCount || 0}}次</text>
         </view>
-        
+
         <view class="electrician-skills" wx:if="{{item.skills && item.skills.length > 0}}">
-          <text 
+          <text
             class="skill-tag"
             wx:for="{{item.skills}}"
             wx:key="*this"
@@ -36,14 +36,14 @@
             {{skill}}
           </text>
         </view>
-        
+
         <view class="electrician-location" wx:if="{{item.location}}">
           <text class="location-text">📍 {{item.location}}</text>
         </view>
       </view>
-      
+
       <view class="electrician-actions" catchtap="">
-        <button 
+        <button
           class="action-btn contact-btn"
           data-phone="{{item.phone}}"
           catchtap="contactElectrician"
@@ -55,7 +55,7 @@
 
     <!-- 空状态 -->
     <view class="empty-state" wx:if="{{!loading && electricians.length === 0}}">
-      <text class="empty-icon">🔧</text>
+      <image class="empty-icon ui-icon" src="/images/content-ui/shield-check.svg" mode="aspectFit" aria-hidden="true" />
       <text class="empty-text">暂无电工信息</text>
     </view>
 

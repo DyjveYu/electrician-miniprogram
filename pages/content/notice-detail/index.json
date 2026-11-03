@@ -2,5 +2,7 @@
   "navigationBarTitleText": "通知详情",
   "backgroundColor": "#ffffff",
   "backgroundColorTop": "#ffffff",
-  "backgroundColorBottom": "#ffffff"
+  "backgroundColorBottom": "#ffffff",
+  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarTextStyle": "black"
 }

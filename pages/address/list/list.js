@@ -104,7 +104,7 @@ Page({
   deleteAddress(e) {
     const addressId = e.currentTarget.dataset.id;
 
-    wx.showModal({
+    wx.showModal({ confirmColor: '#b74434',
       title: '确认删除',
       content: '确定要删除这个地址吗？',
       success: (res) => {

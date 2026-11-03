@@ -1,0 +1,12 @@
+/* UI1.1：全局及页面共用的清爽实用视觉变量与基础控件。 */
+page {
+  --clean-green: #16835c; --clean-mint: #eff7f1; --clean-text: #172d25;
+  --clean-muted: #687a71; --clean-line: #e9efeb; --clean-soft: #f5f7f5;
+  --clean-danger: #b74434; --clean-warn: #956321;
+  background: #fff; color: var(--clean-text); font-size: 28rpx; line-height: 1.6;
+}
+button { box-sizing: border-box; min-height: 88rpx; margin: 0; padding: 20rpx 24rpx; border-radius: 22rpx; border: 2rpx solid transparent; font-size: 28rpx; font-weight: 500; line-height: 1.6; box-shadow: none; }
+button::after { border: none; }
+button[disabled] { opacity: .5; }
+.ui-icon { display: block; width: 36rpx; height: 36rpx; flex-shrink: 0; }
+.ui-icon-tile { display: flex; align-items: center; justify-content: center; width: 76rpx; height: 76rpx; border-radius: 24rpx; background: var(--clean-mint); flex-shrink: 0; }

@@ -638,7 +638,7 @@ uploadImage(filePath, fieldName) {
   } catch (error) {
     wx.hideLoading();
 
-    wx.showModal({
+    wx.showModal({ confirmColor: '#16835c',
       title: '提交失败',
       content: error.message || '请检查网络后重试',
       showCancel: true,

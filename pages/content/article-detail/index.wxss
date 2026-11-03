@@ -1,6 +1,10 @@
-page { background:#fff; } .page { padding:36rpx; }
-.title { font-size:42rpx; font-weight:bold; line-height:1.5; word-break:break-all; }
-.meta { color:#999; font-size:24rpx; margin:24rpx 0 40rpx; }
+@import "../../../styles/clean-surfaces.wxss"; page { background:#fff; } .page { padding:36rpx; }
+.title { font-size:42rpx; font-weight:600; line-height:1.5; word-break:break-all; }
+.meta { color:#687a71; font-size:24rpx; margin:24rpx 0 40rpx; }
 .body { margin:24rpx 0; } .paragraph { white-space:pre-wrap; font-size:32rpx; line-height:1.9; word-break:break-all; }
-.illustration { display:block; width:100%; height:auto; } .state { text-align:center; color:#777; padding:80rpx 0; }
+.illustration { display:block; width:100%; height:auto; } .state { text-align:center; color:#687a71; padding:80rpx 0; }
 .state button { display:block; margin:24rpx auto; }
+
+
+/* UI1.1：页面布局及状态精调。 */
+.page { padding: 36rpx 44rpx; } .title { font-size: 42rpx; } .paragraph { font-size: 32rpx; line-height: 1.9; }

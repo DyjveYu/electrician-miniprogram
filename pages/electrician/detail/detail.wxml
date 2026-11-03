@@ -5,13 +5,13 @@
     <view class="electrician-card">
       <view class="electrician-header">
         <view class="avatar-section" bindtap="previewAvatar">
-          <image 
+          <image
             class="avatar"
             src="{{electrician.avatar || '/images/default-avatar.png'}}"
             mode="aspectFill"
           ></image>
         </view>
-        
+
         <view class="electrician-info">
           <view class="electrician-name">{{electrician.name}}</view>
           <view class="electrician-phone">{{electrician.phone}}</view>
@@ -20,7 +20,7 @@
           </view>
         </view>
       </view>
-      
+
       <!-- 统计信息 -->
       <view class="stats-section">
         <view class="stats-item">
@@ -42,7 +42,7 @@
     <view class="section" wx:if="{{electrician.skills && electrician.skills.length > 0}}">
       <view class="section-title">专业技能</view>
       <view class="skills-list">
-        <text 
+        <text
           class="skill-tag"
           wx:for="{{electrician.skills}}"
           wx:key="*this"
@@ -92,7 +92,7 @@
 
   <!-- 电工不存在 -->
   <view class="empty-state" wx:if="{{!loading && !electrician}}">
-    <text class="empty-icon">🔧</text>
+    <image class="empty-icon ui-icon" src="/images/content-ui/shield-check.svg" mode="aspectFit" aria-hidden="true" />
     <text class="empty-text">电工信息不存在</text>
   </view>
 </view>

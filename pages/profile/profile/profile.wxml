@@ -17,21 +17,21 @@
     <view class="user-header">
       <view class="avatar-section" bindtap="navigateToEdit">
         <image class="avatar" src="{{userInfo.avatar || '/assets/default-avatar.png'}}" />
-       
+
         <view class="role-badge {{currentRole}}">
           {{currentRole === 'enterprise' ? '企业' : (currentRole === 'electrician' ? '电工' : '用户')}}
         </view>
       </view>
-      
+
       <view class="user-info">
-     
+
          <text class="nickname">{{displayName}}</text>
         <text wx:if="{{currentRole === 'electrician' && electricianInfo && electricianInfo.work_no}}" class="work-no">工号：{{electricianInfo.work_no}}</text>
        <!-- 电工认证状态：对所有用户可见，用 certificationStatusText 显示当前状态 -->
- 
+
       </view>
     </view>
-    
+
     <!-- 统计数据 -->
     <view class="stats-section">
       <view class="stat-item">
@@ -53,7 +53,7 @@
     </view>
   </view>
 
-  <!-- 电工信息卡片 
+  <!-- 电工信息卡片
   <view class="electrician-card" wx:if="{{currentRole === 'electrician' && electricianInfo}}">
     <view class="card-title">电工信息</view>
     <view class="electrician-info">
@@ -84,7 +84,7 @@
       class="menu-item"
       bindtap="navigateToCreateOrder"
     >
-      <view class="menu-icon">📋</view>
+      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/clipboard.svg" mode="aspectFit" aria-hidden="true" /></view>
       <view class="menu-content">
         <text class="menu-title">我要下单</text>
         <text class="menu-desc">单日快修，快速下单</text>
@@ -93,13 +93,13 @@
     </view>
 
     <!-- 地址管理 -->
-    <view 
+    <view
       class="menu-item"
       wx:if="{{currentRole === 'user'}}"
       data-item="{{menuItems[0]}}"
       bindtap="onMenuItemTap"
     >
-      <view class="menu-icon">📍</view>
+      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/map-pin.svg" mode="aspectFit" aria-hidden="true" /></view>
       <view class="menu-content">
         <text class="menu-title">地址管理</text>
         <text class="menu-desc">管理常用地址</text>
@@ -113,7 +113,7 @@
       class="menu-item"
       bindtap="navigateToWallet"
     >
-      <view class="menu-icon">💰</view>
+      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/wallet.svg" mode="aspectFit" aria-hidden="true" /></view>
       <view class="menu-content">
         <text class="menu-title">收入金额</text>
         <text class="menu-desc">可提现: ¥{{wallet.available_balance || '0.00'}}</text>
@@ -127,7 +127,7 @@
       class="menu-item"
       bindtap="navigateToReferrer"
     >
-      <view class="menu-icon">📢</view>
+      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/megaphone.svg" mode="aspectFit" aria-hidden="true" /></view>
       <view class="menu-content">
         <text class="menu-title">推荐达人</text>
         <text class="menu-desc">分享链接赚取佣金</text>
@@ -141,7 +141,7 @@
       class="menu-item"
       bindtap="navigateToIncome"
     >
-      <view class="menu-icon">💰</view>
+      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/wallet.svg" mode="aspectFit" aria-hidden="true" /></view>
       <view class="menu-content">
         <text class="menu-title">佣金收入</text>
         <text class="menu-desc">查看佣金明细与提现</text>
@@ -155,7 +155,7 @@
       class="menu-item"
       bindtap="handleCertification"
     >
-      <view class="menu-icon">🔧</view>
+      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/shield-check.svg" mode="aspectFit" aria-hidden="true" /></view>
       <view class="menu-content">
         <text class="menu-title">电工认证</text>
         <text class="menu-desc">{{userInfo.isElectrician ? '查看认证信息' : '申请成为电工'}}</text>
@@ -172,7 +172,7 @@
       class="menu-item"
       bindtap="navigateToDeposit"
     >
-      <view class="menu-icon">💵</view>
+      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/wallet.svg" mode="aspectFit" aria-hidden="true" /></view>
       <view class="menu-content">
         <text class="menu-title">押金管理</text>
         <text class="menu-desc">{{depositStatus === 'paid' ? '已缴纳押金' : (depositStatus === 'refunded' ? '已退款' : '未缴纳')}}</text>
@@ -192,7 +192,7 @@
       class="menu-item"
       bindtap="navigateToAbout"
     >
-      <view class="menu-icon">ℹ️</view>
+      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/info.svg" mode="aspectFit" aria-hidden="true" /></view>
       <view class="menu-content">
         <text class="menu-title">关于我们</text>
         <text class="menu-desc">版本信息、联系方式</text>
@@ -206,7 +206,7 @@
       class="menu-item"
       bindtap="handleEnterpriseCertification"
     >
-      <view class="menu-icon">🏢</view>
+      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/building.svg" mode="aspectFit" aria-hidden="true" /></view>
       <view class="menu-content">
         <text class="menu-title">企业认证</text>
         <text class="menu-desc">{{enterpriseCertStatusText || '申请企业认证'}}</text>
@@ -223,7 +223,7 @@
       class="menu-item partner-entry"
       bindtap="navigateToPartner"
     >
-      <view class="menu-icon">🤝</view>
+      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/handshake.svg" mode="aspectFit" aria-hidden="true" /></view>
       <view class="menu-content">
         <text class="menu-title">合作伙伴</text>
         <text class="menu-desc">查看区域数据统计</text>
@@ -231,7 +231,7 @@
       <text class="menu-arrow">></text>
     </view>
 
-    
+
   </view>
 
   <!-- 退出登录 -->

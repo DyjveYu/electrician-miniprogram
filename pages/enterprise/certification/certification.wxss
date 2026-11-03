@@ -1,7 +1,8 @@
+@import "../../../styles/clean-surfaces.wxss";
 /* pages/enterprise/certification/certification.wxss */
 .container {
-  padding: 30rpx;
-  background-color: #f5f5f5;
+  padding: 32rpx 44rpx 48rpx;
+  background-color: #fff;
   min-height: 100vh;
 }
 
@@ -12,14 +13,14 @@
 
 .title {
   font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: #172d25;
   margin-bottom: 10rpx;
 }
 
 .subtitle {
   font-size: 28rpx;
-  color: #666;
+  color: #687a71;
 }
 
 .status-tag {
@@ -31,20 +32,20 @@
 }
 
 .status-tag.approved {
-  background-color: #07c160;
+  background-color: #16835c;
 }
 
 .status-tag.pending {
-  background-color: #ffc300;
-  color: #333;
+  background-color: #956321;
+  color: #172d25;
 }
 
 .form-container {
   background-color: #fff;
-  border-radius: 12rpx;
+  border-radius: 22rpx;
   padding: 30rpx;
   margin-bottom: 30rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  box-shadow: none;
 }
 
 .form-group {
@@ -53,28 +54,28 @@
 
 .form-label {
   font-size: 28rpx;
-  color: #333;
+  color: #172d25;
   margin-bottom: 10rpx;
   font-weight: 500;
 }
 
 .required {
-  color: #fa5151;
+  color: #b74434;
 }
 
 .form-input {
   width: 100%;
-  height: 80rpx;
-  background-color: #f5f7fa;
-  border-radius: 8rpx;
+  height: 96rpx;
+  background-color: #f5f7f5;
+  border-radius: 22rpx;
   padding: 0 20rpx;
   font-size: 28rpx;
-  color: #333;
+  color: #172d25;
   box-sizing: border-box;
 }
 
 .placeholder {
-  color: #999;
+  color: #687a71;
 }
 
 .region-input {
@@ -89,7 +90,7 @@
 
 .upload-title {
   font-size: 28rpx;
-  color: #333;
+  color: #172d25;
   margin-bottom: 15rpx;
   font-weight: 500;
 }
@@ -97,9 +98,9 @@
 .license-upload {
   width: 100%;
   height: 200rpx;
-  background-color: #f5f7fa;
-  border: 2rpx dashed #ccc;
-  border-radius: 12rpx;
+  background-color: #f5f7f5;
+  border: 2rpx dashed #e9efeb;
+  border-radius: 22rpx;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -118,16 +119,16 @@
 
 .upload-text {
   font-size: 26rpx;
-  color: #999;
+  color: #687a71;
 }
 
 .license-preview {
   width: 100%;
   height: 300rpx;
-  border-radius: 12rpx;
+  border-radius: 22rpx;
   overflow: hidden;
   position: relative;
-  background-color: #f5f7fa;
+  background-color: #f5f7f5;
 }
 
 .license-img {
@@ -149,22 +150,22 @@
 
 /* 温馨提示 */
 .tips {
-  background-color: #f0f9ff;
+  background-color: #eff7f1;
   padding: 20rpx;
-  border-radius: 8rpx;
+  border-radius: 22rpx;
   margin-bottom: 40rpx;
 }
 
 .tips-title {
   font-size: 28rpx;
-  color: #1890ff;
+  color: #16835c;
   margin-bottom: 10rpx;
   font-weight: 500;
 }
 
 .tips-content {
   font-size: 24rpx;
-  color: #666;
+  color: #687a71;
 }
 
 .tips-content text {
@@ -175,11 +176,11 @@
 /* 提交按钮 */
 .submit-btn {
   width: 100%;
-  height: 90rpx;
-  background: linear-gradient(to right, #1890ff, #0076e4);
+  height: auto;
+  background: #16835c;
   color: #fff;
-  font-size: 32rpx;
-  border-radius: 45rpx;
+  font-size: 30rpx;
+  border-radius: 22rpx;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -188,16 +189,17 @@
 }
 
 .submit-btn.disabled {
-  background: linear-gradient(to right, #ccc, #999);
+  background: #16835c;
   color: #fff;
+  opacity: .5;
 }
 
 /* 状态展示容器 */
 .pending-container {
   background-color: #fff;
-  border-radius: 12rpx;
+  border-radius: 22rpx;
   padding: 60rpx 30rpx;
-  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
+  box-shadow: none;
   text-align: center;
 }
 
@@ -208,13 +210,17 @@
 
 .pending-title {
   font-size: 36rpx;
-  font-weight: bold;
-  color: #333;
+  font-weight: 600;
+  color: #172d25;
   margin-bottom: 20rpx;
 }
 
 .pending-desc {
   font-size: 28rpx;
-  color: #666;
+  color: #687a71;
   margin-bottom: 30rpx;
 }
+
+
+/* UI1.1：页面布局及状态精调。 */
+.container { padding: 32rpx 44rpx 48rpx; } .form-container, .reject-reason { border: none; padding: 0; box-shadow: none; } .form-group { margin-bottom: 28rpx; } .header { text-align: left; margin-bottom: 32rpx; } .region-input { height: auto; min-height: 96rpx; padding: 20rpx 24rpx; } .location-wrapper { align-items: stretch; gap: 16rpx; } .location-wrapper picker { flex: 1; min-width: 0; } .location-btn { width: 88rpx; min-height: 96rpx; height: auto; margin: 0; border-radius: 22rpx; background: #eff7f1; flex-shrink: 0; } .location-icon.ui-icon { width: 36rpx; height: 36rpx; } .checkbox-group, .cert-type-group { flex-wrap: wrap; gap: 16rpx 24rpx; } .cert-type-gap { display: none; } .cert-upload-item, .license-upload { box-sizing: border-box; border: 2rpx solid #e9efeb; border-radius: 22rpx; } .cert-info { flex-wrap: wrap; gap: 8rpx; min-width: 0; } .cert-name { margin: 0; font-size: 28rpx; } .tips { border-radius: 22rpx; background: #f5f7f5; } .tips-title { color: #172d25; } .submit-btn, .reapply-btn { height: auto; min-height: 96rpx; padding: 20rpx 24rpx; line-height: 1.6; font-size: 30rpx; border-radius: 22rpx; background: #16835c; color: #fff; } .submit-btn.disabled, .reapply-btn.disabled { background: #16835c; opacity: .5; } .upload-icon.ui-icon { width: 56rpx; height: 56rpx; margin: 0 auto 16rpx; }

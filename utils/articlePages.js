@@ -89,7 +89,7 @@ function detailPage({ api, listPath, access = publicAccess, isPublic = false }) 
       if (!this.data.uncertain) return this.loadArticle();
       this._retryPrompt = true;
       const sequence = this._sequence;
-      wx.showModal({ title: '重新加载文章', content: '上次请求可能已计入阅读量。重试成功将再次计数。', success: result => {
+      wx.showModal({ confirmColor: '#16835c', title: '重新加载文章', content: '上次请求可能已计入阅读量。重试成功将再次计数。', success: result => {
         if (result.confirm && this._visible && sequence === this._sequence) this.loadArticle();
       }, complete: () => { this._retryPrompt = false; } });
     },

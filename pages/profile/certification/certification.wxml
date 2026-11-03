@@ -25,11 +25,11 @@
       <view class="form-label">我要兼职的工作（可全选）</view>
       <checkbox-group class="checkbox-group" bindchange="onWorkTypesChange">
         <label class="checkbox-item">
-          <checkbox value="maintenance" checked="{{isMaintenanceChecked}}" disabled="{{mode === 'view' && certificationStatus !== 'approved'}}" />
+          <checkbox value="maintenance" checked="{{isMaintenanceChecked}}" disabled="{{mode === 'view' && certificationStatus !== 'approved'}}"  color="#16835c"/>
           <text>维修电工</text>
         </label>
         <label class="checkbox-item">
-          <checkbox value="installation" checked="{{isInstallationChecked}}" disabled="{{mode === 'view' && certificationStatus !== 'approved'}}" />
+          <checkbox value="installation" checked="{{isInstallationChecked}}" disabled="{{mode === 'view' && certificationStatus !== 'approved'}}"  color="#16835c"/>
           <text>安装电工</text>
         </label>
       </checkbox-group>
@@ -82,7 +82,7 @@
           </view>
         </picker>
         <view class="location-btn" bindtap="getLocation" wx:if="{{mode === 'apply' || (mode === 'view' && certificationStatus === 'approved')}}">
-          <text class="location-icon">📍</text>
+          <image class="location-icon ui-icon" src="/images/content-ui/map-pin.svg" mode="aspectFit" aria-hidden="true" />
         </view>
       </view>
     </view>
@@ -92,12 +92,12 @@
       <view class="form-label">特种作业操作证 <text class="required">*</text></view>
       <radio-group class="cert-type-group" bindchange="onCertTypeChange">
         <label class="cert-type-item {{formData.specialOperationCertType === 'low_voltage' ? 'selected' : ''}}">
-          <radio value="low_voltage" checked="{{formData.specialOperationCertType === 'low_voltage'}}" />
+          <radio value="low_voltage" checked="{{formData.specialOperationCertType === 'low_voltage'}}"  color="#16835c"/>
           <text>低压电工证</text>
         </label>
         <view class="cert-type-gap"></view>
         <label class="cert-type-item {{formData.specialOperationCertType === 'high_voltage' ? 'selected' : ''}}">
-          <radio value="high_voltage" checked="{{formData.specialOperationCertType === 'high_voltage'}}" />
+          <radio value="high_voltage" checked="{{formData.specialOperationCertType === 'high_voltage'}}"  color="#16835c"/>
           <text>高压电工证</text>
         </label>
       </radio-group>
@@ -139,7 +139,7 @@
     <view class="cert-notice-agreement" wx:if="{{mode === 'apply'}}">
       <checkbox-group bindchange="onNoticeAgreementChange">
         <label class="notice-label">
-          <checkbox value="agreed" checked="{{noticeAgreed}}" />
+          <checkbox value="agreed" checked="{{noticeAgreed}}"  color="#16835c"/>
           <text>我已阅读并同意</text>
           <text class="notice-link" bindtap="goToCertificationNotice">《认证须知》</text>
         </label>

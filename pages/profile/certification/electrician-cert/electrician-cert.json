@@ -1,4 +1,9 @@
 {
-    "navigationBarTitleText": "电工证上传",
-    "usingComponents": {}
+  "navigationBarTitleText": "电工证上传",
+  "usingComponents": {},
+  "backgroundColor": "#ffffff",
+  "backgroundColorTop": "#ffffff",
+  "backgroundColorBottom": "#ffffff",
+  "navigationBarBackgroundColor": "#ffffff",
+  "navigationBarTextStyle": "black"
 }

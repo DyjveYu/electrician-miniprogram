@@ -1,6 +1,7 @@
+@import "../../../styles/clean-surfaces.wxss";
 /* pages/address/list/list.wxss */
 .container {
-  background-color: #f5f5f5;
+  background-color: #fff;
   min-height: 100vh;
   padding-bottom: 120rpx;
 }
@@ -12,12 +13,12 @@
 
 .address-item {
   background-color: #fff;
-  border-radius: 12rpx;
+  border-radius: 22rpx;
   margin-bottom: 20rpx;
   padding: 30rpx;
   display: flex;
   align-items: center;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  box-shadow: none;
 }
 
 .address-content {
@@ -33,27 +34,27 @@
 .contact-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #333;
+  color: #172d25;
   margin-right: 20rpx;
 }
 
 .contact-phone {
   font-size: 26rpx;
-  color: #666;
+  color: #687a71;
   margin-right: 15rpx;
 }
 
 .default-badge {
-  background-color: #1976d2;
+  background-color: #16835c;
   color: #fff;
-  font-size: 20rpx;
+  font-size: 22rpx;
   padding: 4rpx 8rpx;
   border-radius: 8rpx;
 }
 
 .address-detail {
   font-size: 26rpx;
-  color: #666;
+  color: #687a71;
   line-height: 1.4;
 }
 
@@ -66,21 +67,21 @@
 }
 
 .action-btn {
-  padding: 12rpx 20rpx;
-  border-radius: 6rpx;
-  font-size: 24rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 22rpx;
+  font-size: 30rpx;
   text-align: center;
   min-width: 80rpx;
 }
 
 .action-btn.edit {
-  background-color: #e3f2fd;
-  color: #1976d2;
+  background-color: #eff7f1;
+  color: #16835c;
 }
 
 .action-btn.delete {
-  background-color: #ffebee;
-  color: #f44336;
+  background-color: #faf0ed;
+  color: #b74434;
 }
 
 /* 空状态 */
@@ -100,16 +101,16 @@
 
 .empty-text {
   font-size: 28rpx;
-  color: #999;
+  color: #687a71;
   margin-bottom: 30rpx;
 }
 
 .add-first-btn {
-  background-color: #1976d2;
+  background-color: #16835c;
   color: #fff;
-  padding: 20rpx 40rpx;
-  border-radius: 25rpx;
-  font-size: 28rpx;
+  padding: 20rpx 24rpx;
+  border-radius: 22rpx;
+  font-size: 30rpx;
   border: none;
 }
 
@@ -125,17 +126,17 @@
   right: 0;
   padding: 30rpx;
   background-color: #fff;
-  border-top: 2rpx solid #f0f0f0;
+  border-top: 2rpx solid #e9efeb;
 }
 
 .add-btn {
   width: 100%;
-  height: 88rpx;
-  background: linear-gradient(90deg, #0F9D58 0%, #81C784 100%);
+  height: auto;
+  background: #16835c;
   color: #fff;
-  font-size: 28rpx;
+  font-size: 30rpx;
   font-weight: 600;
-  border-radius: 8rpx;
+  border-radius: 22rpx;
   border: none;
   display: flex;
   align-items: center;
@@ -145,3 +146,6 @@
 .add-btn::after {
   border: none;
 }
+
+/* UI1.1：页面布局及状态精调。 */
+.container { padding-bottom: calc(180rpx + env(safe-area-inset-bottom)); } .address-list { padding: 0; } .address-item { align-items: flex-start; flex-wrap: wrap; gap: 20rpx; border: 2rpx solid #e9efeb; padding: 28rpx 24rpx; } .address-content { min-width: 220rpx; } .address-header { flex-wrap: wrap; gap: 8rpx 12rpx; } .contact-name, .contact-phone { margin: 0; word-break: break-all; } .address-detail { word-break: break-all; } .address-actions { flex-direction: row; margin: 0; flex-wrap: wrap; gap: 16rpx; } .action-btn { min-height: 76rpx; box-sizing: border-box; padding: 16rpx 24rpx; font-size: 26rpx; } .add-section { padding: 20rpx 44rpx; padding-bottom: calc(20rpx + env(safe-area-inset-bottom)); } .add-btn { width: 100%; }

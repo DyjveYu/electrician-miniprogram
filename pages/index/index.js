@@ -233,7 +233,7 @@ Page({
 
         const data = res.data.data || res.data;
         if (data.hasPending && data.orderId) {
-          wx.showModal({
+          wx.showModal({ confirmColor: '#16835c',
             title: '工单已结束',
             content: '工单已结束，请完成评价',
             confirmText: '去评价',
@@ -602,7 +602,7 @@ Page({
         if (res.data.code === 200) {
           const data = res.data.data || {};
           if (data.status !== 'paid') {
-            wx.showModal({
+            wx.showModal({ confirmColor: '#16835c',
               title: '提示',
               content: '需要缴纳押金后才能接单，是否前往缴纳？',
               confirmText: '去缴纳',

@@ -22,7 +22,7 @@
       <textarea placeholder="请描述工程内容，如：机柜装配、配电盘组装、线路巡检、设备维保等" value="{{description}}" bindinput="onDescriptionInput" maxlength="500" class="desc-textarea" />
       <!-- 语音输入按钮 -->
       <view class="voice-btn {{isRecording ? 'voice-btn-recording' : ''}}" catchtap="onMicTap">
-        <text class="voice-btn-icon">🎤</text>
+        <image class="voice-btn-icon ui-icon" src="/images/content-ui/mic.svg" mode="aspectFit" aria-hidden="true" />
         <text class="voice-btn-text">{{isRecording ? '录音中…' : '语音输入'}}</text>
       </view>
     </view>
@@ -72,8 +72,8 @@
     <view class="form-section">
       <view class="section-title">电工持证要求（可多选）</view>
       <checkbox-group bindchange="onProjCertChange">
-        <label class="cert-radio"><checkbox value="low_voltage" checked="{{projCertLowChecked}}" />低压电工证</label>
-        <label class="cert-radio"><checkbox value="high_voltage" checked="{{projCertHighChecked}}" />高压电工证</label>
+        <label class="cert-radio"><checkbox value="low_voltage" checked="{{projCertLowChecked}}"  color="#16835c"/>低压电工证</label>
+        <label class="cert-radio"><checkbox value="high_voltage" checked="{{projCertHighChecked}}"  color="#16835c"/>高压电工证</label>
       </checkbox-group>
     </view>
 
@@ -122,8 +122,8 @@
     <view class="section-title">选择服务类型</view>
     <view class="service-list">
       <block wx:for="{{serviceTypes}}" wx:key="id">
-        <view class="service-item {{selectedServiceType && selectedServiceType.id === item.id ? 'active' : ''}}" 
-              data-index="{{index}}" 
+        <view class="service-item {{selectedServiceType && selectedServiceType.id === item.id ? 'active' : ''}}"
+              data-index="{{index}}"
               bindtap="selectServiceType">
           <text>{{item.name}}</text>
         </view>
@@ -134,14 +134,14 @@
   <!-- 问题描述 -->
   <view class="form-section">
     <view class="section-title">{{descriptionTitle}}</view>
-    <textarea placeholder="请填写服务内容..." 
-              value="{{description}}" 
-              bindinput="onDescriptionInput" 
+    <textarea placeholder="请填写服务内容..."
+              value="{{description}}"
+              bindinput="onDescriptionInput"
               maxlength="150"
               class="desc-textarea"/>
     <!-- 语音输入按钮：白底长方形 -->
     <view class="voice-btn {{isRecording ? 'voice-btn-recording' : ''}}" catchtap="onMicTap">
-      <text class="voice-btn-icon">🎤</text>
+      <image class="voice-btn-icon ui-icon" src="/images/content-ui/mic.svg" mode="aspectFit" aria-hidden="true" />
       <text class="voice-btn-text">{{isRecording ? '录音中…' : '语音输入'}}</text>
     </view>
   </view>
@@ -161,7 +161,7 @@
   <view class="form-section">
     <view class="directed-row">
       <text class="directed-label">定向下单</text>
-      <switch checked="{{isDirected}}" bindchange="onDirectedToggle" color="#0F9D58"/>
+      <switch checked="{{isDirected}}" bindchange="onDirectedToggle" color="#16835c"/>
     </view>
     <view wx:if="{{isDirected}}" class="directed-detail">
       <view class="workno-search">
@@ -204,12 +204,12 @@
     <view class="section-title">用电类型 <text class="required">*</text></view>
     <radio-group class="electricity-type-group" bindchange="onElectricityTypeChange">
       <label class="electricity-type-item {{electricityType === 'residential' ? 'selected' : ''}}">
-        <radio value="residential" checked="{{electricityType === 'residential'}}" />
+        <radio value="residential" checked="{{electricityType === 'residential'}}"  color="#16835c"/>
         <text>居民用电</text>
       </label>
       <view class="electricity-type-gap"></view>
       <label class="electricity-type-item {{electricityType === 'industrial' ? 'selected' : ''}}">
-        <radio value="industrial" checked="{{electricityType === 'industrial'}}" />
+        <radio value="industrial" checked="{{electricityType === 'industrial'}}"  color="#16835c"/>
         <text>工商业用电</text>
       </label>
     </radio-group>
@@ -220,7 +220,7 @@
     <view class="terms-row">
       <checkbox-group bindchange="onAgreeChange">
         <label class="terms-label">
-          <checkbox value="agree" checked="{{agreePrepayTerms}}"></checkbox>
+          <checkbox value="agree" checked="{{agreePrepayTerms}}" color="#16835c"></checkbox>
           <text class="terms-text">我已阅读并同意<text class="terms-link" bindtap="onShowAgreement">《订单服务预约预付款协议》</text></text>
         </label>
       </checkbox-group>
