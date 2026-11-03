@@ -1,3 +1,4 @@
+const enterpriseSession = require('../../../utils/enterpriseSession');
 // pages/order/list/list.js
 const app = getApp();
 const { getDisplayStatusText, mapOrderToDisplayStatus } = require('../../../utils/util');
@@ -78,7 +79,7 @@ Page({
     
     const app = getApp();
     
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders`,
       method: 'GET',
       header: {
@@ -213,7 +214,7 @@ Page({
   performCancelOrder(orderId) {
     const app = getApp();
     
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${orderId}/cancel`,
       method: 'POST',
       header: {
@@ -238,7 +239,7 @@ Page({
     const orderId = e.currentTarget.dataset.id;
     const app = getApp();
     
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${orderId}/take`,
       method: 'POST',
       header: {

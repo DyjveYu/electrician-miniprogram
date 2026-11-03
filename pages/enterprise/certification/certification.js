@@ -1,3 +1,4 @@
+const enterpriseSession = require('../../../utils/enterpriseSession');
 const orderEntry = require('../../../utils/orderEntry');
 // pages/enterprise/certification/certification.js
 const app = getApp();
@@ -109,7 +110,7 @@ Page({
     this.setData({ checkingContinuation: true });
     wx.showLoading({ title: '加载中' });
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/miniprogram/enterprise/certification`,
       method: 'GET',
       header: {
@@ -293,7 +294,7 @@ Page({
   _doUploadLicenseImage(filePath, fileSize, resolve, reject) {
     const systemInfo = wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
 
-    wx.uploadFile({
+    enterpriseSession.uploadFile({
       url: `${app.globalData.baseUrl}/upload/certification`,
       filePath: filePath,
       name: 'certification',
@@ -432,7 +433,7 @@ Page({
       };
 
       const submission = await new Promise((resolve, reject) => {
-        wx.request({
+        enterpriseSession.request({
           url: `${app.globalData.baseUrl}/miniprogram/enterprise/certification`,
           method: 'POST',
           header: {

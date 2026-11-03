@@ -1,3 +1,4 @@
+const enterpriseSession = require('../../../utils/enterpriseSession');
 // pages/payment/result/result.js
 Page({
   data: {
@@ -20,7 +21,7 @@ Page({
   // 加载订单信息
   loadOrderInfo() {
     const app = getApp();
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${this.data.orderId}`,
       method: 'GET',
       header: {

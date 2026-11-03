@@ -1,3 +1,4 @@
+const enterpriseSession = require('../../../utils/enterpriseSession');
 const orderEntry = require('../../../utils/orderEntry');
 // pages/payment/payment/payment.js
 const { PaymentAPI } = require('../../../utils/api');
@@ -34,7 +35,7 @@ Page({
   // 加载订单信息后自动发起支付
   loadOrderInfo() {
     const app = getApp();
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${this.data.orderId}`,
       method: 'GET',
       header: {
@@ -153,7 +154,7 @@ Page({
 
       // 【测试回调模式】注释掉主动查询支付状态的代码，仅通过轮询订单状态来验证微信回调是否生效
       // if (this.data.paymentNo) {
-      //   wx.request({
+      //   enterpriseSession.request({
       //     url: `${app.globalData.baseUrl}/payments/${this.data.paymentNo}`,
       //     method: 'GET',
       //     header: { 'Authorization': `Bearer ${app.globalData.token}` },
@@ -185,7 +186,7 @@ Page({
   queryOrderStatus(pollCount, maxPolls, pollInterval, checkStatus) {
     const app = getApp();
     // 查询订单详情,检查订单状态是否已更新
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${this.data.orderId}`,
       method: 'GET',
       header: { 'Authorization': `Bearer ${app.globalData.token}` },
@@ -270,7 +271,7 @@ Page({
         success: (res) => {
           if (res.code) {
             // 调用后端接口
-            wx.request({
+            enterpriseSession.request({
               url: `${app.globalData.baseUrl}/auth/code2session`,
               method: 'POST',
               data: { code: res.code },

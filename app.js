@@ -1,4 +1,5 @@
 const orderEntry = require('./utils/orderEntry');
+const enterpriseSession = require('./utils/enterpriseSession');
 // app.js
 const log = require('./utils/log.js');
 const runtimeConfig = require('./config/index');
@@ -44,6 +45,7 @@ App({
     console.log('小程序显示', options);
     // 每次显示时重新解析推荐人参数（覆盖旧会话的推荐人）
     this._parseReferrer(options);
+    if (this.globalData.token && this.globalData.userInfo?.current_role === 'enterprise') this.verifyToken();
   },
 
   /**
@@ -150,7 +152,11 @@ App({
   verifyToken() {
     console.log('[App] 开始验证Token有效性...');
     const verifyingToken = this.globalData.token;
-    wx.request({
+    const enterprise = this.globalData.userInfo?.current_role === 'enterprise';
+    const verification = { token: verifyingToken, version: this._orderSessionVersion || 0 };
+    if (enterprise && this._enterpriseVerification?.token === verification.token && this._enterpriseVerification.version === verification.version) return;
+    if (enterprise) this._enterpriseVerification = verification;
+    enterpriseSession.request({
       url: `${this.globalData.baseUrl}/auth/verify-token`,
       method: 'GET',
       header: {
@@ -172,6 +178,9 @@ App({
       fail: (err) => {
         console.error('[App] Token验证网络请求失败:', err);
         // 网络错误不应该登出，保持离线登录状态
+      },
+      complete: () => {
+        if (enterprise && this._enterpriseVerification === verification) this._enterpriseVerification = null;
       }
     });
   },
@@ -253,10 +262,12 @@ App({
       this.globalData.contentLoginEntry === 'electrician-home' ||
       (current && /^pages\/content\/(electrician-home|article-detail)\//.test(current.route));
     if (contentEntry) this.globalData.contentLoginEntry = 'electrician-home';
+    if (options.forceLogin) this.globalData.contentLoginEntry = null;
     this.globalData.userInfo = null;
     this.globalData.token = null;
     this.globalData.isLogin = false;
     this.globalData.currentRole = 'user';
+    this.globalData.enterpriseCertification = null;
 
     // 清除本地存储
     wx.removeStorageSync('userInfo');
@@ -269,9 +280,9 @@ App({
       ? /^pages\/content\/(safety-knowledge|safety-knowledge-detail|notice-detail)\/index$/.test(current.route)
       : this._publicContentLaunchPending;
     if (current) this._publicContentLaunchPending = false;
-    if (publicContent) return;
+    if (publicContent && !options.forceLogin) return;
 
-    if (contentEntry && current && current.route === 'pages/login/login') {
+    if (contentEntry && !options.forceLogin && current && current.route === 'pages/login/login') {
       if (current.enterElectricianHomeLogin) current.enterElectricianHomeLogin();
       return;
     }
@@ -279,7 +290,7 @@ App({
     this._logoutNavigating = true;
     // 跳转到登录页
     wx.reLaunch({
-      url: contentEntry ? '/pages/login/login?entry=electrician-home' : '/pages/login/login',
+      url: contentEntry && !options.forceLogin ? '/pages/login/login?entry=electrician-home' : '/pages/login/login',
       complete: () => { this._logoutNavigating = false; }
     });
   },

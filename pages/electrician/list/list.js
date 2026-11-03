@@ -1,3 +1,4 @@
+const enterpriseSession = require('../../../utils/enterpriseSession');
 // pages/electrician/list/list.js
 Page({
   data: {
@@ -56,7 +57,7 @@ Page({
   // 请求电工列表数据
   requestElectricianList(latitude, longitude) {
     const app = getApp();
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/system/nearby-electricians`,
       method: 'GET',
       header: {

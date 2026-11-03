@@ -1,3 +1,4 @@
+const enterpriseSession = require('../../utils/enterpriseSession');
 // pages/index/index.js
 const app = getApp();
 const { SystemAPI, OrderAPI, AuthAPI } = require('../../utils/api');
@@ -223,7 +224,7 @@ Page({
    */
   checkPendingReview() {
     const app = getApp();
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/pending-review-check`,
       method: 'GET',
       header: { Authorization: `Bearer ${app.globalData.token}` },
@@ -594,7 +595,7 @@ Page({
   checkDepositAndTakeOrder(orderId) {
     const app = getApp();
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/deposits/status`,
       method: 'GET',
       header: { 'Authorization': `Bearer ${app.globalData.token}` },

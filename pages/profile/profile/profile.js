@@ -1,3 +1,4 @@
+const enterpriseSession = require('../../../utils/enterpriseSession');
 // pages/profile/profile/profile.js
 Page({
   data: {
@@ -77,7 +78,7 @@ Page({
 
     this.setData({ unfreezing: true });
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/electricians/unfreeze`,
       method: 'POST',
       header: { 'Authorization': `Bearer ${app.globalData.token}` },
@@ -121,7 +122,7 @@ loadUserInfo() {
   }
 
   // 发请求获取最新数据
-  wx.request({
+  enterpriseSession.request({
     url: `${app.globalData.baseUrl}/auth/userinfo`,
     method: 'GET',
     header: { 'Authorization': `Bearer ${app.globalData.token}` },
@@ -243,7 +244,7 @@ loadUserInfo() {
     const app = getApp();
     if (!app.globalData.token) return;
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/miniprogram/enterprise/certification`,
       method: 'GET',
       header: { 'Authorization': `Bearer ${app.globalData.token}` },
@@ -311,7 +312,7 @@ loadUserInfo() {
   loadWalletInfo() {
     const app = getApp();
     
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/electricians/income`,
       method: 'GET',
       header: {
@@ -452,7 +453,7 @@ loadUserInfo() {
       return;
     }
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/deposits/status`,
       method: 'GET',
       header: { 'Authorization': `Bearer ${app.globalData.token}` },
@@ -479,7 +480,7 @@ loadUserInfo() {
     const app = getApp();
     if (!app.globalData.token) return;
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/partner/stats`,
       method: 'GET',
       header: { 'Authorization': `Bearer ${app.globalData.token}` },
@@ -509,7 +510,7 @@ loadUserInfo() {
     const app = getApp();
     if (!app.globalData.token) return;
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/user-referrers/info`,
       method: 'GET',
       header: { 'Authorization': `Bearer ${app.globalData.token}` },

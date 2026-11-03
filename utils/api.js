@@ -2,6 +2,7 @@
 // API请求工具类
 
 const app = getApp();
+const enterpriseSession = require('./enterpriseSession');
 
 class API {
   /**
@@ -39,7 +40,7 @@ class API {
         requestHeader['Authorization'] = `Bearer ${app.globalData.token}`;
       }
 
-      wx.request({
+      enterpriseSession.request({
         url: fullUrl,
         method: method.toUpperCase(),
         data: data,
@@ -81,8 +82,10 @@ class API {
             app.hideLoading();
           }
           
-          const error = new Error('网络请求失败，请检查网络连接');
-          if (showError) {
+          const error = new Error(err.enterpriseFrozen || err.sessionChanged ? err.errMsg : '网络请求失败，请检查网络连接');
+          error.code = err.statusCode;
+          error.data = err.data || {};
+          if (showError && !err.enterpriseFrozen && !err.sessionChanged) {
             app.showToast(error.message);
           }
           reject(error);
@@ -163,7 +166,7 @@ class API {
 
       const fullUrl = url.startsWith('http') ? url : `${app.globalData.baseUrl}${url}`;
 
-      wx.uploadFile({
+      enterpriseSession.uploadFile({
         url: fullUrl,
         filePath: filePath,
         name: name,
@@ -194,7 +197,7 @@ class API {
           if (showLoading) {
             app.hideLoading();
           }
-          app.showToast('上传失败');
+          if (!err.enterpriseFrozen && !err.sessionChanged) app.showToast('上传失败');
           reject(err);
         }
       });
@@ -527,7 +530,7 @@ class ReferrerAPI {
 class ContentAPI {
   static request(path, options = {}) {
     return new Promise((resolve, reject) => {
-      const task = wx.request({
+      const task = enterpriseSession.request({
       url: `${app.globalData.baseUrl}/content${path}`, method: 'GET',
       timeout: 15000,
       success: res => {
@@ -551,7 +554,7 @@ class ContentAPI {
 class ElectricianHomeAPI {
   static request(path) {
     const token = app.globalData.token;
-    return new Promise((resolve, reject) => wx.request({
+    return new Promise((resolve, reject) => enterpriseSession.request({
       url: `${app.globalData.baseUrl}/content/electrician-home/articles${path}`,
       method: 'GET', header: token ? { Authorization: `Bearer ${token}` } : {},
       success: res => {
@@ -574,7 +577,7 @@ class ElectricianHomeAPI {
 // 固定公开栏目，不附JWT，不调用通用401登出；保留状态用于人工重试提示。
 class SafetyKnowledgeAPI {
   static request(path) {
-    return new Promise((resolve, reject) => wx.request({
+    return new Promise((resolve, reject) => enterpriseSession.request({
       url: `${app.globalData.baseUrl}/content/safety-knowledge/articles${path}`, method: 'GET',
       success: res => {
         if (res.statusCode === 200 && res.data && res.data.code === 200) return resolve(res.data);

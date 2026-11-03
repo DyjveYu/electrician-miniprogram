@@ -1,3 +1,4 @@
+const enterpriseSession = require('../../../utils/enterpriseSession');
 const orderEntry = require('../../../utils/orderEntry');
 // pages/address/edit/edit.js
 Page({
@@ -34,7 +35,7 @@ Page({
   // 加载地址详情
   loadAddressDetail() {
     const app = getApp();
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/addresses/${this.data.addressId}`,
       method: 'GET',
       header: {
@@ -291,7 +292,7 @@ parseAddress(addressStr) {
     // ② 打印确认实际提交的数据
 
     // ③ 调用接口
-    wx.request({
+    enterpriseSession.request({
       url,
       method,
       header: {

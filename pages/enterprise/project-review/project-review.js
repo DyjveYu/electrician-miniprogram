@@ -1,3 +1,4 @@
+const enterpriseSession = require('../../../utils/enterpriseSession');
 // pages/enterprise/project-review/project-review.js
 const app = getApp();
 
@@ -25,7 +26,7 @@ Page({
 
   loadElectricians() {
     const app = getApp();
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/miniprogram/enterprise/orders/${this.data.orderId}/electricians`,
       method: 'GET',
       header: { Authorization: `Bearer ${app.globalData.token}` },
@@ -131,7 +132,7 @@ Page({
     this.setData({ submitting });
 
     const app = getApp();
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/miniprogram/enterprise/orders/${this.data.orderId}/review`,
       method: 'POST',
       header: { Authorization: `Bearer ${app.globalData.token}` },

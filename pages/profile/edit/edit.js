@@ -1,3 +1,4 @@
+const enterpriseSession = require('../../../utils/enterpriseSession');
 // pages/profile/edit/edit.js
 Page({
   data: {
@@ -64,7 +65,7 @@ Page({
     this.setData({ uploading: true });
     
     const app = getApp();
-    wx.uploadFile({
+    enterpriseSession.uploadFile({
       url: `${app.globalData.baseUrl}/upload/avatar`,
       filePath: filePath,
       name: 'avatar',
@@ -106,7 +107,7 @@ uploadAvatar(filePath) {
   this.setData({ uploading: true });
 
   const app = getApp();
-  wx.uploadFile({
+  enterpriseSession.uploadFile({
     url: `${app.globalData.baseUrl}/upload/avatar`,
     filePath,
     name: 'avatar',
@@ -184,7 +185,7 @@ uploadAvatar(filePath) {
       console.log('保存头像URL:', avatarUrl);
     }
     
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/users/profile`,
       method: 'PUT',
       header: {

@@ -1,3 +1,4 @@
+const enterpriseSession = require('../../../utils/enterpriseSession');
 // pages/order/detail/detail.js
 const app = getApp();
 const MAX_FINAL_AMOUNT = 99999999.99; // 数据库 decimal(10,2) 最大支持 8 位整数 + 2 小数
@@ -69,7 +70,7 @@ Page({
     this._fetchingDetail = true;
     const app = getApp();
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${this.data.orderId}`,
       method: 'GET',
       header: {
@@ -293,7 +294,7 @@ Page({
     // 根据是否已付款设置取消原因
     const cancelReason = isPaid ? '用户取消已支付订单' : '用户取消未支付订单';
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${this.data.orderId}/cancel`,
       method: 'PUT',
       header: {
@@ -354,7 +355,7 @@ Page({
         if (!res.confirm) return;
 
         wx.showLoading({ title: '接单中...' });
-        wx.request({
+        enterpriseSession.request({
           url: `${app.globalData.baseUrl}/orders/${this.data.orderId}/take`,
           method: 'POST',
           header: {
@@ -400,7 +401,7 @@ Page({
         if (!res.confirm) return;
 
         wx.showLoading({ title: '退单中...' });
-        wx.request({
+        enterpriseSession.request({
           url: `${app.globalData.baseUrl}/orders/${this.data.orderId}/withdraw`,
           method: 'POST',
           header: {
@@ -512,7 +513,7 @@ Page({
       finalAmount: parseFloat(this.data.finalAmount)
     };
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${this.data.orderId}/complete`,
       method: 'POST',
       header: {
@@ -552,7 +553,7 @@ Page({
       repair_content: content
     };
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${this.data.orderId}/update`,
       method: 'PUT',
       header: {
@@ -606,7 +607,7 @@ Page({
 
     this.setData({ reviewing: true });
     const app = getApp();
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${this.data.orderId}/review`,
       method: 'PUT',
       header: {
@@ -838,7 +839,7 @@ Page({
           if (res.code) {
             console.log('[详情页] wx.login 成功，code:', res.code);
             // 调用后端接口
-            wx.request({
+            enterpriseSession.request({
               url: `${app.globalData.baseUrl}/auth/code2session`,
               method: 'POST',
               data: { code: res.code },
@@ -886,7 +887,7 @@ Page({
   confirmAmount() {
     const app = getApp();
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${this.data.orderId}/confirm-amount`,
       method: 'POST',
       header: {

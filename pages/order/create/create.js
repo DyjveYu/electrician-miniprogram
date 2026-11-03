@@ -1,3 +1,4 @@
+const enterpriseSession = require('../../../utils/enterpriseSession');
 const orderEntry = require('../../../utils/orderEntry');
 // pages/order/create/create.js
 const plugin = requirePlugin('WechatSI')
@@ -257,7 +258,7 @@ Page({
     // 服务类型从配置文件读取，不依赖后端
     this.setData({ serviceTypes: SERVICE_TYPES });
     // 仍请求时段费（预付款计算需要）
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/system/time-period-fees`,
       method: 'GET',
       success: (res) => {
@@ -319,7 +320,7 @@ Page({
 
   _requestAddress(path) {
     const app = getApp();
-    return new Promise((resolve, reject) => wx.request({
+    return new Promise((resolve, reject) => enterpriseSession.request({
       url: `${app.globalData.baseUrl}/addresses${path}`,
       header: { Authorization: `Bearer ${app.globalData.token}` },
       success: res => {
@@ -483,7 +484,7 @@ Page({
     }
     this.setData({ searchingElectrician: true, searchedElectrician: null, searchEmpty: false });
     const app = getApp();
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/electricians/search-by-workno`,
       method: 'GET',
       data: { workNo },
@@ -547,7 +548,7 @@ Page({
   uploadImage(filePath) {
     return new Promise((resolve, reject) => {
       const app = getApp();
-      wx.uploadFile({
+      enterpriseSession.uploadFile({
         url: `${app.globalData.baseUrl}/upload/order`,
         filePath,
         name: 'order_image',
@@ -616,7 +617,7 @@ Page({
 
 
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders`,
       method: 'POST',
       header: { 'Authorization': `Bearer ${app.globalData.token}`, 'Content-Type': 'application/json' },
@@ -662,7 +663,7 @@ Page({
   // 加载企业认证信息（用于区校验）
   loadEnterpriseCert() {
     const app = getApp();
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/miniprogram/enterprise/certification`,
       method: 'GET',
       header: { 'Authorization': `Bearer ${app.globalData.token}` },
@@ -853,7 +854,7 @@ Page({
       addressDetail: projectAddressDetail
     };
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/miniprogram/enterprise/orders/project`,
       method: 'POST',
       header: { 'Authorization': `Bearer ${app.globalData.token}`, 'Content-Type': 'application/json' },

@@ -1,3 +1,4 @@
+const enterpriseSession = require('../../utils/enterpriseSession');
 // pages/order-landing/index.js — 分享/扫码独立落地页
 // 与 pages/order/create/create.js 功能一致，差异：
 //   - onLoad 先匿名登录，不跳登录页
@@ -129,7 +130,7 @@ Page({
       if (!loginRes.code) throw new Error('微信登录失败');
 
       const res = await new Promise((resolve, reject) => {
-        wx.request({
+        enterpriseSession.request({
           url: `${getApp().globalData.baseUrl}/auth/anonymous-login`,
           method: 'POST',
           data: { code: loginRes.code },
@@ -277,7 +278,7 @@ Page({
     // 服务类型从配置文件读取，不依赖后端
     this.setData({ serviceTypes: SERVICE_TYPES });
     // 仍请求时段费（预付款计算需要）
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/system/time-period-fees`,
       method: 'GET',
       success: (res) => {
@@ -347,7 +348,7 @@ Page({
   loadAddresses() {
     this.setData({ loadingAddresses: true });
     const app = getApp();
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/addresses`,
       method: 'GET',
       header: { 'Authorization': `Bearer ${this.data.token}` },
@@ -443,7 +444,7 @@ Page({
     }
     this.setData({ searchingElectrician: true, searchedElectrician: null, searchEmpty: false });
     const app = getApp();
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/electricians/search-by-workno`,
       method: 'GET',
       data: { workNo },
@@ -503,7 +504,7 @@ Page({
   uploadImage(filePath) {
     return new Promise((resolve, reject) => {
       const app = getApp();
-      wx.uploadFile({
+      enterpriseSession.uploadFile({
         url: `${app.globalData.baseUrl}/upload/order`,
         filePath,
         name: 'order_image',
@@ -567,7 +568,7 @@ Page({
       referrerId: this.data.referrerId
     };
 
-    wx.request({
+    enterpriseSession.request({
       url: `${getApp().globalData.baseUrl}/orders`,
       method: 'POST',
       header: { 'Authorization': `Bearer ${this.data.token}`, 'Content-Type': 'application/json' },
@@ -618,7 +619,7 @@ Page({
 
   loadEnterpriseCert() {
     const app = getApp();
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/miniprogram/enterprise/certification`,
       method: 'GET',
       header: { 'Authorization': `Bearer ${this.data.token}` },
@@ -781,7 +782,7 @@ Page({
       referrerId: this.data.referrerId
     };
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/miniprogram/enterprise/orders/project`,
       method: 'POST',
       header: { 'Authorization': `Bearer ${this.data.token}`, 'Content-Type': 'application/json' },

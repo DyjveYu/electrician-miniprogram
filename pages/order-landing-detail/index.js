@@ -1,3 +1,4 @@
+const enterpriseSession = require('../../utils/enterpriseSession');
 // pages/order-landing-detail/index.js
 // 落地页订单详情（独立副本）—— 所有操作后留在本页刷新，不跳转其他页面
 const app = getApp();
@@ -64,7 +65,7 @@ Page({
     if (this._fetchingDetail) return;
     this._fetchingDetail = true;
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${this.data.orderId}`,
       method: 'GET',
       header: { 'Authorization': `Bearer ${app.globalData.token}` },
@@ -226,7 +227,7 @@ Page({
     const isPaid = order.status === 'pending';
     const cancelReason = isPaid ? '用户取消已支付订单' : '用户取消未支付订单';
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${this.data.orderId}/cancel`,
       method: 'PUT',
       header: { 'Authorization': `Bearer ${app.globalData.token}` },
@@ -268,7 +269,7 @@ Page({
       success: (res) => {
         if (!res.confirm) return;
         wx.showLoading({ title: '接单中...' });
-        wx.request({
+        enterpriseSession.request({
           url: `${app.globalData.baseUrl}/orders/${this.data.orderId}/take`,
           method: 'POST',
           header: { 'Authorization': `Bearer ${app.globalData.token}` },
@@ -299,7 +300,7 @@ Page({
       success: (res) => {
         if (!res.confirm) return;
         wx.showLoading({ title: '退单中...' });
-        wx.request({
+        enterpriseSession.request({
           url: `${app.globalData.baseUrl}/orders/${this.data.orderId}/withdraw`,
           method: 'POST',
           header: { 'Authorization': `Bearer ${app.globalData.token}` },
@@ -327,7 +328,7 @@ Page({
     if (this.data.completing) return;
     this.setData({ completing: true });
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${this.data.orderId}/complete`,
       method: 'POST',
       header: { 'Authorization': `Bearer ${app.globalData.token}` },
@@ -360,7 +361,7 @@ Page({
     this.setData({ updating: true });
 
     const content = this.data.updateContent.trim();
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${this.data.orderId}/update`,
       method: 'PUT',
       header: { 'Authorization': `Bearer ${app.globalData.token}` },
@@ -425,7 +426,7 @@ Page({
       return;
     }
     this.setData({ reviewing: true });
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${this.data.orderId}/review`,
       method: 'PUT',
       header: { 'Authorization': `Bearer ${app.globalData.token}` },
@@ -578,7 +579,7 @@ Page({
       wx.login({
         success: (res) => {
           if (res.code) {
-            wx.request({
+            enterpriseSession.request({
               url: `${app.globalData.baseUrl}/auth/code2session`,
               method: 'POST',
               data: { code: res.code },

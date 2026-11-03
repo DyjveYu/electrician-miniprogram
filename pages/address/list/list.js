@@ -1,3 +1,4 @@
+const enterpriseSession = require('../../../utils/enterpriseSession');
 // pages/address/list/list.js
 const app = getApp();
 Page({
@@ -28,7 +29,7 @@ Page({
     this.setData({ loading: true });
 
     const app = getApp();
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/addresses`,
       method: 'GET',
       header: {
@@ -119,7 +120,7 @@ Page({
   performDeleteAddress(addressId) {
     const app = getApp();
 
-    wx.request({
+    enterpriseSession.request({
       url: `${app.globalData.baseUrl}/addresses/${addressId}`,
       method: 'DELETE',
       header: {
