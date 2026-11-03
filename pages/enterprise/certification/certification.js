@@ -25,6 +25,7 @@ Page({
     region: ['', '', ''],
     customItem: '全部',
     licenseImagePath: '',
+    licenseImageUrl: '',
     continuingOrder: false,
     continuationMessage: '',
     checkingContinuation: false,
@@ -126,10 +127,7 @@ Page({
               wx.reLaunch({ url: '/pages/order/create/create' });
               return;
             }
-            this.setData({ continuationMessage: data.certStatus === 'pending' ? '资料审核中，通过后继续下单' : '资料尚未满足下单条件，可稍后重新查询' });
-            if (data.certStatus === 'pending' && this._pollAttempt++ < 4) {
-              this._pollTimer = setTimeout(() => this.loadCertificationInfo(), 1000);
-            }
+            this.setData({ continuationMessage: '资料尚未通过，请提交资料或重新查询' });
           }
           // 如果有认证记录，填充表单并切换到查看模式
           if (data && data.certStatus) {
@@ -148,7 +146,8 @@ Page({
                 data.city || '',
                 data.district || ''
               ],
-              licenseImagePath: data.licenseImage || ''
+              licenseImagePath: data.licenseImage || '',
+              licenseImageUrl: this.resolveLicenseImageUrl(data.licenseImage)
             }, () => {
               this.checkFormValid();
             });
@@ -212,7 +211,8 @@ Page({
       success(res) {
         const tempFilePath = res.tempFilePaths[0];
         that.setData({
-          licenseImagePath: tempFilePath
+          licenseImagePath: tempFilePath,
+          licenseImageUrl: that.resolveLicenseImageUrl(tempFilePath)
         });
         that.checkFormValid();
       },
@@ -228,14 +228,16 @@ Page({
   },
 
   // 预览营业执照图片
-  previewLicenseImage() {
-    const path = this.data.licenseImagePath;
-    if (!path) return;
+  resolveLicenseImageUrl(path) {
+    if (!path) return '';
+    return path.startsWith('/uploads/')
+      ? `${app.globalData.imageBaseUrl.replace(/\/$/, '')}${path}`
+      : path;
+  },
 
-    let url = path;
-    if (path.startsWith('/uploads/')) {
-      url = app.globalData.imageBaseUrl + path;
-    }
+  previewLicenseImage() {
+    const url = this.resolveLicenseImageUrl(this.data.licenseImagePath);
+    if (!url) return;
 
     wx.previewImage({
       urls: [url]
@@ -429,7 +431,7 @@ Page({
         licenseImage: licenseImagePath
       };
 
-      await new Promise((resolve, reject) => {
+      const submission = await new Promise((resolve, reject) => {
         wx.request({
           url: `${app.globalData.baseUrl}/miniprogram/enterprise/certification`,
           method: 'POST',
@@ -459,19 +461,23 @@ Page({
       });
 
       if (!this._current() || !this._visible) return;
+      const profile = submission?.data;
+      if (profile?.certStatus !== 'approved') throw new Error('认证结果尚未确认，请重新查询');
+      app.globalData.enterpriseCertification = profile;
       wx.hideLoading();
-      wx.showToast({ title: '提交成功', icon: 'success' });
+      wx.showToast({ title: '保存成功', icon: 'success' });
 
       // 切换到查看模式
       this.setData({
         mode: 'view',
-        certStatus: 'pending',
-        licenseImagePath: licenseImagePath
+        certStatus: profile.certStatus,
+        licenseImagePath: profile.licenseImage || licenseImagePath,
+        licenseImageUrl: this.resolveLicenseImageUrl(profile.licenseImage || licenseImagePath)
       });
 
-      if (this.data.continuingOrder && orderEntry.valid(app, this._entryId)) {
-        this._pollAttempt = 0;
-        this.loadCertificationInfo();
+      if (this.data.continuingOrder && orderEntry.consume(app, this._entryId)) {
+        this._entryId = null;
+        wx.reLaunch({ url: '/pages/order/create/create' });
         return;
       }
 

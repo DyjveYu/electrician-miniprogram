@@ -283,8 +283,17 @@ loadUserInfo() {
 
   // 导航到下单页面（企业用户）
   navigateToCreateOrder() {
+    this.navigateFromProfile('/pages/order/create/create');
+  },
+
+  // 保留微信返回的失败原因，避免入口跳转失败时毫无反馈。
+  navigateFromProfile(url) {
     wx.navigateTo({
-      url: '/pages/order/create/create'
+      url,
+      fail: (error) => {
+        console.error('[ProfileNavigation] 页面打开失败', { url, errMsg: error.errMsg });
+        wx.showToast({ title: '页面打开失败，请重试', icon: 'none' });
+      }
     });
   },
 
@@ -292,9 +301,9 @@ loadUserInfo() {
   handleEnterpriseCertification() {
     const status = this.data.enterpriseCertStatus;
     if (status === 'approved') {
-      wx.navigateTo({ url: '/pages/enterprise/certification/certification?mode=view' });
+      this.navigateFromProfile('/pages/enterprise/certification/certification?mode=view');
     } else {
-      wx.navigateTo({ url: '/pages/enterprise/certification/certification?mode=apply' });
+      this.navigateFromProfile('/pages/enterprise/certification/certification?mode=apply');
     }
   },
 
@@ -462,9 +471,7 @@ loadUserInfo() {
 
   // 导航到关于页面
   navigateToAbout() {
-    wx.navigateTo({
-      url: '/pages/about/about/about'
-    });
+    this.navigateFromProfile('/pages/about/about/about');
   },
 
   // 检查合作伙伴状态

@@ -6,38 +6,22 @@
   min-height: 100vh;
 }
 
-.header {
-  margin-bottom: 40rpx;
+.certification-result {
+  margin-bottom: 32rpx;
+  padding: 16rpx 0;
   text-align: center;
 }
 
-.title {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #172d25;
-  margin-bottom: 10rpx;
+.certification-result .pending-title {
+  color: #16835c;
+  margin-bottom: 0;
 }
 
-.subtitle {
+.application-tip {
+  margin-bottom: 32rpx;
   font-size: 28rpx;
   color: #687a71;
-}
-
-.status-tag {
-  display: inline-block;
-  padding: 6rpx 20rpx;
-  border-radius: 30rpx;
-  font-size: 24rpx;
-  color: #fff;
-}
-
-.status-tag.approved {
-  background-color: #16835c;
-}
-
-.status-tag.pending {
-  background-color: #956321;
-  color: #172d25;
+  text-align: center;
 }
 
 .form-container {
@@ -228,3 +212,5 @@
 .continuation-panel { padding: 24rpx; margin-top: 24rpx; background: var(--clean-soft); border: 2rpx solid var(--clean-line); border-radius: 22rpx; color: var(--clean-muted); word-break: break-all; }
 .continuation-panel button { width: 100%; margin-top: 16rpx; white-space: normal; background: var(--clean-green); color: #fff; }
 .continuation-panel button:last-child { background: var(--clean-mint); color: var(--clean-green); border-color: var(--clean-green); }
+
+.change-license-btn { margin: 16rpx 0 24rpx; width: 100%; background: var(--clean-mint); color: var(--clean-green); border: 2rpx solid var(--clean-line); border-radius: 22rpx; }
