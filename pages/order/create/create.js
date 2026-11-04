@@ -104,6 +104,7 @@ Page({
   },
 
   onShow() {
+    this._visible = true;
     const app = getApp();
     if (app.checkFrozenAndRedirect()) return;
     if (!this._current()) {
@@ -111,8 +112,18 @@ Page({
       wx.reLaunch({ url: '/pages/index/index' });
       return;
     }
+    if (this.data.userType === 'enterprise' && this._certNeedsRefresh) {
+      this._certNeedsRefresh = false;
+      this.loadEnterpriseCert();
+    }
     if (this.data.selectedAddress?.id) this.refreshSelectedAddress(this.data.selectedAddress.id);
     else this.loadAddresses({ initial: true });
+  },
+
+  onHide() {
+    this._visible = false;
+    this._certNeedsRefresh = true;
+    this._certQueryGeneration = (this._certQueryGeneration || 0) + 1;
   },
 
   onUnload() {
@@ -624,6 +635,7 @@ Page({
       data: payload,
       success: (res) => {
         if (!this._current()) return;
+        if (this.handleReturnedProfile(res?.data)) return;
         if (res && res.data && (res.data.code === 0 || res.data.code === 200)) {
           wx.showToast({ title: '正在支付', icon: 'none' });
           const orderId = res.data.data?.id || res.data.id;
@@ -660,14 +672,40 @@ Page({
 
   // ─── 企业多日工程 ────────────────────────────────────────────
 
-  // 加载企业认证信息（用于区校验）
+  // 资料打回只限制新建订单，不清除登录态。
+  handleReturnedProfile(body) {
+    if (!this._current() || body?.data?.reason !== 'ENTERPRISE_PROFILE_RETURNED') return false;
+    if (this._visible === false) return true;
+    if (this._certRedirectPending) return true;
+    this._certRedirectPending = true;
+    this.setData({ submitting: false, projectSubmitting: false });
+    wx.showModal({ title: '企业资料需重新提交',
+      content: `${body.data.returnReason || '企业资料已被打回'}。请前往企业认证页重新提交，通过后可继续下单。`,
+      confirmText: '前往认证', cancelText: '暂不处理', confirmColor: '#16835c',
+      success: result => {
+        if (!this._current() || this._visible === false) return;
+        if (result.confirm) {
+          const entry = orderEntry.begin(getApp());
+          wx.reLaunch({ url: `/pages/enterprise/certification/certification?orderEntry=${entry}` });
+        }
+      }, complete: () => { this._certRedirectPending = false; } });
+    return true;
+  },
+
+  // 加载企业认证信息（用于区校验及打回提示）。
   loadEnterpriseCert() {
     const app = getApp();
+    const generation = this._certQueryGeneration = (this._certQueryGeneration || 0) + 1;
     enterpriseSession.request({
       url: `${app.globalData.baseUrl}/miniprogram/enterprise/certification`,
       method: 'GET',
       header: { 'Authorization': `Bearer ${app.globalData.token}` },
       success: (res) => {
+        if (!this._current() || this._visible === false || generation !== this._certQueryGeneration) return;
+        if (res?.data?.data?.certStatus === 'returned') {
+          this.handleReturnedProfile({ data: { reason: 'ENTERPRISE_PROFILE_RETURNED', returnReason: res.data.data.returnReason } });
+          return;
+        }
         const ok = res?.data?.success === true || res?.data?.code === 0 || res?.data?.code === 200;
         if (ok && res.data.data && res.data.data.certStatus === 'approved') {
           if (!this._current()) return;
@@ -861,6 +899,7 @@ Page({
       data: payload,
       success: (res) => {
         if (!this._current()) return;
+        if (this.handleReturnedProfile(res?.data)) return;
         if (res && res.data && (res.data.code === 0 || res.data.code === 200)) {
           wx.showToast({ title: '创建成功，跳转支付', icon: 'none' });
           const orderId = res.data.data?.orderId || res.data.data?.id;

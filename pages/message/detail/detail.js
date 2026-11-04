@@ -4,13 +4,14 @@ const { MessageAPI } = require('../../../utils/api');
 Page({
   data: {
     messageId: '',
+    messageSource: '',
     message: null,
     loading: true
   },
 
   onLoad(options) {
     if (options.id) {
-      this.setData({ messageId: options.id });
+      this.setData({ messageId: options.id, messageSource: options.source || '' });
       this.loadMessageDetail();
     }
   },
@@ -18,7 +19,7 @@ Page({
   async loadMessageDetail() {
     this.setData({ loading: true });
     try {
-      const result = await MessageAPI.getMessageDetail(this.data.messageId);
+      const result = await MessageAPI.getMessageDetail(this.data.messageId, this.data.messageSource);
       if (result.code === 0 || result.code === 200 || result.success) {
         const message = result.data || result;
         const rawTime = message.createTime || message.published_at || message.created_at || '';
@@ -57,7 +58,7 @@ Page({
       return;
     }
     try {
-      await MessageAPI.markAsRead(this.data.messageId);
+      await MessageAPI.markAsRead(this.data.messageId, this.data.messageSource);
     } catch (error) {
       console.error('标记已读失败:', error);
     }

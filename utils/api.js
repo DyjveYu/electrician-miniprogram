@@ -469,15 +469,15 @@ class MessageAPI {
   /**
    * 获取消息详情
    */
-  static getMessageDetail(id) {
-    return API.get(`/messages/${id}`);
+  static getMessageDetail(id, source = '') {
+    return API.get(`/messages/${id}${source ? '?source=' + encodeURIComponent(source) : ''}`);
   }
 
   /**
    * 标记消息为已读
    */
-  static markAsRead(id) {
-    return API.put(`/messages/${id}/read`);
+  static markAsRead(id, source = '') {
+    return API.put(`/messages/${id}/read${source ? '?source=' + encodeURIComponent(source) : ''}`);
   }
 
   /**

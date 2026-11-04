@@ -21,7 +21,8 @@ Page({
       contactName: '',
       contactPhone: ''
     },
-    certStatus: '', // pending: 认证中, approved: 已认证
+    certStatus: '', // pending: 认证中, approved: 已认证, returned: 已打回
+    returnReason: '',
     submitDisabled: true,
     region: ['', '', ''],
     customItem: '全部',
@@ -135,6 +136,7 @@ Page({
             this.setData({
               mode: 'view',
               certStatus: data.certStatus,
+              returnReason: data.returnReason || '',
               formData: {
                 companyName: data.companyName || '',
                 creditCode: data.creditCode || '',
@@ -154,7 +156,7 @@ Page({
             });
           } else {
             // 无认证记录，保持申请模式
-            this.setData({ mode: 'apply', certStatus: '' });
+            this.setData({ mode: 'apply', certStatus: '', returnReason: '' });
           }
         } else {
           this.setData({ continuationMessage: '查询失败，请重新查询' });
@@ -199,7 +201,7 @@ Page({
 
   // 选择营业执照图片
   chooseLicenseImage() {
-    if (this.data.mode === 'view' && this.data.certStatus !== 'approved') {
+    if (this.data.mode === 'view' && !['approved', 'returned'].includes(this.data.certStatus)) {
       wx.showToast({ title: '认证中不可修改', icon: 'none' });
       return;
     }
@@ -406,6 +408,10 @@ Page({
       return;
     }
 
+    // 提交开始后，旧的查询响应不能覆盖本次保存结果。
+    this._queryGeneration++;
+    clearTimeout(this._pollTimer);
+    this.setData({ checkingContinuation: false });
     this.setData({ submitting: true });
     wx.showLoading({ title: '上传营业执照...', mask: true });
 
@@ -472,6 +478,7 @@ Page({
       this.setData({
         mode: 'view',
         certStatus: profile.certStatus,
+        returnReason: '',
         licenseImagePath: profile.licenseImage || licenseImagePath,
         licenseImageUrl: this.resolveLicenseImageUrl(profile.licenseImage || licenseImagePath)
       });

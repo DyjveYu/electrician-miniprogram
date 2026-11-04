@@ -143,13 +143,14 @@ Page({
   // 查看消息详情
   async viewMessageDetail(e) {
     const messageId = e.currentTarget.dataset.id;
+    const source = e.currentTarget.dataset.source || '';
     
     // 标记消息为已读
     try {
-      await MessageAPI.markAsRead(messageId);
+      await MessageAPI.markAsRead(messageId, source);
       // 更新本地消息状态
       const messages = this.data.messages.map(msg => {
-        if (msg.id === messageId) {
+        if (String(msg.id) === String(messageId) && (msg.messageSource || '') === source) {
           return { ...msg, is_read: 1 };
         }
         return msg;
@@ -162,7 +163,7 @@ Page({
     }
     
     wx.navigateTo({
-      url: `/pages/message/detail/detail?id=${messageId}`
+      url: `/pages/message/detail/detail?id=${messageId}&source=${encodeURIComponent(source)}`
     });
   },
 

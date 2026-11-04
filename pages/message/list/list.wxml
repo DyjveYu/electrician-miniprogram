@@ -14,7 +14,7 @@
 
   <!-- 消息列表 -->
   <view wx:if="{{!loading && messages.length > 0}}" class="message-list">
-    <view wx:for="{{messages}}" wx:key="id" class="message-item" bindtap="viewMessageDetail" data-id="{{item.id}}">
+    <view wx:for="{{messages}}" wx:key="messageKey" class="message-item" bindtap="viewMessageDetail" data-id="{{item.id}}" data-source="{{item.messageSource}}">
       <view class="message-icon">
         <view class="ui-icon-tile"><image class="ui-icon" src="/images/content-ui/{{currentTab === 'order' ? 'clipboard' : 'megaphone'}}.svg" mode="aspectFit" aria-hidden="true" /></view>
       </view>

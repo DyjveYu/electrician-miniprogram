@@ -214,3 +214,7 @@
 .continuation-panel button:last-child { background: var(--clean-mint); color: var(--clean-green); border-color: var(--clean-green); }
 
 .change-license-btn { margin: 16rpx 0 24rpx; width: 100%; background: var(--clean-mint); color: var(--clean-green); border: 2rpx solid var(--clean-line); border-radius: 22rpx; }
+
+.returned-notice { padding: 24rpx; margin-bottom: 32rpx; border-radius: 22rpx; background: #fff5eb; color: #75451e; font-size: 26rpx; line-height: 1.7; word-break: break-all; }
+.returned-title { font-size: 32rpx; font-weight: 600; margin-bottom: 12rpx; }
+.returned-reason { margin-bottom: 12rpx; white-space: pre-wrap; }
