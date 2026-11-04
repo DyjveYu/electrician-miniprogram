@@ -82,10 +82,10 @@ class API {
             app.hideLoading();
           }
           
-          const error = new Error(err.enterpriseFrozen || err.sessionChanged ? err.errMsg : '网络请求失败，请检查网络连接');
+          const error = new Error(err.enterpriseFrozen || err.enterpriseBlacklisted || err.sessionChanged ? err.errMsg : '网络请求失败，请检查网络连接');
           error.code = err.statusCode;
           error.data = err.data || {};
-          if (showError && !err.enterpriseFrozen && !err.sessionChanged) {
+          if (showError && !err.enterpriseFrozen && !err.enterpriseBlacklisted && !err.sessionChanged) {
             app.showToast(error.message);
           }
           reject(error);

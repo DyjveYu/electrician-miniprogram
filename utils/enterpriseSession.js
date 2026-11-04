@@ -22,12 +22,15 @@ function requestWith(method, options) {
       if (!current(session)) return stale();
       let body = res.data;
       if (typeof body === 'string') { try { body = JSON.parse(body); } catch (_) { body = null; } }
-      if (res.statusCode === 403 && body && body.data && body.data.reason === 'ENTERPRISE_FROZEN') {
+      const reason = body && body.data && body.data.reason;
+      if (res.statusCode === 403 && ['ENTERPRISE_FROZEN', 'ENTERPRISE_BLACKLISTED'].includes(reason)) {
+        const blacklisted = reason === 'ENTERPRISE_BLACKLISTED';
+        const message = blacklisted ? '您已被加入黑名单' : '账号已被冻结，请联系客服';
         // 先清会话，再通知调用方失败，阻止其成功处理及后来响应恢复旧数据。
         session.app.logout({ forceLogin: true });
         wx.hideLoading();
-        try { fail({ errMsg: '账号已被冻结，请联系客服', statusCode: 403, data: body.data, enterpriseFrozen: true }); }
-        finally { wx.showModal({ title: '账号已被冻结', content: '账号已被冻结，请联系客服', showCancel: false, confirmColor: '#16835c' }); }
+        try { fail({ errMsg: message, statusCode: 403, data: body.data, enterpriseFrozen: !blacklisted, enterpriseBlacklisted: blacklisted }); }
+        finally { wx.showModal({ title: blacklisted ? '您已被加入黑名单' : '账号已被冻结', content: message, showCancel: false, confirmColor: '#16835c' }); }
         return;
       }
       if (options.success) return options.success(res);
