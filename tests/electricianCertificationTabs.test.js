@@ -105,3 +105,24 @@ test('identity entry retries a failed status load and opens once status is known
   assert.equal(page.data.certificationLoadError, '');
   assert.equal(h.calls.navigate[0].url, '/pages/profile/certification/identity/identity');
 });
+
+test('a failed refresh locks the fee tab while saved certification can still be viewed', () => {
+  const { h, page, tab } = start();
+  page.applyRegion(['北京市', '北京市', '东城区']);
+  page.setData({ activeStep: 2, unlockedStep: 3, calloutFees: [30, 60, 90] });
+  page.nextFeeStep();
+  tab(3);
+  assert.equal(page.data.activeStep, 2);
+  h.calls.request[1].success({ statusCode: 503, data: { message: '接单区域的上门费配置暂不可用' } });
+  h.calls.request[1].complete();
+  assert.equal(page.data.calloutFees.length, 0);
+  assert.equal(page.data.unlockedStep, 2);
+  assert.equal(h.calls.toast.at(-1).title, '接单区域的上门费配置暂不可用');
+
+  const view = start({ status: 'approved', hourly_rate: '18.20', callout_fees_unavailable: true });
+  view.tab(3);
+  assert.equal(view.page.data.activeStep, 3);
+  assert.equal(view.page.data.certificationStatus, 'approved');
+  assert.equal(view.page.data.hourlyRate, '18.20');
+  assert.equal(view.page.data.calloutFeesUnavailable, true);
+});

@@ -1,11 +1,15 @@
 <!-- pages/profile/certification/certification.wxml -->
 <view class="container">
-  <view class="header">
+  <view class="certification-result" wx:if="{{mode === 'view' && certificationStatus === 'approved'}}">
+    <image class="pending-icon ui-icon" src="/images/content-ui/check-circle.svg" mode="aspectFit" aria-hidden="true" />
+    <view class="pending-title">认证已通过</view>
+  </view>
+  <view class="header" wx:else>
     <view class="title">电工认证</view>
     <view class="subtitle" wx:if="{{mode === 'apply'}}">请按顺序填写并提交认证</view>
-    <view class="subtitle" wx:if="{{mode === 'view'}}">
-      <text class="status-tag {{certificationStatus === 'approved' ? 'approved' : certificationStatus === 'rejected' ? 'rejected' : 'pending'}}">
-        {{certificationStatus === 'approved' ? '已认证' : certificationStatus === 'rejected' ? '未通过' : '待补充资料'}}
+    <view class="subtitle" wx:if="{{mode === 'view' && (certificationStatus === 'rejected' || certificationStatus === 'pending')}}">
+      <text class="status-tag {{certificationStatus === 'rejected' ? 'rejected' : 'pending'}}">
+        {{certificationStatus === 'rejected' ? '未通过' : '待补充资料'}}
       </text>
     </view>
   </view>
@@ -126,7 +130,7 @@
         <picker mode="date" fields="month" value="{{careerMonth || currentMonth}}" end="{{currentMonth}}" disabled="{{mode === 'view'}}" bindchange="editCareerMonth">
           <view class="form-input readonly-value">{{careerMonth || (mode === 'view' ? '未填写' : '请选择开始从业年月')}}</view>
         </picker>
-        <view class="tips" wx:if="{{careerMonth}}">从 {{careerLabel}} 开始从事电工工作{{careerYears != null ? '，从业 ' + careerYears + ' 年' : ''}}</view>
+        <view class="career-summary" wx:if="{{careerMonth}}">从 {{careerLabel}} 开始从事电工工作{{careerYears != null ? '，从业 ' + careerYears + ' 年' : ''}}</view>
         <view class="tips" wx:if="{{careerError}}">{{careerError}}</view>
       </view>
       <view class="tips">接单用户对所填写的信息，按照国家法律法规填写人对信息的真实性承担法律责任。</view>
@@ -165,15 +169,15 @@
         <view wx:else class="form-input readonly-value">{{dailyRate || '未填写'}}</view>
         <view wx:if="{{mode === 'apply'}}" class="tips">请输入 145.6–8000 元/日。</view>
       </view>
-      <view class="notice-link" bindtap="openWageReference">非全日制工作小时最低工资标准参考</view>
+      <view class="notice-link wage-reference-link" bindtap="openWageReference">点击查看非全日制工作小时最低工资标准参考</view>
       <view class="form-group">
         <view class="form-label">上门费（北京时间）</view>
-        <block wx:if="{{calloutFees.length === 3}}">
+        <view class="callout-fee-list" wx:if="{{calloutFees.length === 3}}">
           <view class="readonly-value form-input">05:00–17:00　{{calloutFees[0]}} 元</view>
           <view class="readonly-value form-input">17:00–22:00　{{calloutFees[1]}} 元</view>
           <view class="readonly-value form-input">22:00–次日 05:00　{{calloutFees[2]}} 元</view>
-        </block>
-        <view wx:else class="form-input readonly-value">未填写</view>
+        </view>
+        <view wx:else class="form-input readonly-value">{{calloutFeesUnavailable ? '上门费配置暂不可用' : '未填写'}}</view>
       </view>
       <view class="tips">接单用户对所填写的信息，按照国家法律法规填写人对信息的真实性承担法律责任。</view>
     <!-- 认证须知勾选 -->

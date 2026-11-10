@@ -31,8 +31,15 @@
   color: #fff;
 }
 
-.status-tag.approved {
-  background-color: #16835c;
+.certification-result {
+  margin-bottom: 32rpx;
+  padding: 16rpx 0;
+  text-align: center;
+}
+
+.certification-result .pending-title {
+  color: #16835c;
+  margin-bottom: 0;
 }
 
 .status-tag.rejected {
@@ -432,4 +439,21 @@
   background: #fff;
   font-weight: 600;
   opacity: 1;
+}
+
+.career-summary {
+  margin-top: 12rpx;
+  color: var(--clean-muted);
+  font-size: 26rpx;
+  line-height: 1.6;
+}
+
+.wage-reference-link {
+  margin-bottom: 20rpx;
+}
+
+.callout-fee-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
 }

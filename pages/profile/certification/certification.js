@@ -37,6 +37,7 @@ Page({
     hourlyRate: '',
     dailyRate: '',
     calloutFees: [],
+    calloutFeesUnavailable: false,
     checkingRegion: false,
     certificationLoaded: false,
     certificationLoading: false,
@@ -184,6 +185,7 @@ Page({
             hourlyRate: cert?.hourly_rate == null ? '' : String(cert.hourly_rate),
             dailyRate: cert?.daily_rate == null ? '' : String(cert.daily_rate),
             calloutFees: cert?.callout_fees || [],
+            calloutFeesUnavailable: cert?.callout_fees_unavailable === true,
             reapply: false
           }, () => {
             this.checkFormValid();
@@ -532,7 +534,8 @@ Page({
     const request = {};
     this.regionRequest = request;
     const isCurrent = () => this.isCurrent() && this.regionRequest === request;
-    this.setData({ checkingRegion: true });
+    this.invalidateFrom(2);
+    this.setData({ checkingRegion: true, calloutFees: [] }, () => this.checkFormValid());
     wx.request({
       url: `${getApp().globalData.baseUrl}/electricians/certification/region`,
       method: 'POST',
@@ -541,7 +544,7 @@ Page({
       success: res => {
         if (!isCurrent()) return;
         if (res.data?.success && res.data.data?.callout_fees?.length === 3) {
-          this.setData({ calloutFees: res.data.data.callout_fees }, () => {
+          this.setData({ calloutFees: res.data.data.callout_fees, calloutFeesUnavailable: false }, () => {
             if (this.data.activeStep === 2) this.unlockStep(3);
             this.checkFormValid();
           });
@@ -550,7 +553,8 @@ Page({
         }
       },
       fail: () => {
-        if (isCurrent()) wx.showToast({ title: '接单区域校验失败，请重试', icon: 'none' });
+        if (!isCurrent()) return;
+        wx.showToast({ title: '接单区域校验失败，请重试', icon: 'none' });
       },
       complete: () => { if (isCurrent()) this.setData({ checkingRegion: false }); }
     });
