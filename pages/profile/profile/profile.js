@@ -138,7 +138,7 @@ loadUserInfo() {
         // 状态映射（前端展示用）
         const statusMap = {
           unverified: '未认证',
-          pending: '认证中',
+          pending: '待补充资料',
           approved: '已认证',
           rejected: '已驳回'
         };
@@ -365,7 +365,7 @@ loadUserInfo() {
   const userInfo = this.data.userInfo || {};
   const status = userInfo.certificationStatus || 'unverified';
 
-  // 逻辑：已认证（approved）去查看；审核中/未认证/驳回，进入申请页面（apply）
+  // 认证页会刷新状态，已认证可查看四段资料。
   if (status === 'approved') {
     wx.navigateTo({ url: '/pages/profile/certification/certification?mode=view' });
   } else {
@@ -412,9 +412,9 @@ loadUserInfo() {
     if (this.data.userInfo.isElectrician) {
       return '已认证';
     } else if (this.data.userInfo.certificationStatus === 'pending') {
-      return '审核中';
+      return '待补充资料';
     } else if (this.data.userInfo.certificationStatus === 'rejected') {
-      return '审核未通过';
+      return '未通过';
     } else {
       return '未认证';
     }

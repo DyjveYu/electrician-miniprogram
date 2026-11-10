@@ -1,3 +1,4 @@
+<wxs module="workNumber" src="../../../utils/workNo.wxs" />
 <!--pages/profile/profile/profile.wxml-->
 <view class="container">
   <!-- 冻结提示 -->
@@ -26,7 +27,7 @@
       <view class="user-info">
 
          <text class="nickname">{{displayName}}</text>
-        <text wx:if="{{currentRole === 'electrician' && electricianInfo && electricianInfo.work_no}}" class="work-no">工号：{{electricianInfo.work_no}}</text>
+        <text wx:if="{{currentRole === 'electrician' && electricianInfo && electricianInfo.work_no}}" class="work-no">工号：{{workNumber.display(electricianInfo.work_no)}}</text>
        <!-- 电工认证状态：对所有用户可见，用 certificationStatusText 显示当前状态 -->
 
       </view>

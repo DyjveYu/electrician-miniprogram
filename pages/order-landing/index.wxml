@@ -1,3 +1,4 @@
+<wxs module="workNumber" src="../../utils/workNo.wxs" />
 <view class="landing-container">
   <!-- ====== 加载中 ====== -->
   <view class="loading-box" wx:if="{{!loggedIn && !loginError}}">
@@ -188,7 +189,7 @@
       </view>
       <view wx:if="{{isDirected}}" class="directed-detail">
         <view class="workno-search">
-          <input placeholder="输入电工工号（如 37020010）"
+          <input placeholder="输入6位或8位电工工号"
                  value="{{workNo}}"
                  bindinput="onWorkNoInput"
                  maxlength="8"
@@ -198,11 +199,11 @@
                   type="primary"
                   bindtap="searchElectrician"
                   loading="{{searchingElectrician}}"
-                  disabled="{{workNo.length < 8}}">搜索</button>
+                  disabled="{{searchingElectrician || (workNo.length !== 6 && workNo.length !== 8)}}">搜索</button>
         </view>
         <view wx:if="{{searchedElectrician}}" class="electrician-card">
           <text class="electrician-name">{{searchedElectrician.name}}</text>
-          <text class="electrician-wn">工号 {{searchedElectrician.workNo}}</text>
+          <text class="electrician-wn">工号 {{workNumber.display(searchedElectrician.workNo)}}</text>
         </view>
         <view wx:elif="{{searchEmpty}}" class="search-empty">未找到该工号对应的电工</view>
         <view wx:if="{{searchedElectrician}}" class="directed-hint">

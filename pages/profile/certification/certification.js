@@ -31,9 +31,16 @@ Page({
     idCardDraft: null,
     idCardUpdateMatches: false,
     savedIdCard: {},
-    detailsStep: false,
+    steps: ['基本信息', '业务信息', '接单区域', '工费信息'],
+    activeStep: 0,
+    unlockedStep: 0,
+    hourlyRate: '',
+    dailyRate: '',
+    calloutFees: [],
+    checkingRegion: false,
     certificationLoaded: false,
-    regionStep: false,
+    certificationLoading: false,
+    certificationLoadError: '',
     licenses: [],
     licenseOptions: licenseTypes,
     careerMonth: '',
@@ -112,8 +119,9 @@ Page({
 
   // 加载认证信息
   loadCertificationInfo() {
+    if (!this.isCurrent() || this.data.certificationLoading) return;
     const app = getApp();
-
+    this.setData({ certificationLoaded: false, certificationLoading: true, certificationLoadError: '' });
     wx.showLoading({
       title: '加载中',
     });
@@ -126,7 +134,8 @@ Page({
       },
       success: (res) => {
         if (!this.isCurrent()) return;
-        const ok = res?.data?.success === true || res?.data?.code === 0 || res?.data?.code === 200;
+        const ok = res.statusCode >= 200 && res.statusCode < 300
+          && (res?.data?.success === true || res?.data?.code === 0 || res?.data?.code === 200);
         if (ok) {
           const data = res?.data?.data || {};
           // 兼容两种返回结构：{ certification } 或直接返回认证实体 / { status: 'none' }
@@ -171,22 +180,25 @@ Page({
             careerMonth: cert?.career_started_month || '',
             careerYears: cert?.career_years ?? null,
             businessRevision: cert?.business_revision ?? 0,
-            sameIdentity: cert?.license_invalidated_after_approval === true,
+            sameIdentity: cert?.license_invalidated_after_approval === true || cert?.legacy_identity_locked === true,
+            hourlyRate: cert?.hourly_rate == null ? '' : String(cert.hourly_rate),
+            dailyRate: cert?.daily_rate == null ? '' : String(cert.daily_rate),
+            calloutFees: cert?.callout_fees || [],
             reapply: false
           }, () => {
             this.checkFormValid();
             this.loadLicenseThumbnails();
           });
+        } else {
+          this.setData({ certificationLoadError: res?.data?.message || '认证资料加载失败，请重试' });
         }
       },
       fail: () => {
         if (!this.isCurrent()) return;
-        wx.showToast({
-          title: '加载失败',
-          icon: 'none'
-        });
+        this.setData({ certificationLoadError: '无法连接认证服务，请检查网络后重试' });
       },
       complete: () => {
+        if (this.isCurrent()) this.setData({ certificationLoading: false });
         wx.hideLoading();
       }
     });
@@ -194,6 +206,7 @@ Page({
 
   // 工作类型多选处理
   onWorkTypesChange(e) {
+    this.invalidateFrom(1);
     const values = e.detail.value; // 获取选中的值数组
 
     this.setData({
@@ -224,17 +237,17 @@ Page({
 
   // 地区选择器变更
   bindRegionChange(e) {
-    this.setData({
-      region: e.detail.value
-    });
+    this.applyRegion(e.detail.value);
+  },
 
-    // 更新服务区域字段
-    const serviceArea = e.detail.value.join('');
+  applyRegion(region) {
+    if (!this.isCurrent() || this.data.mode !== 'apply' || this.data.submitting) return;
+    if (region.join(',') === this.data.region.join(',')) return;
+    this.regionRequest = null;
+    this.invalidateFrom(2);
     this.setData({
-      'formData.serviceArea': serviceArea
+      region, 'formData.serviceArea': region.join(''), calloutFees: [], checkingRegion: false
     });
-
-    this.checkFormValid();
   },
 
   // 获取当前位置
@@ -262,12 +275,7 @@ Page({
                 addressInfo.district || ''
               ];
 
-              this.setData({
-                region: region,
-                'formData.serviceArea': region.join('')
-              });
-
-              this.checkFormValid();
+              this.applyRegion(region);
             }
           },
           complete: () => {
@@ -287,18 +295,23 @@ Page({
 
   // 跳转至身份证上传页面
   navigateToIdentity() {
-    if (!this.data.certificationLoaded || !this.isCurrent() || this.data.submitting) return;
+    if (!this.isCurrent() || this.data.submitting) return;
+    if (!this.data.certificationLoaded) {
+      if (!this.data.certificationLoading) this.loadCertificationInfo();
+      return;
+    }
     const readOnly = this.data.mode === 'view' && this.data.certificationStatus !== 'approved';
     wx.navigateTo({
       url: '/pages/profile/certification/identity/identity',
       events: {
         acceptDataFromIdentityPage: data => {
           if (!this.isCurrent() || readOnly) return;
+          this.invalidateFrom(0);
           const { realName, idCard } = this.data.formData;
           const fields = {
             idCardDraft: data,
             idCardUpdateMatches: data.name === realName && data.id === idCard.toUpperCase(),
-            detailsStep: false
+            activeStep: 0
           };
           this.setData(fields, () => this.checkFormValid());
         }
@@ -314,12 +327,37 @@ Page({
     });
   },
 
-  nextCertificationStep() {
-    if (this.data.idCardDraft || this.data.sameIdentity || this.data.mode === 'view') this.setData({ detailsStep: true });
+  invalidateFrom(step) {
+    if (this.data.mode === 'apply' && this.data.unlockedStep > step) {
+      this.setData({ unlockedStep: step });
+    }
   },
 
-  previousCertificationStep() {
-    this.setData({ detailsStep: false });
+  selectStep(e) {
+    const step = Number(e.currentTarget.dataset.step);
+    if (!Number.isInteger(step) || step < 0 || step >= this.data.steps.length || this.data.submitting) return;
+    if (this.data.mode === 'apply' && step > this.data.unlockedStep) return;
+    this.setData({ activeStep: step });
+  },
+
+  unlockStep(step) {
+    this.setData({ activeStep: step, unlockedStep: Math.max(step, this.data.unlockedStep) });
+  },
+
+  nextCertificationStep() {
+    if (!this.data.certificationLoaded || this.data.mode !== 'apply' || this.data.activeStep !== 0 || this.data.submitting) return;
+    const { idCardDraft, sameIdentity, savedIdCard, formData } = this.data;
+    const today = new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 10);
+    const savedValid = sameIdentity && (savedIdCard.longTerm || (savedIdCard.expiresOn && savedIdCard.expiresOn >= today));
+    if ((!idCardDraft && !savedValid) || (sameIdentity && idCardDraft && !this.data.idCardUpdateMatches)) {
+      wx.showToast({ title: '请上传与本人认证资料一致的有效身份证', icon: 'none' });
+      return;
+    }
+    if (!/^1[3-9]\d{9}$/.test(formData.phone)) {
+      wx.showToast({ title: '请核对登录手机号', icon: 'none' });
+      return;
+    }
+    this.unlockStep(1);
   },
 
   cancelIdCardUpdate() {
@@ -371,6 +409,7 @@ Page({
     if (this.data.mode !== 'apply' || this.data.submitting) return;
     const current = this.data.licenses;
     const selected = event.detail.value;
+    this.invalidateFrom(1);
     const licenses = licenseTypes.filter(type => selected.includes(type.license_type))
       .map(type => current.find(item => item.license_type === type.license_type) || { ...type });
     this.setData({ licenses, licenseOptions: licenseTypes.map(type => ({
@@ -379,6 +418,7 @@ Page({
   },
 
   editLicense(event) {
+    this.invalidateFrom(1);
     const { index, field } = event.currentTarget.dataset;
     this.setData({ [`licenses[${index}].${field}`]: event.detail.value }, () => this.checkFormValid());
   },
@@ -390,6 +430,7 @@ Page({
       success: res => {
         const index = this.data.licenses.findIndex(row => row.license_type === type);
         if (!this.isCurrent() || this.data.submitting || index < 0) return;
+        this.invalidateFrom(1);
         this.setData({ [`licenses[${index}].localPhoto`]: res.tempFilePaths[0] }, () => this.checkFormValid());
       }
     });
@@ -437,11 +478,12 @@ Page({
   },
 
   editCareerMonth(event) {
+    this.invalidateFrom(1);
     this.setData({ careerMonth: event.detail.value }, () => this.checkFormValid());
   },
 
   checkFormValid() {
-    const { licenses, careerMonth, idCardDraft, sameIdentity, formData, workTypes, region, noticeAgreed } = this.data;
+    const { licenses, careerMonth, idCardDraft, sameIdentity, formData, workTypes, noticeAgreed } = this.data;
     const id = idCardDraft?.id || (sameIdentity ? formData.idCard : '');
     const current = currentMonth();
     const birth = /^(?:[1-9]\d{5})(\d{4})(0[1-9]|1[0-2])\d{5}[\dXx]$/.exec(id);
@@ -462,20 +504,70 @@ Page({
       careerError: this.data.mode === 'apply' && careerMonth && !monthValid
         ? (earliest ? '请选择满18周岁至当前月份之间的年月' : '无法确认出生年月，请核对身份证资料') : '',
       businessValid,
-      submitDisabled: !(businessValid && formData.phone && region[0] && noticeAgreed)
+      submitDisabled: !(businessValid && noticeAgreed && this.data.calloutFees.length === 3
+        && this.validRate(this.data.hourlyRate, 18.2, 1000) && this.validRate(this.data.dailyRate, 145.6, 8000))
     });
   },
 
   nextRegionStep() {
-    if (this.data.mode === 'view' || this.data.businessValid) {
-      this.setData({ regionStep: true });
+    if (this.data.mode !== 'apply' || this.data.activeStep !== 1 || this.data.submitting) return;
+    if (this.data.businessValid) {
+      this.unlockStep(2);
     } else {
       wx.showToast({ title: this.data.careerError || '请补全证书和从业年月', icon: 'none' });
     }
   },
 
-  previousRegionStep() {
-    if (!this.data.submitting) this.setData({ regionStep: false });
+  nextFeeStep() {
+    if (!this.isCurrent() || this.data.mode !== 'apply' || this.data.activeStep !== 2 || this.data.checkingRegion || this.data.submitting) return;
+    const [province, city, district] = this.data.region;
+    if ([province, city, district].some(value => !value || value === '全部')) {
+      wx.showToast({ title: '请选择完整的接单区域', icon: 'none' });
+      return;
+    }
+    if ([province, city, district].some(value => /香港|澳门|台湾/.test(value))) {
+      wx.showToast({ title: '目前香港、澳门、台湾业务未开通', icon: 'none' });
+      return;
+    }
+    const request = {};
+    this.regionRequest = request;
+    const isCurrent = () => this.isCurrent() && this.regionRequest === request;
+    this.setData({ checkingRegion: true });
+    wx.request({
+      url: `${getApp().globalData.baseUrl}/electricians/certification/region`,
+      method: 'POST',
+      header: { Authorization: `Bearer ${this.session.token}` },
+      data: { province, city, district },
+      success: res => {
+        if (!isCurrent()) return;
+        if (res.data?.success && res.data.data?.callout_fees?.length === 3) {
+          this.setData({ calloutFees: res.data.data.callout_fees }, () => {
+            if (this.data.activeStep === 2) this.unlockStep(3);
+            this.checkFormValid();
+          });
+        } else {
+          wx.showToast({ title: res.data?.message || '接单区域校验失败', icon: 'none' });
+        }
+      },
+      fail: () => {
+        if (isCurrent()) wx.showToast({ title: '接单区域校验失败，请重试', icon: 'none' });
+      },
+      complete: () => { if (isCurrent()) this.setData({ checkingRegion: false }); }
+    });
+  },
+
+  validRate(value, min, max) {
+    return /^\d+(?:\.\d{1,2})?$/.test(value) && Number(value) >= min && Number(value) <= max;
+  },
+
+  editRate(e) {
+    const field = e.currentTarget.dataset.field;
+    if (this.data.mode !== 'apply' || this.data.submitting || !['hourlyRate', 'dailyRate'].includes(field)) return;
+    this.setData({ [field]: e.detail.value }, () => this.checkFormValid());
+  },
+
+  openWageReference() {
+    wx.navigateTo({ url: '/pages/profile/certification/notice/notice?type=wage' });
   },
 
   uploadLicensePhoto(filePath, type) {
@@ -497,8 +589,9 @@ Page({
   async submitCertification() {
     if (this.data.submitting || !this.isCurrent() || this.data.mode !== 'apply') return;
     this.checkFormValid();
-    const { submitDisabled, regionStep, region, licenses, reapply, idCardDraft, businessRevision, careerMonth, workTypes } = this.data;
-    if (submitDisabled || !regionStep || region.some(item => !item || item === '全部')) {
+    const { submitDisabled, activeStep, unlockedStep, region, licenses, reapply, idCardDraft,
+      businessRevision, careerMonth, workTypes, hourlyRate, dailyRate } = this.data;
+    if (submitDisabled || activeStep !== 3 || unlockedStep !== 3) {
       wx.showToast({ title: '请完善认证信息后再提交', icon: 'none' });
       return;
     }
@@ -520,7 +613,8 @@ Page({
           work_types: workTypes.join(','),
           province: region[0], city: region[1], district: region[2],
           id_card_draft: idCardDraft?.draftId, business_revision: businessRevision,
-          career_started_month: careerMonth, licenses: rows
+          career_started_month: careerMonth, licenses: rows,
+          hourly_rate: Number(hourlyRate), daily_rate: Number(dailyRate)
         },
         success: res => {
           if (res.data?.success && res.data.data) resolve(res.data);
@@ -530,10 +624,11 @@ Page({
       }));
       if (!this.isCurrent()) return;
       this.setData({
-        mode: 'view', detailsStep: false, regionStep: false, reapply: false,
+        mode: 'view', activeStep: 0, unlockedStep: 0, reapply: false,
         certificationStatus: result.data.status,
         rejectReason: result.data.reject_reason || '', idCardDraft: null
       });
+      if (result.data.status === 'approved') wx.showToast({ title: '认证已通过', icon: 'success' });
       this.loadCertificationInfo();
     } catch (error) {
       if (this.isCurrent()) wx.showModal({ title: '提交失败', content: error.message, showCancel: false });
@@ -546,9 +641,9 @@ Page({
   },
 
   reapplyCertification() {
-    if (this.data.certificationStatus !== 'rejected' || this.data.submitting) return;
+    if (!['rejected', 'pending'].includes(this.data.certificationStatus) || this.data.submitting) return;
     this.setData({
-      mode: 'apply', detailsStep: false, regionStep: false, reapply: true,
+      mode: 'apply', activeStep: 0, unlockedStep: 0, reapply: true, noticeAgreed: false,
       licenses: this.data.licenses.filter(row => licenseTypes.some(type => type.license_type === row.license_type))
         .map(row => row.legacy && row.certificate_number?.toUpperCase() === 'T' + this.data.formData.idCard.toUpperCase()
           ? { ...row, certificate_number: '' } : row)

@@ -427,21 +427,26 @@ Page({
   },
 
   onDirectedToggle(e) {
-    this.setData({ isDirected: e.detail.value, workNo: '', searchedElectrician: null, searchEmpty: false });
+    this.workNoSearch = null;
+    this.setData({ isDirected: e.detail.value, workNo: '', searchedElectrician: null, searchEmpty: false, searchingElectrician: false });
     this.updateSubmitEnable();
   },
 
   onWorkNoInput(e) {
-    this.setData({ workNo: e.detail.value, searchedElectrician: null, searchEmpty: false });
+    this.workNoSearch = null;
+    this.setData({ workNo: e.detail.value, searchedElectrician: null, searchEmpty: false, searchingElectrician: false });
     this.updateSubmitEnable();
   },
 
   searchElectrician() {
     const workNo = (this.data.workNo || '').trim();
-    if (workNo.length < 8) {
-      wx.showToast({ title: '请输入完整工号（8位）', icon: 'none' });
+    if (this.data.searchingElectrician) return;
+    if (!/^(?:\d{6}|\d{8})$/.test(workNo)) {
+      wx.showToast({ title: '请输入6位或8位电工工号', icon: 'none' });
       return;
     }
+    const search = {};
+    this.workNoSearch = search;
     this.setData({ searchingElectrician: true, searchedElectrician: null, searchEmpty: false });
     const app = getApp();
     enterpriseSession.request({
@@ -449,6 +454,7 @@ Page({
       method: 'GET',
       data: { workNo },
       success: (res) => {
+        if (this.workNoSearch !== search) return;
         this.setData({ searchingElectrician: false });
         if (res.data && (res.data.code === 0 || res.data.code === 200)) {
           const electrician = res.data.data?.electrician || null;
@@ -463,6 +469,7 @@ Page({
         this.updateSubmitEnable();
       },
       fail: () => {
+        if (this.workNoSearch !== search) return;
         this.setData({ searchingElectrician: false, searchEmpty: true });
         wx.showToast({ title: '搜索失败，请重试', icon: 'none' });
       }

@@ -1,3 +1,4 @@
+<wxs module="workNumber" src="../../../utils/workNo.wxs" />
 <!--pages/order/detail/detail.wxml-->
 <view class="container">
   <view wx:if="{{!loading && order}}" class="content-wrapper">
@@ -113,7 +114,7 @@
       <view class="electrician-item" wx:for="{{order.electricians}}" wx:key="electricianId">
         <view class="electrician-info">
           <text class="electrician-name">{{item.name}}</text>
-          <text class="electrician-workno">工号：{{item.workNo}}</text>
+          <text class="electrician-workno">工号：{{workNumber.display(item.workNo)}}</text>
         </view>
         <view class="electrician-phone-icon" wx:if="{{item.phone}}" data-phone="{{item.phone}}" bindtap="makePhoneCall">
           <image class="phone-icon ui-icon" src="/images/content-ui/phone.svg" mode="aspectFit" aria-hidden="true" />

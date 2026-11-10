@@ -1,3 +1,4 @@
+<wxs module="workNumber" src="../../../utils/workNo.wxs" />
 <!--pages/enterprise/project-review/project-review.wxml-->
 <view class="container">
   <view wx:if="{{!loading && electricians.length > 0}}" class="content-wrapper">
@@ -14,7 +15,7 @@
       <view class="card-header">
         <view class="electrician-info">
           <text class="name">{{item.name}}</text>
-          <text class="workno">工号：{{item.workNo}}</text>
+          <text class="workno">工号：{{workNumber.display(item.workNo)}}</text>
         </view>
         <view class="status-tag {{item.status}}">
           <text>{{item.statusText}}</text>

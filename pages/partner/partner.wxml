@@ -1,3 +1,4 @@
+<wxs module="workNumber" src="../../utils/workNo.wxs" />
 <!-- pages/partner/partner.wxml -->
 <view class="container">
   <!-- 加载中 -->
@@ -60,7 +61,7 @@
         </view>
         <view class="elec-detail">
           <text class="elec-phone">{{item.phone}}</text>
-          <text class="elec-wn">工号 {{item.workNo}}</text>
+          <text class="elec-wn">工号 {{workNumber.display(item.workNo)}}</text>
         </view>
       </view>
     </view>
