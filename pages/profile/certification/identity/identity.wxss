@@ -114,6 +114,7 @@
   width: 32rpx;
   height: 32rpx;
   margin-right: 10rpx;
+  flex-shrink: 0;
 }
 .shield-icon:empty::before {
   content: '🛡️';
@@ -124,6 +125,7 @@
 
 .security-tip text {
   font-size: 24rpx;
+  line-height: 1.5;
   color: #687a71;
 }
 
@@ -158,12 +160,5 @@
   box-shadow: none;
 }
 
-.privacy-tip {
-  font-size: 22rpx;
-  color: #687a71;
-  text-align: center;
-}
-
-
 /* UI1.1：页面布局及状态精调。 */
-.header { margin-bottom: 32rpx; } .upload-card { box-sizing: border-box; border-radius: 24rpx; background: #f5f7f5; } .camera-icon { opacity: 1; width: 64rpx; height: 64rpx; } .camera-icon:empty::before, .shield-icon:empty::before { content: none; } .security-tip text, .privacy-tip { color: #687a71; } .example-list { flex-wrap: wrap; gap: 20rpx; } .example-item { flex: 1; min-width: 120rpx; } .confirm-btn { height: auto; padding: 20rpx 24rpx; line-height: 1.6; background: #16835c; color: #fff; border-radius: 22rpx; } .confirm-btn.disabled { background: #16835c; color: #fff; opacity: .5; }
+.header { margin-bottom: 32rpx; } .upload-card { box-sizing: border-box; border-radius: 24rpx; background: #f5f7f5; } .camera-icon { opacity: 1; width: 64rpx; height: 64rpx; } .camera-icon:empty::before, .shield-icon:empty::before { content: none; } .example-list { flex-wrap: wrap; gap: 20rpx; } .example-item { flex: 1; min-width: 120rpx; } .confirm-btn { height: auto; padding: 20rpx 24rpx; line-height: 1.6; background: #16835c; color: #fff; border-radius: 22rpx; } .confirm-btn.disabled { background: #16835c; color: #fff; opacity: .5; }

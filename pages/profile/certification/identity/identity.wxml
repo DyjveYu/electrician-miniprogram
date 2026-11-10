@@ -20,7 +20,7 @@
       <block wx:if="{{displayFront}}">
         <image class="preview-image" src="{{displayFront}}" mode="aspectFill"></image>
         <view class="re-upload-mask">
-          <text>点击重新上传</text>
+          <text wx:if="{{!readOnly}}">点击重新选择</text>
         </view>
       </block>
       <block wx:else>
@@ -37,7 +37,7 @@
       <block wx:if="{{displayBack}}">
         <image class="preview-image" src="{{displayBack}}" mode="aspectFill"></image>
         <view class="re-upload-mask">
-          <text>点击重新上传</text>
+          <text wx:if="{{!readOnly}}">点击重新选择</text>
         </view>
       </block>
       <block wx:else>
@@ -55,17 +55,16 @@
     <view class="status-icon">✓</view>
     <view class="status-text">
       <text class="status-title">图片已选择</text>
-      <text class="status-desc">点击下方"确认"返回认证页面</text>
+      <text class="status-desc">点击下方「上传」开始识别</text>
     </view>
   </view>
 
   <view class="security-tip">
     <image class="shield-icon" src="/images/content-ui/shield-check.svg" mode="aspectFit"></image>
-    <text>系统将对信息加密，实时保障信息安全</text>
+    <text>证件信息仅用于身份验证，仅向本人及有权限的管理人员展示。我们依照隐私政策保护您的个人信息。</text>
   </view>
 
-  <view class="footer">
-    <button class="confirm-btn {{canSubmit ? '' : 'disabled'}}" bindtap="submit" disabled="{{!canSubmit}}">确认</button>
-    <view class="privacy-tip">信息仅用于身份验证，我们依照隐私政策保护您的个人信息</view>
+  <view class="footer" wx:if="{{!readOnly}}">
+    <button class="confirm-btn" bindtap="submit" loading="{{uploading}}" disabled="{{uploading || !idCardFront || !idCardBack}}">上传</button>
   </view>
 </view>

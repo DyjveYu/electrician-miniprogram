@@ -92,6 +92,13 @@
   box-sizing: border-box;
 }
 
+.readonly-value {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+}
+
 .placeholder {
   color: #687a71;
 }

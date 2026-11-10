@@ -22,6 +22,11 @@ Page({
     customItem: '全部',
     idCardFrontPath: '',
     idCardBackPath: '',
+    idCardDraft: null,
+    idCardUpdateMatches: false,
+    savedIdCard: {},
+    detailsStep: false,
+    certificationLoaded: false,
     certificatePath: '',
     reapply: false,
     submitting: false,
@@ -62,6 +67,8 @@ Page({
   },
 
   onLoad(options) {
+    const { token, userInfo } = getApp().globalData;
+    this.session = { token, userId: userInfo?.id };
     // 设置页面模式：申请认证或查看认证
     if (options.mode) {
       this.setData({ mode: options.mode });
@@ -75,14 +82,16 @@ Page({
       });
     }
 
-    // 如果是查看模式，加载认证信息
-    if (this.data.mode === 'view') {
-      this.loadCertificationInfo();
-    }
-  },
-  onShow() {
-    // 每次进入页面尝试刷新认证信息，避免状态滞留
     this.loadCertificationInfo();
+  },
+
+  onUnload() {
+    this.closed = true;
+  },
+
+  isCurrent() {
+    const { token, userInfo } = getApp().globalData;
+    return !this.closed && this.session.token === token && this.session.userId === userInfo?.id;
   },
 
   // 加载认证信息
@@ -100,6 +109,7 @@ Page({
         'Authorization': `Bearer ${app.globalData.token}`
       },
       success: (res) => {
+        if (!this.isCurrent()) return;
         const ok = res?.data?.success === true || res?.data?.code === 0 || res?.data?.code === 200;
         if (ok) {
           const data = res?.data?.data || {};
@@ -130,7 +140,7 @@ Page({
             formData: {
               realName: cert?.real_name || this.data.formData.realName,
               idCard: cert?.id_card || this.data.formData.idCard,
-              phone: cert?.phone || this.data.formData.phone,
+              phone: app.globalData.userInfo?.phone || '',
               certificateNumber: cert?.certificate_number || cert?.electrician_cert_no || this.data.formData.certificateNumber,
               certificateStartDate,
               certificateEndDate,
@@ -138,6 +148,14 @@ Page({
               specialOperationCertType: cert?.special_operation_cert_type || this.data.formData.specialOperationCertType
             },
             certificationStatus: status,
+            certificationLoaded: true,
+            savedIdCard: {
+              age: cert?.id_card_age ?? null,
+              gender: cert?.id_card_gender || '',
+              expiresOn: cert?.id_card_expires_on || '',
+              longTerm: cert?.id_card_is_long_term === true
+            },
+            idCardDraft: null,
             rejectReason: cert?.reject_reason || '',
             // 加载省市区信息
             region: [
@@ -145,8 +163,8 @@ Page({
               cert?.city || region[1] || '',
               cert?.district || region[2] || ''
             ],
-            idCardFrontPath: this.data.idCardFrontPath || cert?.id_card_front || '',
-            idCardBackPath: this.data.idCardBackPath || cert?.id_card_back || '',
+            idCardFrontPath: cert?.id_card_front || '',
+            idCardBackPath: cert?.id_card_back || '',
             certificatePath: this.data.certificatePath || cert?.certificate_img || '',
             reapply: false
           }, () => {
@@ -159,6 +177,7 @@ Page({
         }
       },
       fail: () => {
+        if (!this.isCurrent()) return;
         wx.showToast({
           title: '加载失败',
           icon: 'none'
@@ -209,26 +228,6 @@ Page({
     wx.navigateTo({
       url: '/pages/profile/certification/notice/notice'
     });
-  },
-
-  // 表单输入处理
-  onInputChange(e) {
-    const { field } = e.currentTarget.dataset;
-    const { value } = e.detail;
-
-    if (field === 'idCard') {
-      // 自动生成电工证号：T + 身份证号
-      this.setData({
-        'formData.idCard': value,
-        'formData.certificateNumber': value ? 'T' + value : ''
-      });
-    } else {
-      this.setData({
-        [`formData.${field}`]: value
-      });
-    }
-
-    this.checkFormValid();
   },
 
   // 日期选择器变更
@@ -308,28 +307,83 @@ Page({
 
   // 跳转至身份证上传页面
   navigateToIdentity() {
-    if (this.data.mode === 'view' && this.data.certificationStatus !== 'approved') {
-      wx.showToast({ title: '认证中不可修改', icon: 'none' });
-      return;
-    }
-    const that = this;
-    const targetMode = (this.data.mode === 'view' && this.data.certificationStatus === 'approved') ? 'apply' : this.data.mode;
+    if (!this.data.certificationLoaded || !this.isCurrent() || this.data.submitting) return;
+    const readOnly = this.data.reapply || (this.data.mode === 'view' && this.data.certificationStatus !== 'approved');
     wx.navigateTo({
-      url: '/pages/profile/certification/identity/identity?mode=' + targetMode,
+      url: '/pages/profile/certification/identity/identity',
       events: {
-        acceptDataFromIdentityPage: function (data) {
-          that.setData({
-            idCardFrontPath: data.idCardFront,
-            idCardBackPath: data.idCardBack
-          });
-          that.checkFormValid();
+        acceptDataFromIdentityPage: data => {
+          if (!this.isCurrent() || readOnly) return;
+          const { realName, idCard } = this.data.formData;
+          const fields = {
+            idCardDraft: data,
+            idCardUpdateMatches: data.name === realName && data.id === idCard.toUpperCase(),
+            detailsStep: false
+          };
+          if (this.data.mode === 'apply') fields['formData.certificateNumber'] = 'T' + data.id;
+          this.setData(fields, () => this.checkFormValid());
         }
       },
-      success: function (res) {
+      success: res => {
+        const draft = this.data.idCardDraft;
         res.eventChannel.emit('acceptDataFromOpenerPage', {
-          idCardFront: that.data.idCardFrontPath,
-          idCardBack: that.data.idCardBackPath
+          readOnly,
+          idCardFront: draft?.idCardFront || this.data.idCardFrontPath,
+          idCardBack: draft?.idCardBack || this.data.idCardBackPath
         });
+      }
+    });
+  },
+
+  nextCertificationStep() {
+    if (this.data.idCardDraft || this.data.reapply || this.data.mode === 'view') this.setData({ detailsStep: true });
+  },
+
+  previousCertificationStep() {
+    this.setData({ detailsStep: false });
+  },
+
+  cancelIdCardUpdate() {
+    if (!this.data.submitting) this.setData({ idCardDraft: null });
+  },
+
+  saveIdCardUpdate() {
+    const { idCardDraft, idCardUpdateMatches, certificationStatus, mode, submitting } = this.data;
+    if (submitting || !idCardDraft || !idCardUpdateMatches || certificationStatus !== 'approved'
+        || mode !== 'view' || !this.isCurrent()) return;
+
+    const { baseUrl } = getApp().globalData;
+    this.setData({ submitting: true });
+    wx.request({
+      url: `${baseUrl}/electricians/certification/id-card`,
+      method: 'PUT',
+      header: { Authorization: `Bearer ${this.session.token}` },
+      data: { id_card_draft: idCardDraft.draftId },
+      success: res => {
+        if (!this.isCurrent()) return;
+        const cert = res.data?.data;
+        if (res.data?.success !== true || !cert) {
+          wx.showModal({ title: '保存失败', content: res.data?.message || '请稍后重试', showCancel: false });
+          return;
+        }
+        this.setData({
+          idCardDraft: null,
+          idCardFrontPath: cert.id_card_front,
+          idCardBackPath: cert.id_card_back,
+          savedIdCard: {
+            age: cert.id_card_age ?? null,
+            gender: cert.id_card_gender || '',
+            expiresOn: cert.id_card_expires_on || '',
+            longTerm: cert.id_card_is_long_term === true
+          }
+        });
+        wx.showToast({ title: '身份证资料已更新', icon: 'success' });
+      },
+      fail: () => {
+        if (this.isCurrent()) wx.showToast({ title: '保存失败，请重试', icon: 'none' });
+      },
+      complete: () => {
+        if (this.isCurrent()) this.setData({ submitting: false });
       }
     });
   },
@@ -368,8 +422,6 @@ Page({
     const regionValid = this.data.region[0] && true;
 
     const baseValid = this.data.workTypes.length > 0 &&
-      formData.realName &&
-      formData.idCard &&
       formData.phone &&
       formData.certificateNumber &&
       formData.certificateStartDate &&
@@ -378,15 +430,13 @@ Page({
       regionValid &&
       true;
 
-    const imagesValid = this.data.idCardFrontPath &&
-      this.data.idCardBackPath &&
-      this.data.certificatePath;
+    const imagesValid = (this.data.idCardDraft || this.data.reapply) && this.data.certificatePath;
 
     // 认证须知勾选（首次申请需要勾选）
     const isFirstApplySubmit = this.data.mode === 'apply' && this.data.reapply !== true;
     const noticeValid = !isFirstApplySubmit || this.data.noticeAgreed;
 
-    const isValid = isFirstApplySubmit ? (baseValid && imagesValid && noticeValid) : baseValid;
+    const isValid = baseValid && imagesValid && noticeValid;
 
     this.setData({
       submitDisabled: !isValid
@@ -494,7 +544,8 @@ uploadImage(filePath, fieldName) {
 
   // 提交认证申请
   async submitCertification() {
-  if (this.data.submitDisabled) {
+  if (this.data.submitting || !this.isCurrent()) return;
+  if (this.data.submitDisabled || !this.data.detailsStep) {
     wx.showToast({ title: '请完善信息后再提交', icon: 'none' });
     return;
   }
@@ -525,23 +576,7 @@ uploadImage(filePath, fieldName) {
   this.setData({ submitting: true });
 
   try {
-    // 步骤1：上传所有本地图片到服务器，获取相对路径
-    let idCardFrontPath = this.data.idCardFrontPath;
-    let idCardBackPath = this.data.idCardBackPath;
     let certificatePath = this.data.certificatePath;
-
-    // 检查路径是否有效并上传
-    if (idCardFrontPath && typeof idCardFrontPath === 'string' && idCardFrontPath.trim()) {
-      idCardFrontPath = await this.uploadImage(idCardFrontPath, '身份证正面');
-    } else {
-      throw new Error('身份证正面未上传或路径无效');
-    }
-
-    if (idCardBackPath && typeof idCardBackPath === 'string' && idCardBackPath.trim()) {
-      idCardBackPath = await this.uploadImage(idCardBackPath, '身份证背面');
-    } else {
-      throw new Error('身份证背面未上传或路径无效');
-    }
 
     if (certificatePath && typeof certificatePath === 'string' && certificatePath.trim()) {
       wx.showLoading({ title: '上传电工证...', mask: true });
@@ -550,19 +585,14 @@ uploadImage(filePath, fieldName) {
       throw new Error('电工证未上传或路径无效');
     }
 
-    // 验证：确保所有图片都有值
-    if (!idCardFrontPath || !idCardBackPath || !certificatePath) {
-      throw new Error('请上传所有必需的证件照片');
-    }
+    if (!this.isCurrent()) return;
 
     // 步骤2：提交认证数据到服务器
     wx.showLoading({ title: '提交认证...', mask: true });
 
     const requestData = {
       work_types: this.data.workTypes.join(','),
-      real_name: this.data.formData.realName,
-      id_card: this.data.formData.idCard,
-      phone: this.data.formData.phone,
+      id_card_draft: this.data.idCardDraft?.draftId,
       electrician_cert_no: this.data.formData.certificateNumber,
       cert_start_date: this.data.formData.certificateStartDate,
       cert_end_date: this.data.formData.certificateEndDate,
@@ -571,8 +601,6 @@ uploadImage(filePath, fieldName) {
       province: this.data.region[0] || '',
       city: this.data.region[1] || '',
       district: this.data.region[2] || '',
-      id_card_front: idCardFrontPath,
-      id_card_back: idCardBackPath,
       certificate_img: certificatePath,
       special_operation_cert_type: this.data.formData.specialOperationCertType
     };
@@ -605,7 +633,7 @@ uploadImage(filePath, fieldName) {
       });
     });
 
-    // 步骤3：提交成功
+    if (!this.isCurrent()) return;
     wx.hideLoading();
 
     wx.showToast({
@@ -615,8 +643,6 @@ uploadImage(filePath, fieldName) {
 
     // 更新本地存储为相对路径
     this.setData({
-      idCardFrontPath: idCardFrontPath,
-      idCardBackPath: idCardBackPath,
       certificatePath: certificatePath
     });
 
@@ -636,6 +662,7 @@ uploadImage(filePath, fieldName) {
     }
 
   } catch (error) {
+    if (!this.isCurrent()) return;
     wx.hideLoading();
 
     wx.showModal({ confirmColor: '#16835c',
@@ -675,6 +702,7 @@ uploadImage(filePath, fieldName) {
     // 被拒绝状态：直接切换到申请模式
     this.setData({
       mode: 'apply',
+      detailsStep: false,
       certificationStatus: '',
       rejectReason: '',
       reapply: false

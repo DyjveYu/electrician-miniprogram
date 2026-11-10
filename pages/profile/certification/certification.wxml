@@ -1,6 +1,5 @@
 <!-- pages/profile/certification/certification.wxml -->
 <view class="container">
-  <electrician-home-entry />
   <view class="header">
     <view class="title">电工认证</view>
     <view class="subtitle" wx:if="{{mode === 'apply'}}">请填写真实信息，审核通过后可接单</view>
@@ -20,6 +19,58 @@
 
   <!-- 申请表单 -->
   <view class="form-container" wx:if="{{mode === 'apply' || mode === 'view'}}">
+    <view wx:if="{{!detailsStep}}">
+      <view class="upload-section">
+        <view class="upload-title">基本信息</view>
+        <view class="cert-upload-item" bindtap="navigateToIdentity">
+          <view class="cert-info">
+            <view class="cert-name">{{mode === 'view' && certificationStatus !== 'approved' ? '查看身份证件' : '身份证上传'}}</view>
+            <view class="cert-status {{idCardDraft || (idCardFrontPath && idCardBackPath) ? 'done' : ''}}">
+              {{idCardDraft ? '已识别' : (idCardFrontPath && idCardBackPath ? '已上传' : '未上传')}}
+            </view>
+          </view>
+          <view class="arrow">></view>
+        </view>
+      </view>
+
+      <view class="form-group">
+        <view class="form-label">姓名</view>
+        <view class="form-input readonly-value">{{idCardDraft ? idCardDraft.name : (formData.realName || '待识别')}}</view>
+      </view>
+      <view class="form-group">
+        <view class="form-label">身份证号</view>
+        <view class="form-input readonly-value">{{idCardDraft ? idCardDraft.id : (formData.idCard || '待识别')}}</view>
+      </view>
+      <view class="form-group">
+        <view class="form-label">年龄（周岁）</view>
+        <view class="form-input readonly-value">{{idCardDraft ? idCardDraft.age : (savedIdCard.age == null ? '—' : savedIdCard.age)}}</view>
+      </view>
+      <view class="form-group">
+        <view class="form-label">性别</view>
+        <view class="form-input readonly-value">{{(idCardDraft ? idCardDraft.gender : savedIdCard.gender) || '—'}}</view>
+      </view>
+      <view class="form-group">
+        <view class="form-label">身份证到期日期</view>
+        <view class="form-input readonly-value">{{(idCardDraft ? idCardDraft.longTerm : savedIdCard.longTerm) ? '长期有效' : ((idCardDraft ? idCardDraft.expiresOn : savedIdCard.expiresOn) || '未记录')}}</view>
+      </view>
+      <view class="form-group">
+        <view class="form-label">手机号</view>
+        <view class="form-input readonly-value">{{formData.phone}}</view>
+      </view>
+      <view class="tips">
+        <view>请保证信息真实准确，仔细核对识别结果与身份证是否一致。如需更新基本信息，请重新上传身份证。</view>
+        <view>接单用户对所填写的信息，按照国家法律法规填写人对信息的真实性承担法律责任。</view>
+      </view>
+      <button class="submit-btn" wx:if="{{mode === 'apply'}}" bindtap="nextCertificationStep" disabled="{{!idCardDraft && !reapply}}">继续填写</button>
+      <button class="reapply-btn" wx:if="{{mode === 'view' && certificationLoaded && certificationStatus !== 'none' && !idCardDraft}}" bindtap="nextCertificationStep">查看其他认证资料</button>
+      <block wx:if="{{mode === 'view' && certificationStatus === 'approved' && idCardDraft}}">
+        <view class="tips" wx:if="{{!idCardUpdateMatches}}">识别出的姓名或身份证号与原认证资料不一致，无法自助保存。</view>
+        <button class="submit-btn" bindtap="saveIdCardUpdate" loading="{{submitting}}" disabled="{{submitting || !idCardUpdateMatches}}">确认保存基本信息</button>
+        <button class="reapply-btn" bindtap="cancelIdCardUpdate" disabled="{{submitting}}">取消更新</button>
+      </block>
+    </view>
+    <view wx:if="{{detailsStep}}">
+      <button class="reapply-btn" bindtap="previousCertificationStep" disabled="{{submitting}}">返回基本信息</button>
     <!-- 从事工作类型 -->
     <view class="form-group">
       <view class="form-label">我要兼职的工作（可全选）</view>
@@ -33,21 +84,6 @@
           <text>安装电工</text>
         </label>
       </checkbox-group>
-    </view>
-
-    <view class="form-group">
-      <view class="form-label">姓名</view>
-      <input class="form-input" placeholder="请输入真实姓名" value="{{formData.realName}}" data-field="realName" bindinput="onInputChange" disabled="{{mode === 'view' && certificationStatus !== 'approved'}}" />
-    </view>
-
-    <view class="form-group">
-      <view class="form-label">身份证号</view>
-      <input class="form-input" placeholder="请输入身份证号码" value="{{formData.idCard}}" data-field="idCard" bindinput="onInputChange" disabled="{{mode === 'view' && certificationStatus !== 'approved'}}" />
-    </view>
-
-    <view class="form-group">
-      <view class="form-label">手机号 <text class="required">*</text></view>
-      <input class="form-input" type="number" maxlength="11" value="{{formData.phone}}" disabled />
     </view>
 
     <view class="form-group">
@@ -106,15 +142,6 @@
     <view class="upload-section">
       <view class="upload-title">证件照片</view>
 
-      <view class="cert-upload-item" bindtap="navigateToIdentity">
-        <view class="cert-info">
-          <view class="cert-name">身份证件</view>
-          <view class="cert-status {{idCardFrontPath && idCardBackPath ? 'done' : ''}}">
-            {{idCardFrontPath && idCardBackPath ? '已上传' : '未上传'}}
-          </view>
-        </view>
-        <view class="arrow">></view>
-      </view>
       <view class="cert-upload-item" bindtap="navigateToElectricianCert">
         <view class="cert-info">
           <view class="cert-name">电工证件</view>
@@ -150,6 +177,7 @@
     <button class="reapply-btn {{submitting ? 'disabled' : ''}}" wx:if="{{mode === 'view' && certificationStatus === 'approved'}}" bindtap="reapplyCertification" disabled="{{submitting}}">重新认证</button>
 
     </view>
+  </view>
   <!-- 审核中状态 -->
   <view class="pending-container" wx:if="{{mode === 'view' && certificationStatus === 'pending'}}">
     <view class="pending-title">认证审核中</view>

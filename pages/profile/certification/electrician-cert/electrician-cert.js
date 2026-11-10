@@ -99,7 +99,6 @@ Page({
                 'Authorization': `Bearer ${app.globalData.token}`
             },
             success: (res) => {
-                console.log('🔥 服务器响应:', res.data);
                 const ok = res?.data?.success === true || res?.data?.code === 0 || res?.data?.code === 200;
                 if (!ok) return;
 

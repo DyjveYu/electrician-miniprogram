@@ -1,8 +1,5 @@
 {
   "navigationBarTitleText": "电工认证",
-  "usingComponents": {
-    "electrician-home-entry": "/components/electrician-home-entry/index"
-  },
   "backgroundColor": "#ffffff",
   "backgroundColorTop": "#ffffff",
   "backgroundColorBottom": "#ffffff",
