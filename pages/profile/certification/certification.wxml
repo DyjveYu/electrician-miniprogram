@@ -5,14 +5,14 @@
     <view class="subtitle" wx:if="{{mode === 'apply'}}">请填写真实信息，审核通过后可接单</view>
     <view class="subtitle" wx:if="{{mode === 'view'}}">
       <text class="status-tag {{certificationStatus === 'approved' ? 'approved' : certificationStatus === 'rejected' ? 'rejected' : 'pending'}}">
-        {{certificationStatus === 'approved' ? '已认证' : certificationStatus === 'rejected' ? '已拒绝' : '认证中'}}
+        {{certificationStatus === 'approved' ? '已认证' : certificationStatus === 'rejected' ? '未通过' : '认证中'}}
       </text>
     </view>
   </view>
 
   <!-- 查看模式下的拒绝原因 -->
   <view class="reject-reason" wx:if="{{mode === 'view' && certificationStatus === 'rejected'}}">
-    <view class="reason-title">拒绝原因：</view>
+    <view class="reason-title">未通过原因：</view>
     <view class="reason-content">{{rejectReason || '未提供拒绝原因'}}</view>
     <button class="reapply-btn" bindtap="reapplyCertification">重新申请</button>
   </view>
@@ -61,7 +61,7 @@
         <view>请保证信息真实准确，仔细核对识别结果与身份证是否一致。如需更新基本信息，请重新上传身份证。</view>
         <view>接单用户对所填写的信息，按照国家法律法规填写人对信息的真实性承担法律责任。</view>
       </view>
-      <button class="submit-btn" wx:if="{{mode === 'apply'}}" bindtap="nextCertificationStep" disabled="{{!idCardDraft && !reapply}}">继续填写</button>
+      <button class="submit-btn" wx:if="{{mode === 'apply'}}" bindtap="nextCertificationStep" disabled="{{!idCardDraft && !sameIdentity}}">继续填写</button>
       <button class="reapply-btn" wx:if="{{mode === 'view' && certificationLoaded && certificationStatus !== 'none' && !idCardDraft}}" bindtap="nextCertificationStep">查看其他认证资料</button>
       <block wx:if="{{mode === 'view' && certificationStatus === 'approved' && idCardDraft}}">
         <view class="tips" wx:if="{{!idCardUpdateMatches}}">识别出的姓名或身份证号与原认证资料不一致，无法自助保存。</view>
@@ -69,96 +69,72 @@
         <button class="reapply-btn" bindtap="cancelIdCardUpdate" disabled="{{submitting}}">取消更新</button>
       </block>
     </view>
-    <view wx:if="{{detailsStep}}">
-      <button class="reapply-btn" bindtap="previousCertificationStep" disabled="{{submitting}}">返回基本信息</button>
-    <!-- 从事工作类型 -->
-    <view class="form-group">
-      <view class="form-label">我要兼职的工作（可全选）</view>
-      <checkbox-group class="checkbox-group" bindchange="onWorkTypesChange">
-        <label class="checkbox-item">
-          <checkbox value="maintenance" checked="{{isMaintenanceChecked}}" disabled="{{mode === 'view' && certificationStatus !== 'approved'}}"  color="#16835c"/>
-          <text>维修电工</text>
-        </label>
-        <label class="checkbox-item">
-          <checkbox value="installation" checked="{{isInstallationChecked}}" disabled="{{mode === 'view' && certificationStatus !== 'approved'}}"  color="#16835c"/>
-          <text>安装电工</text>
-        </label>
-      </checkbox-group>
-    </view>
-
-    <view class="form-group">
-      <view class="form-label">电工证号</view>
-      <input class="form-input" placeholder="输入身份证号后自动生成" value="{{formData.certificateNumber}}" disabled />
-    </view>
-
-    <view class="form-group">
-      <view class="form-label">证书开始日期</view>
-      <picker mode="date" value="{{formData.certificateStartDate}}" start="2000-01-01" end="2050-12-31" bindchange="bindDateChange" data-field="certificateStartDate" disabled="{{mode === 'view' && certificationStatus !== 'approved'}}">
-        <view class="form-input {{formData.certificateStartDate ? '' : 'placeholder'}}">
-          {{formData.certificateStartDate || '请选择开始日期'}}
+    <view wx:if="{{detailsStep && !regionStep}}">
+      <button class="reapply-btn" bindtap="previousCertificationStep">返回基本信息</button>
+      <view class="upload-title">业务信息</view>
+      <view class="form-group">
+        <view class="form-label">我要兼职的工作（可全选）</view>
+        <checkbox-group class="checkbox-group" bindchange="onWorkTypesChange">
+          <label class="checkbox-item"><checkbox value="maintenance" checked="{{isMaintenanceChecked}}" disabled="{{mode === 'view'}}" />维修电工</label>
+          <label class="checkbox-item"><checkbox value="installation" checked="{{isInstallationChecked}}" disabled="{{mode === 'view'}}" />安装电工</label>
+        </checkbox-group>
+      </view>
+      <view class="form-group" wx:if="{{mode === 'apply'}}">
+        <view class="form-label">电工证类型</view>
+        <checkbox-group class="license-options" bindchange="selectLicenses">
+          <label class="checkbox-item" wx:for="{{licenseOptions}}" wx:key="license_type">
+            <checkbox value="{{item.license_type}}" checked="{{item.checked}}" color="#16835c" />
+            <text>{{item.label}}</text>
+          </label>
+        </checkbox-group>
+        <view class="tips">请保证所填信息的真实性，系统自动校验证书有效期。</view>
+      </view>
+      <view class="license-card" wx:for="{{licenses}}" wx:key="license_type">
+        <view class="form-label">{{item.label}}</view>
+        <input wx:if="{{mode === 'apply'}}" class="form-input" maxlength="50" placeholder="请输入证件上的真实证号" value="{{item.certificate_number}}" data-index="{{index}}" data-field="certificate_number" bindinput="editLicense" />
+        <view wx:else class="form-input readonly-value">{{item.certificate_number || '证号未记录'}}</view>
+        <view class="license-dates">
+          <picker mode="date" value="{{item.start_date}}" disabled="{{mode === 'view'}}" data-index="{{index}}" data-field="start_date" bindchange="editLicense">
+            <view class="form-input readonly-value">{{item.start_date || '选择起始日'}}</view>
+          </picker>
+          <picker mode="date" value="{{item.end_date}}" disabled="{{mode === 'view'}}" data-index="{{index}}" data-field="end_date" bindchange="editLicense">
+            <view class="form-input readonly-value">{{item.end_date || '选择截止日'}}</view>
+          </picker>
         </view>
-      </picker>
-    </view>
-
-    <view class="form-group">
-      <view class="form-label">证书截止日期</view>
-      <picker mode="date" value="{{formData.certificateEndDate}}" start="2000-01-01" end="2050-12-31" bindchange="bindDateChange" data-field="certificateEndDate" disabled="{{mode === 'view' && certificationStatus !== 'approved'}}">
-        <view class="form-input {{formData.certificateEndDate ? '' : 'placeholder'}}">
-          {{formData.certificateEndDate || '请选择截止日期'}}
+        <view class="tips" wx:if="{{mode === 'apply' && item.start_date && item.end_date && item.end_date <= item.start_date}}">证书截止日期必须晚于起始日期。</view>
+        <view class="license-photo-card" data-type="{{item.license_type}}" data-url="{{item.previewUrl || item.photo_url}}" bindtap="tapLicensePhoto">
+          <image wx:if="{{item.localPhoto || item.previewUrl}}" class="license-photo" src="{{item.localPhoto || item.previewUrl}}" mode="aspectFit" />
+          <block wx:else>
+            <image class="license-photo-icon" src="/images/content-ui/camera.svg" mode="aspectFit" />
+            <text>{{item.photo_url ? '证书照片' : (mode === 'apply' ? '点击上传照片' : '暂无照片')}}</text>
+          </block>
+          <text class="license-photo-caption" wx:if="{{mode === 'apply' && (item.localPhoto || item.photo_url)}}">点击更换</text>
         </view>
-      </picker>
+      </view>
+      <view class="form-group">
+        <view class="form-label">从业时间</view>
+        <picker mode="date" fields="month" value="{{careerMonth || currentMonth}}" end="{{currentMonth}}" disabled="{{mode === 'view'}}" bindchange="editCareerMonth">
+          <view class="form-input readonly-value">{{careerMonth || (mode === 'view' ? '未填写' : '请选择开始从业年月')}}</view>
+        </picker>
+        <view class="tips" wx:if="{{careerMonth}}">从 {{careerLabel}} 开始从事电工工作{{careerYears != null ? '，从业 ' + careerYears + ' 年' : ''}}</view>
+        <view class="tips" wx:if="{{careerError}}">{{careerError}}</view>
+      </view>
+      <view class="tips">接单用户对所填写的信息，按照国家法律法规填写人对信息的真实性承担法律责任。</view>
+      <button class="submit-btn" bindtap="nextRegionStep">{{mode === 'apply' ? '继续填写' : '查看接单区域'}}</button>
     </view>
-
+    <view wx:if="{{detailsStep && regionStep}}">
+      <button class="reapply-btn" bindtap="previousRegionStep" disabled="{{submitting}}">返回业务信息</button>
     <view class="form-group">
       <view class="form-label">服务区域 <text class="required">*</text></view>
       <view class="location-wrapper">
-        <picker mode="region" value="{{region}}" custom-item="{{customItem}}" bindchange="bindRegionChange" disabled="{{mode === 'view' && certificationStatus !== 'approved'}}">
+        <picker mode="region" value="{{region}}" custom-item="{{customItem}}" bindchange="bindRegionChange" disabled="{{mode === 'view'}}">
           <view class="form-input region-input {{region[0] && region[1] && region[2] ? '' : 'placeholder'}}">
             {{region[0] && region[1] && region[2] ? region[0] + region[1] + region[2] : '请选择服务区域'}}
           </view>
         </picker>
-        <view class="location-btn" bindtap="getLocation" wx:if="{{mode === 'apply' || (mode === 'view' && certificationStatus === 'approved')}}">
+        <view class="location-btn" bindtap="getLocation" wx:if="{{mode === 'apply'}}">
           <image class="location-icon ui-icon" src="/images/content-ui/map-pin.svg" mode="aspectFit" aria-hidden="true" />
         </view>
-      </view>
-    </view>
-
-    <!-- 特种作业操作证类型 -->
-    <view class="form-group">
-      <view class="form-label">特种作业操作证 <text class="required">*</text></view>
-      <radio-group class="cert-type-group" bindchange="onCertTypeChange">
-        <label class="cert-type-item {{formData.specialOperationCertType === 'low_voltage' ? 'selected' : ''}}">
-          <radio value="low_voltage" checked="{{formData.specialOperationCertType === 'low_voltage'}}"  color="#16835c"/>
-          <text>低压电工证</text>
-        </label>
-        <view class="cert-type-gap"></view>
-        <label class="cert-type-item {{formData.specialOperationCertType === 'high_voltage' ? 'selected' : ''}}">
-          <radio value="high_voltage" checked="{{formData.specialOperationCertType === 'high_voltage'}}"  color="#16835c"/>
-          <text>高压电工证</text>
-        </label>
-      </radio-group>
-    </view>
-
-    <view class="upload-section">
-      <view class="upload-title">证件照片</view>
-
-      <view class="cert-upload-item" bindtap="navigateToElectricianCert">
-        <view class="cert-info">
-          <view class="cert-name">电工证件</view>
-          <view class="cert-status {{certificatePath ? 'done' : ''}}">
-            {{certificatePath ? '已上传' : '未上传'}}
-          </view>
-        </view>
-        <view class="arrow">></view>
-      </view>
-    </view>
-
-    <view class="tips">
-      <view class="tips-title">温馨提示</view>
-      <view class="tips-content">
-        <text>1. 请确保填写的信息真实有效</text>
-        <text>2. 电工证必须在有效期内</text>
-        <text>3. 审核通过后即可接单</text>
       </view>
     </view>
 
@@ -174,7 +150,6 @@
     </view>
 
     <button class="submit-btn {{submitDisabled ? 'disabled' : ''}}" bindtap="submitCertification" disabled="{{submitDisabled}}" wx:if="{{mode === 'apply' && certificationStatus !== 'pending'}}">{{reapply ? '重新认证' : '提交认证'}}</button>
-    <button class="reapply-btn {{submitting ? 'disabled' : ''}}" wx:if="{{mode === 'view' && certificationStatus === 'approved'}}" bindtap="reapplyCertification" disabled="{{submitting}}">重新认证</button>
 
     </view>
   </view>

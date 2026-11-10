@@ -1,4 +1,14 @@
 // pages/profile/certification/certification.js
+const licenseTypes = [
+  { license_type: 'low_voltage', label: '低压电工' },
+  { license_type: 'high_voltage', label: '高压电工' },
+  { license_type: 'construction', label: '建筑电工' }
+];
+
+function currentMonth() {
+  return new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 7);
+}
+
 Page({
   data: {
     mode: 'apply', // apply: 申请认证, view: 查看认证
@@ -9,11 +19,7 @@ Page({
       realName: '',
       idCard: '',
       phone: '',
-      certificateNumber: '',
-      certificateStartDate: '',
-      certificateEndDate: '',
       serviceArea: '',
-      specialOperationCertType: ''
     },
     certificationStatus: '', // pending: 审核中, approved: 已通过, rejected: 已拒绝
     rejectReason: '',
@@ -27,7 +33,17 @@ Page({
     savedIdCard: {},
     detailsStep: false,
     certificationLoaded: false,
-    certificatePath: '',
+    regionStep: false,
+    licenses: [],
+    licenseOptions: licenseTypes,
+    careerMonth: '',
+    careerLabel: '',
+    careerYears: null,
+    careerError: '',
+    currentMonth: currentMonth(),
+    businessValid: false,
+    businessRevision: 0,
+    sameIdentity: false,
     reapply: false,
     submitting: false,
     noticeAgreed: false
@@ -120,20 +136,9 @@ Page({
           const region = cert?.region
             ? String(cert.region).split(',')
             : (cert?.service_area ? this.parseServiceAreaToRegion(cert.service_area) : this.data.region);
-          const normalizeDate = (val) => {
-            if (!val) return '';
-            const s = String(val);
-            if (s.length >= 10) return s.slice(0, 10);
-            return s;
-          };
-          const certificateStartDate = normalizeDate(
-            cert?.cert_start_date || cert?.certificate_start_date || cert?.certificateStartDate
-          ) || this.data.formData.certificateStartDate;
-          const certificateEndDate = normalizeDate(
-            cert?.cert_end_date || cert?.certificate_end_date || cert?.certificateEndDate
-          ) || this.data.formData.certificateEndDate;
           const serviceArea = cert?.service_area || (Array.isArray(region) ? region.join('') : '') || this.data.formData.serviceArea;
           this.setData({
+            mode: status === 'none' ? 'apply' : 'view',
             workTypes,
             isMaintenanceChecked: workTypes.includes('maintenance'),
             isInstallationChecked: workTypes.includes('installation'),
@@ -141,11 +146,7 @@ Page({
               realName: cert?.real_name || this.data.formData.realName,
               idCard: cert?.id_card || this.data.formData.idCard,
               phone: app.globalData.userInfo?.phone || '',
-              certificateNumber: cert?.certificate_number || cert?.electrician_cert_no || this.data.formData.certificateNumber,
-              certificateStartDate,
-              certificateEndDate,
               serviceArea,
-              specialOperationCertType: cert?.special_operation_cert_type || this.data.formData.specialOperationCertType
             },
             certificationStatus: status,
             certificationLoaded: true,
@@ -165,15 +166,17 @@ Page({
             ],
             idCardFrontPath: cert?.id_card_front || '',
             idCardBackPath: cert?.id_card_back || '',
-            certificatePath: this.data.certificatePath || cert?.certificate_img || '',
+            licenses: cert?.licenses || [],
+            licenseOptions: licenseTypes.map(type => ({ ...type, checked: !!cert?.licenses?.some(row => row.license_type === type.license_type) })),
+            careerMonth: cert?.career_started_month || '',
+            careerYears: cert?.career_years ?? null,
+            businessRevision: cert?.business_revision ?? 0,
+            sameIdentity: cert?.license_invalidated_after_approval === true,
             reapply: false
           }, () => {
             this.checkFormValid();
+            this.loadLicenseThumbnails();
           });
-          // 若状态存在且不是 none，则切换到查看模式
-          if (status && status !== 'none') {
-            this.setData({ mode: 'view' });
-          }
         }
       },
       fail: () => {
@@ -202,17 +205,6 @@ Page({
     this.checkFormValid();
   },
 
-  // 特种作业操作证类型选择变更
-  onCertTypeChange(e) {
-    const value = e.detail.value;
-
-    this.setData({
-      'formData.specialOperationCertType': value
-    });
-
-    this.checkFormValid();
-  },
-
   // 认证须知勾选处理
   onNoticeAgreementChange(e) {
     const values = e.detail.value;
@@ -228,18 +220,6 @@ Page({
     wx.navigateTo({
       url: '/pages/profile/certification/notice/notice'
     });
-  },
-
-  // 日期选择器变更
-  bindDateChange(e) {
-    const { field } = e.currentTarget.dataset;
-    const value = e.detail.value;
-
-    this.setData({
-      [`formData.${field}`]: value
-    });
-
-    this.checkFormValid();
   },
 
   // 地区选择器变更
@@ -308,7 +288,7 @@ Page({
   // 跳转至身份证上传页面
   navigateToIdentity() {
     if (!this.data.certificationLoaded || !this.isCurrent() || this.data.submitting) return;
-    const readOnly = this.data.reapply || (this.data.mode === 'view' && this.data.certificationStatus !== 'approved');
+    const readOnly = this.data.mode === 'view' && this.data.certificationStatus !== 'approved';
     wx.navigateTo({
       url: '/pages/profile/certification/identity/identity',
       events: {
@@ -320,7 +300,6 @@ Page({
             idCardUpdateMatches: data.name === realName && data.id === idCard.toUpperCase(),
             detailsStep: false
           };
-          if (this.data.mode === 'apply') fields['formData.certificateNumber'] = 'T' + data.id;
           this.setData(fields, () => this.checkFormValid());
         }
       },
@@ -336,7 +315,7 @@ Page({
   },
 
   nextCertificationStep() {
-    if (this.data.idCardDraft || this.data.reapply || this.data.mode === 'view') this.setData({ detailsStep: true });
+    if (this.data.idCardDraft || this.data.sameIdentity || this.data.mode === 'view') this.setData({ detailsStep: true });
   },
 
   previousCertificationStep() {
@@ -388,326 +367,191 @@ Page({
     });
   },
 
-  // 跳转至电工证上传页面
-  navigateToElectricianCert() {
-    if (this.data.mode === 'view' && this.data.certificationStatus !== 'approved') {
-      wx.showToast({ title: '认证中不可修改', icon: 'none' });
-      return;
-    }
-    const that = this;
-    const targetMode = (this.data.mode === 'view' && this.data.certificationStatus === 'approved') ? 'apply' : this.data.mode;
-    wx.navigateTo({
-      url: '/pages/profile/certification/electrician-cert/electrician-cert?mode=' + targetMode,
-      events: {
-        acceptDataFromCertPage: function (data) {
-          that.setData({
-            certificatePath: data.certificatePath
-          });
-          that.checkFormValid();
-        }
-      },
-      success: function (res) {
-        res.eventChannel.emit('acceptDataFromOpenerPage', {
-          certificatePath: that.data.certificatePath
-        });
+  selectLicenses(event) {
+    if (this.data.mode !== 'apply' || this.data.submitting) return;
+    const current = this.data.licenses;
+    const selected = event.detail.value;
+    const licenses = licenseTypes.filter(type => selected.includes(type.license_type))
+      .map(type => current.find(item => item.license_type === type.license_type) || { ...type });
+    this.setData({ licenses, licenseOptions: licenseTypes.map(type => ({
+      ...type, checked: selected.includes(type.license_type)
+    })) }, () => this.checkFormValid());
+  },
+
+  editLicense(event) {
+    const { index, field } = event.currentTarget.dataset;
+    this.setData({ [`licenses[${index}].${field}`]: event.detail.value }, () => this.checkFormValid());
+  },
+
+  chooseLicensePhoto(event) {
+    const type = event.currentTarget.dataset.type;
+    if (this.data.mode !== 'apply' || this.data.submitting) return;
+    wx.chooseImage({ count: 1, sizeType: ['compressed'], sourceType: ['album', 'camera'],
+      success: res => {
+        const index = this.data.licenses.findIndex(row => row.license_type === type);
+        if (!this.isCurrent() || this.data.submitting || index < 0) return;
+        this.setData({ [`licenses[${index}].localPhoto`]: res.tempFilePaths[0] }, () => this.checkFormValid());
       }
     });
   },
 
-  // 检查表单是否有效
+  tapLicensePhoto(event) {
+    if (this.data.mode === 'apply') {
+      this.chooseLicensePhoto(event);
+      return;
+    }
+    const { url } = event.currentTarget.dataset;
+    this.resolveLicensePhoto(url, path => wx.previewImage({ urls: [path] }),
+      () => wx.showToast({ title: '证书照片读取失败', icon: 'none' }));
+  },
+
+  loadLicenseThumbnails() {
+    const request = (this.licenseThumbnailRequest || 0) + 1;
+    this.licenseThumbnailRequest = request;
+    for (const { license_type, photo_url } of this.data.licenses) {
+      this.resolveLicensePhoto(photo_url, path => {
+        if (request !== this.licenseThumbnailRequest) return;
+        const index = this.data.licenses.findIndex(row => row.license_type === license_type && row.photo_url === photo_url);
+        if (index >= 0) this.setData({ [`licenses[${index}].previewUrl`]: path });
+      });
+    }
+  },
+
+  resolveLicensePhoto(url, onSuccess, onFailure) {
+    if (!url || !this.isCurrent()) return;
+    const origin = getApp().globalData.baseUrl.replace(/\/api\/?$/, '');
+    if (!url.startsWith('/api/')) {
+      onSuccess(url.startsWith('/uploads/') ? origin + url : url);
+      return;
+    }
+    wx.downloadFile({
+      url: origin + url,
+      header: { Authorization: `Bearer ${this.session.token}` },
+      success: res => {
+        if (!this.isCurrent()) return;
+        if (res.statusCode === 200) onSuccess(res.tempFilePath);
+        else onFailure?.();
+      },
+      fail: () => { if (this.isCurrent()) onFailure?.(); }
+    });
+  },
+
+  editCareerMonth(event) {
+    this.setData({ careerMonth: event.detail.value }, () => this.checkFormValid());
+  },
+
   checkFormValid() {
-    const { formData } = this.data;
-
-    // 检查区域是否选择了省份（只需要省份存在，市和区在提交时检查）
-    const regionValid = this.data.region[0] && true;
-
-    const baseValid = this.data.workTypes.length > 0 &&
-      formData.phone &&
-      formData.certificateNumber &&
-      formData.certificateStartDate &&
-      formData.certificateEndDate &&
-      formData.specialOperationCertType &&
-      regionValid &&
-      true;
-
-    const imagesValid = (this.data.idCardDraft || this.data.reapply) && this.data.certificatePath;
-
-    // 认证须知勾选（首次申请需要勾选）
-    const isFirstApplySubmit = this.data.mode === 'apply' && this.data.reapply !== true;
-    const noticeValid = !isFirstApplySubmit || this.data.noticeAgreed;
-
-    const isValid = baseValid && imagesValid && noticeValid;
-
+    const { licenses, careerMonth, idCardDraft, sameIdentity, formData, workTypes, region, noticeAgreed } = this.data;
+    const id = idCardDraft?.id || (sameIdentity ? formData.idCard : '');
+    const current = currentMonth();
+    const birth = /^(?:[1-9]\d{5})(\d{4})(0[1-9]|1[0-2])\d{5}[\dXx]$/.exec(id);
+    const earliest = birth ? `${Number(birth[1]) + 18}-${birth[2]}` : '';
+    const monthValid = !!(earliest && careerMonth && careerMonth >= earliest && careerMonth <= current);
+    const years = monthValid
+      ? Number(current.slice(0, 4)) - Number(careerMonth.slice(0, 4)) - (current.slice(5) < careerMonth.slice(5) ? 1 : 0)
+      : null;
+    const certificateValid = licenses.length > 0 && licenses.every(item =>
+      item.certificate_number?.trim() && item.start_date && item.end_date > item.start_date
+      && (item.localPhoto || (item.photo_url && !item.legacy))
+    );
+    const businessValid = !!(certificateValid && monthValid && workTypes.length);
     this.setData({
-      submitDisabled: !isValid
+      currentMonth: current,
+      careerLabel: careerMonth ? `${careerMonth.slice(0, 4)} 年 ${careerMonth.slice(5, 7)} 月` : '',
+      careerYears: this.data.mode === 'view' ? this.data.careerYears : years,
+      careerError: this.data.mode === 'apply' && careerMonth && !monthValid
+        ? (earliest ? '请选择满18周岁至当前月份之间的年月' : '无法确认出生年月，请核对身份证资料') : '',
+      businessValid,
+      submitDisabled: !(businessValid && formData.phone && region[0] && noticeAgreed)
     });
   },
 
-  // 上传单个图片到服务器（只返回相对路径）
-uploadImage(filePath, fieldName) {
-  return new Promise((resolve, reject) => {
-    // 防御性检查
-    if (!filePath || typeof filePath !== 'string') {
-      reject(new Error(`${fieldName}路径无效`));
-      return;
+  nextRegionStep() {
+    if (this.data.mode === 'view' || this.data.businessValid) {
+      this.setData({ regionStep: true });
+    } else {
+      wx.showToast({ title: this.data.careerError || '请补全证书和从业年月', icon: 'none' });
     }
+  },
 
-    // 如果已经是相对路径，直接返回
-    if (filePath.startsWith('/uploads/')) {
-      resolve(filePath);
-      return;
-    }
+  previousRegionStep() {
+    if (!this.data.submitting) this.setData({ regionStep: false });
+  },
 
-    // 使用字符串方法提取相对路径
-    if (filePath.startsWith('http://') || filePath.startsWith('https://')) {
-      try {
-        // 使用正则提取 /uploads/ 开头的路径
-        const match = filePath.match(/\/uploads\/.+$/);
-        if (match) {
-          resolve(match[0]);
-          return;
-        }
-
-        // 备用方案：查找域名后的路径部分
-        const urlParts = filePath.split('/');
-        const uploadsIndex = urlParts.indexOf('uploads');
-        if (uploadsIndex > 0) {
-          resolve('/' + urlParts.slice(uploadsIndex).join('/'));
-          return;
-        }
-
-        reject(new Error('无法提取相对路径'));
-      } catch (e) {
-        reject(new Error('路径解析失败'));
-      }
-      return;
-    }
-
-    // 如果不是URL也不是相对路径，说明是本地文件，需要上传
-    const app = getApp();
-
-    wx.uploadFile({
-      url: `${app.globalData.baseUrl}/upload/certification`,
-      filePath: filePath,
-      name: 'certification',
-      header: {
-        'Authorization': `Bearer ${app.globalData.token}`
-      },
-      success: (res) => {
-        if (res.statusCode !== 200) {
-          reject(new Error(`${fieldName}上传失败`));
-          return;
-        }
-
-        try {
-          const data = JSON.parse(res.data);
-
-          if (data.code === 200 && data.data && data.data.url) {
-            let url = data.data.url;
-
-            // 只保存相对路径
-            let relativePath;
-
-            if (url.startsWith('http://') || url.startsWith('https://')) {
-              const match = url.match(/\/uploads\/.+$/);
-              if (match) {
-                relativePath = match[0];
-              } else {
-                const urlParts = url.split('/');
-                const uploadsIndex = urlParts.indexOf('uploads');
-                if (uploadsIndex > 0) {
-                  relativePath = '/' + urlParts.slice(uploadsIndex).join('/');
-                } else {
-                  relativePath = url;
-                }
-              }
-            } else if (url.startsWith('/')) {
-              relativePath = url;
-            } else {
-              relativePath = '/' + url;
-            }
-
-            resolve(relativePath);
-          } else {
-            reject(new Error(data.message || `${fieldName}上传失败`));
-          }
-        } catch (e) {
-          reject(new Error('解析响应失败'));
-        }
-      },
-      fail: (err) => {
-        reject(new Error('网络错误'));
-      }
+  uploadLicensePhoto(filePath, type) {
+    return new Promise((resolve, reject) => {
+      wx.uploadFile({
+        url: `${getApp().globalData.baseUrl}/electricians/certification/licenses/photo/${type}`,
+        header: { Authorization: `Bearer ${this.session.token}` },
+        name: 'image', filePath,
+        success: response => {
+          let body;
+          try { body = JSON.parse(response.data); } catch {}
+          if (response.statusCode === 200 && body?.data?.draft) resolve(body.data.draft);
+          else reject(new Error(body?.message || '证书照片上传失败'));
+        },
+        fail: () => reject(new Error('证书照片上传失败'))
+      });
     });
-  });
-},
-
-  // 提交认证申请
+  },
   async submitCertification() {
-  if (this.data.submitting || !this.isCurrent()) return;
-  if (this.data.submitDisabled || !this.data.detailsStep) {
-    wx.showToast({ title: '请完善信息后再提交', icon: 'none' });
-    return;
-  }
-
-  // 检查服务区域：市和区必须选择完整，不能为"全部"
-  const region = this.data.region;
-  if (!region[1] || region[1] === '全部') {
-    wx.showToast({
-      title: '请选择城市',
-      icon: 'none'
-    });
-    return;
-  }
-  if (!region[2] || region[2] === '全部') {
-    wx.showToast({
-      title: '请选择区县',
-      icon: 'none'
-    });
-    return;
-  }
-
-  const app = getApp();
-
-  wx.showLoading({
-    title: '上传图片中...',
-    mask: true
-  });
-  this.setData({ submitting: true });
-
-  try {
-    let certificatePath = this.data.certificatePath;
-
-    if (certificatePath && typeof certificatePath === 'string' && certificatePath.trim()) {
-      wx.showLoading({ title: '上传电工证...', mask: true });
-      certificatePath = await this.uploadImage(certificatePath, '电工证');
-    } else {
-      throw new Error('电工证未上传或路径无效');
-    }
-
-    if (!this.isCurrent()) return;
-
-    // 步骤2：提交认证数据到服务器
-    wx.showLoading({ title: '提交认证...', mask: true });
-
-    const requestData = {
-      work_types: this.data.workTypes.join(','),
-      id_card_draft: this.data.idCardDraft?.draftId,
-      electrician_cert_no: this.data.formData.certificateNumber,
-      cert_start_date: this.data.formData.certificateStartDate,
-      cert_end_date: this.data.formData.certificateEndDate,
-      service_area: this.data.formData.serviceArea,
-      region: this.data.region.join(','),
-      province: this.data.region[0] || '',
-      city: this.data.region[1] || '',
-      district: this.data.region[2] || '',
-      certificate_img: certificatePath,
-      special_operation_cert_type: this.data.formData.specialOperationCertType
-    };
-
-    const isReapply = this.data.reapply === true;
-    const fullUrl = isReapply
-      ? `${app.globalData.baseUrl}/electricians/certification/reapply`
-      : `${app.globalData.baseUrl}/electricians/certification`;
-
-    await new Promise((resolve, reject) => {
-      wx.request({
-        url: fullUrl,
-        method: isReapply ? 'PUT' : 'POST',
-        header: {
-          'Authorization': `Bearer ${app.globalData.token}`,
-          'Content-Type': 'application/json'
-        },
-        data: requestData,
-        success: (res) => {
-          const ok = res?.data?.success === true || res?.data?.code === 0 || res?.data?.code === 200;
-          if (ok) {
-            resolve(res.data);
-          } else {
-            reject(new Error(res.data.message || '提交失败'));
-          }
-        },
-        fail: (err) => {
-          reject(err);
-        }
-      });
-    });
-
-    if (!this.isCurrent()) return;
-    wx.hideLoading();
-
-    wx.showToast({
-      title: '提交成功',
-      icon: 'success'
-    });
-
-    // 更新本地存储为相对路径
-    this.setData({
-      certificatePath: certificatePath
-    });
-
-    if (isReapply) {
-      this.setData({
-        mode: 'view',
-        certificationStatus: 'pending',
-        rejectReason: '',
-        reapply: false
-      }, () => {
-        this.loadCertificationInfo();
-      });
-    } else {
-      setTimeout(() => {
-        wx.navigateBack();
-      }, 1500);
-    }
-
-  } catch (error) {
-    if (!this.isCurrent()) return;
-    wx.hideLoading();
-
-    wx.showModal({ confirmColor: '#16835c',
-      title: '提交失败',
-      content: error.message || '请检查网络后重试',
-      showCancel: true,
-      confirmText: '重试',
-      cancelText: '取消',
-      success: (res) => {
-        if (res.confirm) {
-          this.submitCertification();
-        }
-      }
-    });
-  } finally {
-    this.setData({ submitting: false });
-  }
-},
-
-
-
-  // 重新申请认证
-  reapplyCertification() {
-    const isApprovedView = this.data.mode === 'view' && this.data.certificationStatus === 'approved';
-    if (isApprovedView) {
-      // 已认证状态：切换到申请模式，让用户修改信息后再提交
-      // 保留 region 数据，wxml 显示已使用 region 数组
-      this.setData({
-        mode: 'apply',
-        reapply: true,
-        certificationStatus: ''
-      }, () => {
-        this.checkFormValid();
-      });
+    if (this.data.submitting || !this.isCurrent() || this.data.mode !== 'apply') return;
+    this.checkFormValid();
+    const { submitDisabled, regionStep, region, licenses, reapply, idCardDraft, businessRevision, careerMonth, workTypes } = this.data;
+    if (submitDisabled || !regionStep || region.some(item => !item || item === '全部')) {
+      wx.showToast({ title: '请完善认证信息后再提交', icon: 'none' });
       return;
     }
-    // 被拒绝状态：直接切换到申请模式
+    this.setData({ submitting: true });
+    wx.showLoading({ title: '提交认证中', mask: true });
+    try {
+      const rows = [];
+      for (const { license_type, certificate_number, start_date, end_date, localPhoto } of licenses) {
+        const photo_draft = localPhoto ? await this.uploadLicensePhoto(localPhoto, license_type) : undefined;
+        if (!this.isCurrent()) return;
+        rows.push({ license_type, certificate_number, start_date, end_date, photo_draft });
+      }
+      const { baseUrl } = getApp().globalData;
+      const result = await new Promise((resolve, reject) => wx.request({
+        url: `${baseUrl}/electricians/certification${reapply ? '/reapply' : ''}`,
+        method: reapply ? 'PUT' : 'POST',
+        header: { Authorization: `Bearer ${this.session.token}` },
+        data: {
+          work_types: workTypes.join(','),
+          province: region[0], city: region[1], district: region[2],
+          id_card_draft: idCardDraft?.draftId, business_revision: businessRevision,
+          career_started_month: careerMonth, licenses: rows
+        },
+        success: res => {
+          if (res.data?.success && res.data.data) resolve(res.data);
+          else reject(new Error(res.data?.message || '提交失败'));
+        },
+        fail: () => reject(new Error('网络请求失败，请重试'))
+      }));
+      if (!this.isCurrent()) return;
+      this.setData({
+        mode: 'view', detailsStep: false, regionStep: false, reapply: false,
+        certificationStatus: result.data.status,
+        rejectReason: result.data.reject_reason || '', idCardDraft: null
+      });
+      this.loadCertificationInfo();
+    } catch (error) {
+      if (this.isCurrent()) wx.showModal({ title: '提交失败', content: error.message, showCancel: false });
+    } finally {
+      if (this.isCurrent()) {
+        wx.hideLoading();
+        this.setData({ submitting: false });
+      }
+    }
+  },
+
+  reapplyCertification() {
+    if (this.data.certificationStatus !== 'rejected' || this.data.submitting) return;
     this.setData({
-      mode: 'apply',
-      detailsStep: false,
-      certificationStatus: '',
-      rejectReason: '',
-      reapply: false
-    }, () => {
-      this.checkFormValid();
-    });
+      mode: 'apply', detailsStep: false, regionStep: false, reapply: true,
+      licenses: this.data.licenses.filter(row => licenseTypes.some(type => type.license_type === row.license_type))
+        .map(row => row.legacy && row.certificate_number?.toUpperCase() === 'T' + this.data.formData.idCard.toUpperCase()
+          ? { ...row, certificate_number: '' } : row)
+    }, () => this.checkFormValid());
   }
 });
