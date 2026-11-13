@@ -112,6 +112,9 @@ loadUserInfo() {
     }, 100);
     return;
   }
+  const request = this.userInfoRequest = (this.userInfoRequest || 0) + 1;
+  const token = app.globalData.token;
+  const current = () => this.userInfoRequest === request && app.globalData.token === token;
 
   // 如果有全局缓存，先展示（非必须，但可提升体验）
   if (app.globalData.userInfo) {
@@ -127,6 +130,7 @@ loadUserInfo() {
     method: 'GET',
     header: { 'Authorization': `Bearer ${app.globalData.token}` },
     success: (res) => {
+      if (!current()) return;
       wx.stopPullDownRefresh();
       const data = res.data;
       console.log('auth/userinfo 返回：', data);
@@ -140,7 +144,7 @@ loadUserInfo() {
           unverified: '未认证',
           pending: '待补充资料',
           approved: '已认证',
-          rejected: '已驳回'
+          rejected: '未通过'
         };
 
         // 统一字段名 / 回退：避免 nickname 为 null 导致显示异常
@@ -175,7 +179,7 @@ loadUserInfo() {
           userInfo: normalizedUserInfo,
           currentRole: app.globalData.currentRole || normalizedUserInfo.current_role || 'user',
           electricianInfo: data.data.certification || null,
-          certificationStatusText: statusMap[normalizedUserInfo.certificationStatus] || '未认证',
+          certificationStatusText: normalizedUserInfo.certificationStatusText || statusMap[normalizedUserInfo.certificationStatus] || '未认证',
           isFrozen: normalizedUserInfo.status === 'banned',
           stats: {
             totalOrders: stats.total_orders || 0,
@@ -215,6 +219,7 @@ loadUserInfo() {
       }
     },
     fail: (err) => {
+      if (!current()) return;
       wx.stopPullDownRefresh();
       console.error('获取用户信息失败：', err);
       wx.showToast({ title: '网络连接失败', icon: 'none' });
@@ -408,6 +413,7 @@ loadUserInfo() {
   // 获取认证状态文本
   getCertificationStatusText() {
     if (!this.data.userInfo) return '未认证';
+    if (this.data.userInfo.certificationStatusText) return this.data.userInfo.certificationStatusText;
     
     if (this.data.userInfo.isElectrician) {
       return '已认证';

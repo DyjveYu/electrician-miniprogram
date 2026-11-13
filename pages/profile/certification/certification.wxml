@@ -1,15 +1,15 @@
 <!-- pages/profile/certification/certification.wxml -->
 <view class="container">
-  <view class="certification-result" wx:if="{{mode === 'view' && certificationStatus === 'approved'}}">
-    <image class="pending-icon ui-icon" src="/images/content-ui/check-circle.svg" mode="aspectFit" aria-hidden="true" />
-    <view class="pending-title">认证已通过</view>
+  <view class="certification-result {{certificationStatus === 'pending' ? 'is-pending' : ''}}" wx:if="{{mode === 'view' && (certificationStatus === 'approved' || (certificationStatus === 'pending' && regionChangePending))}}">
+    <image class="pending-icon ui-icon" src="{{certificationStatus === 'approved' ? '/images/content-ui/check-circle.svg' : '/images/content-ui/alert-circle.svg'}}" mode="aspectFit" aria-hidden="true" />
+    <view class="pending-title">{{certificationStatus === 'approved' ? '认证已通过' : '区域变更待审核'}}</view>
   </view>
   <view class="header" wx:else>
     <view class="title">电工认证</view>
     <view class="subtitle" wx:if="{{mode === 'apply'}}">请按顺序填写并提交认证</view>
     <view class="subtitle" wx:if="{{mode === 'view' && (certificationStatus === 'rejected' || certificationStatus === 'pending')}}">
       <text class="status-tag {{certificationStatus === 'rejected' ? 'rejected' : 'pending'}}">
-        {{certificationStatus === 'rejected' ? '未通过' : '待补充资料'}}
+        {{certificationStatus === 'rejected' ? '未通过' : (regionChangePending ? '区域变更待审核' : '待补充资料')}}
       </text>
     </view>
   </view>
@@ -18,11 +18,11 @@
   <view class="reject-reason" wx:if="{{mode === 'view' && certificationStatus === 'rejected'}}">
     <view class="reason-title">未通过原因：</view>
     <view class="reason-content">{{rejectReason || '未提供拒绝原因'}}</view>
-    <button class="reapply-btn" bindtap="reapplyCertification">重新申请</button>
+    <button class="reapply-btn" wx:if="{{!regionChangePending}}" bindtap="reapplyCertification">重新申请</button>
   </view>
-  <view class="reject-reason" wx:if="{{mode === 'view' && certificationStatus === 'pending'}}">
-    <view class="reason-content">请补齐资料后提交认证</view>
-    <button class="reapply-btn" bindtap="reapplyCertification">继续认证</button>
+  <view class="{{regionChangePending ? 'region-review-hint' : 'reject-reason'}}" wx:if="{{mode === 'view' && certificationStatus === 'pending'}}">
+    <view class="reason-content">{{regionChangePending ? '接单区域变更正在人工审核，请在接单区域页查看申请。' : '请补齐资料后提交认证'}}</view>
+    <button class="reapply-btn" wx:if="{{!regionChangePending}}" bindtap="reapplyCertification">继续认证</button>
   </view>
 
   <!-- 申请表单 -->
@@ -151,6 +151,26 @@
         </view>
       </view>
       <view class="tips" wx:if="{{mode === 'view' && certificationStatus === 'approved'}}">接单区域选择提交后 6 个月内变更，须填写「变更接单区域申请」。</view>
+      <view class="region-change-panel" wx:if="{{mode === 'view'}}">
+        <view wx:if="{{regionInfoLoading}}">正在读取区域变更信息…</view>
+        <view class="tips" wx:if="{{regionInfoError}}">{{regionInfoError}}</view>
+        <button class="reapply-btn" wx:if="{{!regionInfo || regionInfoError}}" bindtap="loadRegionChangeStatus" disabled="{{regionInfoLoading}}">重新读取区域变更信息</button>
+        <block wx:if="{{regionInfo}}">
+          <view class="tips">{{regionInfo.can_apply ? (regionInfo.can_self_change ? '可自主变更接单区域' : '本次变更需提交人工审核') : regionInfo.explanation}}</view>
+          <view wx:if="{{regionInfo.nextTimeLabel}}">满足六个月间隔的时间（北京时间）{{regionInfo.nextTimeLabel}}</view>
+          <view class="region-history" wx:if="{{regionInfo.latest}}">
+            <view>{{regionInfo.latest.source === 'self' ? '信息自行变更' : (regionInfo.latest.status === 'pending' ? '区域变更待审核' : (regionInfo.latest.status === 'approved' ? '区域变更审核通过' : '区域变更申请未通过'))}}</view>
+            <view>目标区域 {{regionInfo.latest.province}}{{regionInfo.latest.city}}{{regionInfo.latest.district}}</view>
+            <view wx:if="{{regionInfo.latest.reject_reason}}">{{regionInfo.latest.reject_reason}}，请与客服联系。</view>
+          </view>
+          <view class="region-history" wx:if="{{regionInfo.notification_result && regionInfo.notification_result.id !== regionInfo.latest.id}}">
+            <view>本条通知对应的申请{{regionInfo.notification_result.status === 'approved' ? '已通过' : (regionInfo.notification_result.status === 'rejected' ? '未通过' : '待审核')}}</view>
+            <view>{{regionInfo.notification_result.province}}{{regionInfo.notification_result.city}}{{regionInfo.notification_result.district}}</view>
+            <view wx:if="{{regionInfo.notification_result.reject_reason}}">{{regionInfo.notification_result.reject_reason}}，请与客服联系。</view>
+          </view>
+          <button class="submit-btn region-secondary-btn" wx:if="{{regionInfo.can_apply}}" bindtap="openRegionChange" disabled="{{submitting}}">{{regionInfo.can_self_change ? '自主变更接单区域' : '变更接单区域表单'}}</button>
+        </block>
+      </view>
       <view class="tips">接单用户对所填写的信息，按照国家法律法规填写人对信息的真实性承担法律责任。</view>
       <button class="submit-btn" wx:if="{{mode === 'apply'}}" bindtap="nextFeeStep" loading="{{checkingRegion}}" disabled="{{checkingRegion}}">继续填写</button>
     </view>
@@ -199,5 +219,29 @@
   <view class="modification-actions" wx:if="{{editing && activeStep === 3}}">
     <button class="submit-btn" bindtap="submitInformation" loading="{{submitting}}" disabled="{{submitting}}">提交修改</button>
     <button class="reapply-btn" bindtap="cancelEditing" disabled="{{submitting}}">取消修改</button>
+  </view>
+  <view class="region-modal-mask" wx:if="{{regionEditorOpen}}">
+    <scroll-view class="region-modal" scroll-y>
+      <view class="upload-title">{{regionInfo.can_self_change ? '自主变更接单区域' : '变更接单区域表单'}}</view>
+      <view class="form-label">目标接单区域</view>
+      <picker mode="region" value="{{targetRegion}}" bindchange="selectTargetRegion" disabled="{{submitting}}">
+        <view class="form-input">{{targetRegion[0] ? targetRegion[0] + targetRegion[1] + targetRegion[2] : '请选择目标省市区'}}</view>
+      </picker>
+      <view class="tips" wx:if="{{targetRegionChecking}}">正在读取目标区域上门费…</view>
+      <view class="tips" wx:if="{{targetRegionError}}">{{targetRegionError}}</view>
+      <view wx:if="{{targetRegionFees.length === 3}}">上门费（北京时间）</view>
+      <view class="tips" wx:if="{{targetRegionFees.length === 3}}">
+        <view>05:00–17:00　{{targetRegionFees[0]}} 元</view>
+        <view>17:00–22:00　{{targetRegionFees[1]}} 元</view>
+        <view>22:00–次日 05:00　{{targetRegionFees[2]}} 元</view>
+      </view>
+      <view class="form-label">变更原因{{regionInfo.can_self_change ? '（选填）' : '（必填）'}}</view>
+      <textarea class="form-input region-change-reason" value="{{regionChangeReason}}" bindinput="editRegionChangeReason" maxlength="500" disabled="{{submitting}}" placeholder="请填写变更原因" />
+      <view class="tips region-change-notice" wx:if="{{!regionInfo.can_self_change}}">① 该变更将由人工复核，复核时间 5 个工作日；② 同意微信订阅后可收到审核结果通知，也可在站内信及本页查看结果。</view>
+      <view class="modification-actions">
+        <button class="submit-btn region-secondary-btn" bindtap="submitRegionChange" loading="{{submitting}}" disabled="{{submitting || targetRegionChecking}}">提交</button>
+        <button class="reapply-btn region-cancel-btn" bindtap="closeRegionChange" disabled="{{submitting}}">取消</button>
+      </view>
+    </scroll-view>
   </view>
 </view>

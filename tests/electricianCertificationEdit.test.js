@@ -161,7 +161,7 @@ test('continue controls reach the last tab and dismissing submit confirmation re
   page.submitInformation();
   h.calls.modal.at(-1).success({ confirm: false });
   assert.equal(page.data.hourlyRate, '30');
-  assert.equal(h.calls.request.length, 1);
+  assert.equal(h.calls.request.filter(request => request.method === 'PUT' || request.method === 'POST').length, 0);
 });
 
 test('automatic editing still permits independent identity upload and resumes after cancelling it', () => {

@@ -162,7 +162,7 @@
         <text class="menu-desc">{{userInfo.isElectrician ? '查看认证信息' : '申请成为电工'}}</text>
       </view>
       <view class="certification-badge">
-       <text class="badge-text {{userInfo.certificationStatus === 'approved' ? 'certified' : (userInfo.certificationStatus === 'pending' ? 'pending' : 'uncertified')}}">{{certificationStatusText}}</text>
+       <text class="badge-text {{userInfo.certificationStatus === 'approved' ? 'certified' : (userInfo.certificationStatus === 'pending' || certificationStatusText === '待补充资料' ? 'pending' : 'uncertified')}}">{{certificationStatusText}}</text>
       </view>
       <text class="menu-arrow">></text>
     </view>

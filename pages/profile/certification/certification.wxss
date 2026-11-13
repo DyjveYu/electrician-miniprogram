@@ -42,6 +42,18 @@
   margin-bottom: 0;
 }
 
+.certification-result.is-pending .pending-title {
+  color: #956321;
+}
+
+.region-review-hint {
+  margin-bottom: 32rpx;
+  color: #687a71;
+  font-size: 28rpx;
+  line-height: 1.6;
+  text-align: center;
+}
+
 .status-tag.rejected {
   background-color: #b74434;
 }
@@ -468,4 +480,61 @@
   width: 0;
   min-width: 0;
   margin: 0;
+}
+.region-change-panel {
+  margin: 24rpx 0;
+  line-height: 1.7;
+}
+.region-history {
+  margin-top: 24rpx;
+  padding: 20rpx;
+  border: 1rpx solid #dce8df;
+  border-radius: 16rpx;
+}
+.region-modal-mask {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, .45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32rpx;
+}
+.region-modal {
+  height: 80vh;
+  width: 100%;
+  background: #fff;
+  box-sizing: border-box;
+  border-radius: 24rpx;
+  padding: 32rpx;
+}
+
+.region-change-reason {
+  width: 100%;
+  min-height: 150rpx;
+  box-sizing: border-box;
+}
+
+.region-change-notice {
+  margin-top: 24rpx;
+  margin-bottom: 24rpx;
+  line-height: 1.7;
+}
+
+.region-secondary-btn,
+.region-secondary-btn[disabled] {
+  background: #eff7f1;
+  color: #16835c;
+  border: 2rpx solid #cfe5d8;
+}
+
+.region-cancel-btn,
+.region-cancel-btn[disabled] {
+  background: #fff;
+  color: #16835c;
+  border: 2rpx solid #cfe5d8;
 }
