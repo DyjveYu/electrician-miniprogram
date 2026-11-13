@@ -11,6 +11,7 @@ function currentMonth() {
 
 Page({
   data: {
+    editing: false,
     mode: 'apply', // apply: 申请认证, view: 查看认证
     workTypes: ['maintenance'], // 默认选中维修电工
     isMaintenanceChecked: true, // 维修电工是否选中
@@ -188,6 +189,9 @@ Page({
             calloutFeesUnavailable: cert?.callout_fees_unavailable === true,
             reapply: false
           }, () => {
+            this.editSnapshot = null;
+            this.setData({ editing: false });
+            if (status === 'approved') this.startEditing();
             this.checkFormValid();
             this.loadLicenseThumbnails();
           });
@@ -302,6 +306,10 @@ Page({
       if (!this.data.certificationLoading) this.loadCertificationInfo();
       return;
     }
+    if (this.data.editing && JSON.stringify(this.editableValues()) !== this.editSnapshot?.comparison) {
+      wx.showToast({ title: '请先提交或取消资料修改，再更新身份证', icon: 'none' });
+      return;
+    }
     const readOnly = this.data.mode === 'view' && this.data.certificationStatus !== 'approved';
     wx.navigateTo({
       url: '/pages/profile/certification/identity/identity',
@@ -315,6 +323,11 @@ Page({
             idCardUpdateMatches: data.name === realName && data.id === idCard.toUpperCase(),
             activeStep: 0
           };
+          if (this.data.certificationStatus === 'approved') {
+            fields.editing = false;
+            this.editSnapshot = null;
+            wx.disableAlertBeforeUnload?.();
+          }
           this.setData(fields, () => this.checkFormValid());
         }
       },
@@ -363,7 +376,7 @@ Page({
   },
 
   cancelIdCardUpdate() {
-    if (!this.data.submitting) this.setData({ idCardDraft: null });
+    if (!this.data.submitting) this.setData({ idCardDraft: null }, () => this.startEditing());
   },
 
   saveIdCardUpdate() {
@@ -387,6 +400,7 @@ Page({
         }
         this.setData({
           idCardDraft: null,
+          businessRevision: cert.business_revision,
           idCardFrontPath: cert.id_card_front,
           idCardBackPath: cert.id_card_back,
           savedIdCard: {
@@ -395,20 +409,21 @@ Page({
             expiresOn: cert.id_card_expires_on || '',
             longTerm: cert.id_card_is_long_term === true
           }
-        });
+        }, () => this.startEditing());
         wx.showToast({ title: '身份证资料已更新', icon: 'success' });
       },
       fail: () => {
         if (this.isCurrent()) wx.showToast({ title: '保存失败，请重试', icon: 'none' });
       },
       complete: () => {
-        if (this.isCurrent()) this.setData({ submitting: false });
+        if (this.isCurrent()) this.setData({ submitting: false }, () => this.startEditing());
       }
     });
   },
 
   selectLicenses(event) {
-    if (this.data.mode !== 'apply' || this.data.submitting) return;
+    if ((this.data.mode !== 'apply' && !this.data.editing) || this.data.submitting) return;
+    this.photoSelectionRevision = (this.photoSelectionRevision || 0) + 1;
     const current = this.data.licenses;
     const selected = event.detail.value;
     this.invalidateFrom(1);
@@ -420,6 +435,7 @@ Page({
   },
 
   editLicense(event) {
+    if ((this.data.mode !== 'apply' && !this.data.editing) || this.data.submitting) return;
     this.invalidateFrom(1);
     const { index, field } = event.currentTarget.dataset;
     this.setData({ [`licenses[${index}].${field}`]: event.detail.value }, () => this.checkFormValid());
@@ -427,11 +443,16 @@ Page({
 
   chooseLicensePhoto(event) {
     const type = event.currentTarget.dataset.type;
-    if (this.data.mode !== 'apply' || this.data.submitting) return;
+    if ((this.data.mode !== 'apply' && !this.data.editing) || this.data.submitting) return;
+    const editor = this.editSnapshot;
+    const selection = (this.photoSelectionRevision || 0) + 1;
+    this.photoSelectionRevision = selection;
     wx.chooseImage({ count: 1, sizeType: ['compressed'], sourceType: ['album', 'camera'],
       success: res => {
         const index = this.data.licenses.findIndex(row => row.license_type === type);
-        if (!this.isCurrent() || this.data.submitting || index < 0) return;
+        if (!this.isCurrent() || this.data.submitting || index < 0 || editor !== this.editSnapshot
+          || selection !== this.photoSelectionRevision
+          || (this.data.mode !== 'apply' && !this.data.editing)) return;
         this.invalidateFrom(1);
         this.setData({ [`licenses[${index}].localPhoto`]: res.tempFilePaths[0] }, () => this.checkFormValid());
       }
@@ -439,7 +460,7 @@ Page({
   },
 
   tapLicensePhoto(event) {
-    if (this.data.mode === 'apply') {
+    if (this.data.mode === 'apply' || this.data.editing) {
       this.chooseLicensePhoto(event);
       return;
     }
@@ -480,13 +501,15 @@ Page({
   },
 
   editCareerMonth(event) {
+    if ((this.data.mode !== 'apply' && !this.data.editing) || this.data.submitting) return;
     this.invalidateFrom(1);
     this.setData({ careerMonth: event.detail.value }, () => this.checkFormValid());
   },
 
   checkFormValid() {
+    this.syncEditWarning();
     const { licenses, careerMonth, idCardDraft, sameIdentity, formData, workTypes, noticeAgreed } = this.data;
-    const id = idCardDraft?.id || (sameIdentity ? formData.idCard : '');
+    const id = idCardDraft?.id || ((sameIdentity || this.data.editing) ? formData.idCard : '');
     const current = currentMonth();
     const birth = /^(?:[1-9]\d{5})(\d{4})(0[1-9]|1[0-2])\d{5}[\dXx]$/.exec(id);
     const earliest = birth ? `${Number(birth[1]) + 18}-${birth[2]}` : '';
@@ -502,8 +525,8 @@ Page({
     this.setData({
       currentMonth: current,
       careerLabel: careerMonth ? `${careerMonth.slice(0, 4)} 年 ${careerMonth.slice(5, 7)} 月` : '',
-      careerYears: this.data.mode === 'view' ? this.data.careerYears : years,
-      careerError: this.data.mode === 'apply' && careerMonth && !monthValid
+      careerYears: this.data.mode === 'view' && !this.data.editing ? this.data.careerYears : years,
+      careerError: (this.data.mode === 'apply' || this.data.editing) && careerMonth && !monthValid
         ? (earliest ? '请选择满18周岁至当前月份之间的年月' : '无法确认出生年月，请核对身份证资料') : '',
       businessValid,
       submitDisabled: !(businessValid && noticeAgreed && this.data.calloutFees.length === 3
@@ -566,7 +589,7 @@ Page({
 
   editRate(e) {
     const field = e.currentTarget.dataset.field;
-    if (this.data.mode !== 'apply' || this.data.submitting || !['hourlyRate', 'dailyRate'].includes(field)) return;
+    if ((this.data.mode !== 'apply' && !this.data.editing) || this.data.submitting || !['hourlyRate', 'dailyRate'].includes(field)) return;
     this.setData({ [field]: e.detail.value }, () => this.checkFormValid());
   },
 
@@ -641,6 +664,144 @@ Page({
         wx.hideLoading();
         this.setData({ submitting: false });
       }
+    }
+  },
+
+  editableValues() {
+    const { licenses, careerMonth, hourlyRate, dailyRate } = this.data;
+    return {
+      licenses: licenses.map(row => ({
+        license_type: row.license_type, certificate_number: row.certificate_number?.trim(),
+        start_date: row.start_date, end_date: row.end_date,
+        localPhoto: row.localPhoto || '', photo_url: row.photo_url || ''
+      })),
+      careerMonth, hourlyRate, dailyRate
+    };
+  },
+
+  syncEditWarning() {
+    if (!this.data.editing || !this.editSnapshot) return;
+    const dirty = JSON.stringify(this.editableValues()) !== this.editSnapshot.comparison;
+    if (dirty) wx.enableAlertBeforeUnload?.({ message: '资料修改尚未保存，确定离开？' });
+    else wx.disableAlertBeforeUnload?.();
+  },
+
+  startEditing() {
+    if (!this.isCurrent() || !this.data.certificationLoaded || this.data.certificationStatus !== 'approved'
+      || this.data.editing || this.data.submitting || this.data.idCardDraft) return;
+    this.editSnapshot = {
+      comparison: JSON.stringify(this.editableValues()),
+      data: JSON.parse(JSON.stringify({
+        licenses: this.data.licenses, licenseOptions: this.data.licenseOptions,
+        careerMonth: this.data.careerMonth, hourlyRate: this.data.hourlyRate, dailyRate: this.data.dailyRate,
+        careerYears: this.data.careerYears
+      }))
+    };
+    this.setData({ editing: true }, () => this.checkFormValid());
+  },
+
+  cancelEditing() {
+    if (this.data.submitting || !this.editSnapshot) return;
+    const snapshot = this.editSnapshot.data;
+    this.editSnapshot = null;
+    this.licenseThumbnailRequest = (this.licenseThumbnailRequest || 0) + 1;
+    wx.disableAlertBeforeUnload?.();
+    this.setData({ ...snapshot, editing: false }, () => this.startEditing());
+  },
+
+  nextEditStep() {
+    if (!this.data.editing || this.data.submitting || this.data.activeStep >= 3) return;
+    this.setData({ activeStep: this.data.activeStep + 1 });
+  },
+
+  submitInformation() {
+    if (!this.isCurrent() || !this.data.editing || this.data.submitting || this.data.activeStep !== 3) return;
+    wx.showModal({
+      title: '提交修改', content: '6个月内仅支持一次修改自动审核通过',
+      success: result => {
+        if (result.confirm && this.isCurrent() && this.data.activeStep === 3) this.saveInformation();
+      }
+    });
+  },
+
+  async saveInformation() {
+    if (!this.isCurrent() || !this.data.editing || this.data.submitting || !this.editSnapshot) return;
+    this.checkFormValid();
+    const current = this.editableValues();
+    const previous = JSON.parse(this.editSnapshot.comparison);
+    const body = { business_revision: this.data.businessRevision };
+    const licensesChanged = JSON.stringify(current.licenses) !== JSON.stringify(previous.licenses);
+    if (licensesChanged && (!this.data.licenses.length || this.data.licenses.some(row =>
+      !row.certificate_number?.trim() || !row.start_date || !row.end_date || row.end_date <= row.start_date
+      || (!row.localPhoto && (!row.photo_url || row.legacy))))) {
+      wx.showToast({ title: '请补全证书资料和照片', icon: 'none' });
+      return;
+    }
+    if (current.careerMonth !== previous.careerMonth) {
+      if (!current.careerMonth || this.data.careerError) {
+        wx.showToast({ title: this.data.careerError || '请选择从业年月', icon: 'none' });
+        return;
+      }
+      body.career_started_month = current.careerMonth;
+    }
+    for (const [field, key, min, max] of [
+      ['hourlyRate', 'hourly_rate', 18.2, 1000], ['dailyRate', 'daily_rate', 145.6, 8000]
+    ]) {
+      if (current[field] === previous[field]) continue;
+      if (!this.validRate(current[field], min, max)) {
+        wx.showToast({ title: field === 'hourlyRate' ? '小时工费须为18.2–1000元，最多两位小数' : '日工工费须为145.6–8000元，最多两位小数', icon: 'none' });
+        return;
+      }
+      body[key] = Number(current[field]);
+    }
+    if (!licensesChanged && Object.keys(body).length === 1) {
+      wx.showToast({ title: '本次未修改资料', icon: 'none' });
+      return;
+    }
+    this.setData({ submitting: true });
+    wx.showLoading({ title: '保存中', mask: true });
+    try {
+      if (licensesChanged) {
+        body.licenses = [];
+        for (const row of this.data.licenses) {
+          const photo_draft = row.localPhoto ? await this.uploadLicensePhoto(row.localPhoto, row.license_type) : undefined;
+          if (!this.isCurrent()) return;
+          body.licenses.push({
+            license_type: row.license_type, certificate_number: row.certificate_number,
+            start_date: row.start_date, end_date: row.end_date, photo_draft
+          });
+        }
+      }
+      const response = await new Promise((resolve, reject) => wx.request({
+        url: getApp().globalData.baseUrl + '/electricians/certification/information',
+        method: 'PUT', header: { Authorization: 'Bearer ' + this.session.token }, data: body,
+        success: resolve, fail: () => reject(new Error('网络请求失败，请重试'))
+      }));
+      if (!this.isCurrent()) return;
+      if (response.statusCode === 409) {
+        wx.showModal({
+          title: '资料已变化', content: response.data?.message || '请重新加载后核对资料',
+          confirmText: '重新加载',
+          success: result => {
+            if (!this.isCurrent() || !result.confirm) return;
+            this.setData({ submitting: false });
+            this.cancelEditing();
+            this.loadCertificationInfo();
+          }
+        });
+        return;
+      }
+      if (!response.data?.success) throw new Error(response.data?.message || '保存失败，请重试');
+      wx.disableAlertBeforeUnload?.();
+      this.editSnapshot = null;
+      this.setData({ editing: false });
+      this.loadCertificationInfo();
+      wx.showToast({ title: response.data.data.status === 'approved' ? '资料已保存' : '认证未通过', icon: 'none' });
+    } catch (error) {
+      if (this.isCurrent()) wx.showModal({ title: '保存失败', content: error.message, showCancel: false });
+    } finally {
+      wx.hideLoading();
+      if (this.isCurrent()) this.setData({ submitting: false });
     }
   },
 

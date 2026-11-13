@@ -457,3 +457,15 @@
   flex-direction: column;
   gap: 12rpx;
 }
+.modification-actions {
+  display: flex;
+  gap: 24rpx;
+  margin-top: 40rpx;
+}
+
+.modification-actions button {
+  flex: 1;
+  width: 0;
+  min-width: 0;
+  margin: 0;
+}

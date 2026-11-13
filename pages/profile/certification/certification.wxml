@@ -93,11 +93,11 @@
           <label class="checkbox-item"><checkbox value="installation" checked="{{isInstallationChecked}}" disabled="{{mode === 'view'}}" />安装电工</label>
         </checkbox-group>
       </view>
-      <view class="form-group" wx:if="{{mode === 'apply'}}">
+      <view class="form-group" wx:if="{{(mode === 'apply' || editing)}}">
         <view class="form-label">电工证类型</view>
         <checkbox-group class="license-options" bindchange="selectLicenses">
           <label class="checkbox-item" wx:for="{{licenseOptions}}" wx:key="license_type">
-            <checkbox value="{{item.license_type}}" checked="{{item.checked}}" color="#16835c" />
+            <checkbox value="{{item.license_type}}" checked="{{item.checked}}" color="#16835c" disabled="{{submitting}}" />
             <text>{{item.label}}</text>
           </label>
         </checkbox-group>
@@ -105,29 +105,29 @@
       </view>
       <view class="license-card" wx:for="{{licenses}}" wx:key="license_type">
         <view class="form-label">{{item.label}}</view>
-        <input wx:if="{{mode === 'apply'}}" class="form-input" maxlength="50" placeholder="请输入证件上的真实证号" value="{{item.certificate_number}}" data-index="{{index}}" data-field="certificate_number" bindinput="editLicense" />
+        <input wx:if="{{(mode === 'apply' || editing)}}" class="form-input" maxlength="50" placeholder="请输入证件上的真实证号" value="{{item.certificate_number}}" data-index="{{index}}" data-field="certificate_number" bindinput="editLicense" />
         <view wx:else class="form-input readonly-value">{{item.certificate_number || '证号未记录'}}</view>
         <view class="license-dates">
-          <picker mode="date" value="{{item.start_date}}" disabled="{{mode === 'view'}}" data-index="{{index}}" data-field="start_date" bindchange="editLicense">
+          <picker mode="date" value="{{item.start_date}}" disabled="{{(mode === 'view' && !editing) || submitting}}" data-index="{{index}}" data-field="start_date" bindchange="editLicense">
             <view class="form-input readonly-value">{{item.start_date || '选择起始日'}}</view>
           </picker>
-          <picker mode="date" value="{{item.end_date}}" disabled="{{mode === 'view'}}" data-index="{{index}}" data-field="end_date" bindchange="editLicense">
+          <picker mode="date" value="{{item.end_date}}" disabled="{{(mode === 'view' && !editing) || submitting}}" data-index="{{index}}" data-field="end_date" bindchange="editLicense">
             <view class="form-input readonly-value">{{item.end_date || '选择截止日'}}</view>
           </picker>
         </view>
-        <view class="tips" wx:if="{{mode === 'apply' && item.start_date && item.end_date && item.end_date <= item.start_date}}">证书截止日期必须晚于起始日期。</view>
+        <view class="tips" wx:if="{{(mode === 'apply' || editing) && item.start_date && item.end_date && item.end_date <= item.start_date}}">证书截止日期必须晚于起始日期。</view>
         <view class="license-photo-card" data-type="{{item.license_type}}" data-url="{{item.previewUrl || item.photo_url}}" bindtap="tapLicensePhoto">
           <image wx:if="{{item.localPhoto || item.previewUrl}}" class="license-photo" src="{{item.localPhoto || item.previewUrl}}" mode="aspectFit" />
           <block wx:else>
             <image class="license-photo-icon" src="/images/content-ui/camera.svg" mode="aspectFit" />
-            <text>{{item.photo_url ? '证书照片' : (mode === 'apply' ? '点击上传照片' : '暂无照片')}}</text>
+            <text>{{item.photo_url ? '证书照片' : ((mode === 'apply' || editing) ? '点击上传照片' : '暂无照片')}}</text>
           </block>
-          <text class="license-photo-caption" wx:if="{{mode === 'apply' && (item.localPhoto || item.photo_url)}}">点击更换</text>
+          <text class="license-photo-caption" wx:if="{{(mode === 'apply' || editing) && (item.localPhoto || item.photo_url)}}">点击更换</text>
         </view>
       </view>
       <view class="form-group">
         <view class="form-label">从业时间</view>
-        <picker mode="date" fields="month" value="{{careerMonth || currentMonth}}" end="{{currentMonth}}" disabled="{{mode === 'view'}}" bindchange="editCareerMonth">
+        <picker mode="date" fields="month" value="{{careerMonth || currentMonth}}" end="{{currentMonth}}" disabled="{{(mode === 'view' && !editing) || submitting}}" bindchange="editCareerMonth">
           <view class="form-input readonly-value">{{careerMonth || (mode === 'view' ? '未填写' : '请选择开始从业年月')}}</view>
         </picker>
         <view class="career-summary" wx:if="{{careerMonth}}">从 {{careerLabel}} 开始从事电工工作{{careerYears != null ? '，从业 ' + careerYears + ' 年' : ''}}</view>
@@ -159,13 +159,13 @@
       <view class="upload-title">工费信息</view>
       <view class="form-group">
         <view class="form-label">小时工费（元/小时）</view>
-        <input wx:if="{{mode === 'apply'}}" type="digit" class="form-input" value="{{hourlyRate}}" placeholder="18.2–1000" maxlength="7" data-field="hourlyRate" bindinput="editRate" disabled="{{submitting}}" />
+        <input wx:if="{{mode === 'apply' || editing}}" type="digit" class="form-input" value="{{hourlyRate}}" placeholder="18.2–1000" maxlength="7" data-field="hourlyRate" bindinput="editRate" disabled="{{submitting}}" />
         <view wx:else class="form-input readonly-value">{{hourlyRate || '未填写'}}</view>
         <view wx:if="{{mode === 'apply'}}" class="tips">请输入 18.2–1000 元/小时。</view>
       </view>
       <view class="form-group">
         <view class="form-label">日工工费（元/日）</view>
-        <input wx:if="{{mode === 'apply'}}" type="digit" class="form-input" value="{{dailyRate}}" placeholder="145.6–8000" maxlength="7" data-field="dailyRate" bindinput="editRate" disabled="{{submitting}}" />
+        <input wx:if="{{mode === 'apply' || editing}}" type="digit" class="form-input" value="{{dailyRate}}" placeholder="145.6–8000" maxlength="7" data-field="dailyRate" bindinput="editRate" disabled="{{submitting}}" />
         <view wx:else class="form-input readonly-value">{{dailyRate || '未填写'}}</view>
         <view wx:if="{{mode === 'apply'}}" class="tips">请输入 145.6–8000 元/日。</view>
       </view>
@@ -194,5 +194,10 @@
     <button class="submit-btn" bindtap="submitCertification" loading="{{submitting}}" disabled="{{submitDisabled || submitting}}" wx:if="{{mode === 'apply'}}">提交认证</button>
 
     </view>
+  </view>
+  <button class="submit-btn" wx:if="{{editing && activeStep < 3}}" bindtap="nextEditStep" disabled="{{submitting}}">继续填写</button>
+  <view class="modification-actions" wx:if="{{editing && activeStep === 3}}">
+    <button class="submit-btn" bindtap="submitInformation" loading="{{submitting}}" disabled="{{submitting}}">提交修改</button>
+    <button class="reapply-btn" bindtap="cancelEditing" disabled="{{submitting}}">取消修改</button>
   </view>
 </view>
