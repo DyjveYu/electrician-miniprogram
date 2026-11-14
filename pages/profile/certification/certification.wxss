@@ -491,6 +491,11 @@
   border: 1rpx solid #dce8df;
   border-radius: 16rpx;
 }
+.region-addition-section {
+  margin-top: 32rpx;
+  padding-top: 24rpx;
+  border-top: 1rpx solid #dce8df;
+}
 .region-modal-mask {
   position: fixed;
   top: 0;

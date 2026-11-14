@@ -25,6 +25,13 @@ Page({
     certificationStatus: '', // pending: 审核中, approved: 已通过, rejected: 已拒绝
     regionChangePending: false,
     regionInfo: null,
+    regionAdditionInfo: null,
+    regionAdditionLoading: false,
+    regionAdditionError: '',
+    serviceRegions: [],
+    pendingRegionRequest: null,
+    regionOperation: 'change',
+    regionEditorInfo: null,
     regionInfoLoading: false,
     regionInfoError: '',
     regionEditorOpen: false,
@@ -105,6 +112,7 @@ Page({
     const { token, userInfo } = getApp().globalData;
     this.session = { token, userId: userInfo?.id };
     this.notificationStep = options.step === '2';
+    this.notificationRegionOperation = options.regionOperation === 'add' ? 'add' : 'change';
     this.notificationRegionChangeId = /^\d+$/.test(options.regionChangeId || '') ? options.regionChangeId : '';
     // 设置页面模式：申请认证或查看认证
     if (options.mode) {
@@ -136,7 +144,8 @@ Page({
     if (!this.isCurrent() || this.data.certificationLoading) return;
     const app = getApp();
     this.regionInfoRequest = null;
-    this.setData({ regionInfo: null, regionInfoLoading: false });
+    this.regionAdditionRequest = null;
+    this.setData({ regionInfo: null, regionAdditionInfo: null, regionAdditionLoading: false, regionInfoLoading: false });
     this.setData({ certificationLoaded: false, certificationLoading: true, certificationLoadError: '' });
     wx.showLoading({
       title: '加载中',
@@ -176,6 +185,8 @@ Page({
             },
             certificationStatus: status,
             regionChangePending: !!cert?.region_change_pending_id,
+            pendingRegionRequest: cert?.pending_region_request || null,
+            serviceRegions: cert?.service_regions || [],
             certificationLoaded: true,
             savedIdCard: {
               age: cert?.id_card_age ?? null,
@@ -846,7 +857,7 @@ Page({
     const current = () => this.isCurrent() && this.regionInfoRequest === request;
     wx.request({
       url: getApp().globalData.baseUrl + '/electricians/certification/region-change'
-        + (this.notificationRegionChangeId ? '?change_id=' + this.notificationRegionChangeId : ''),
+        + (this.notificationRegionChangeId && this.notificationRegionOperation !== 'add' ? '?change_id=' + this.notificationRegionChangeId : ''),
       header: { Authorization: 'Bearer ' + this.session.token },
       success: res => {
         if (!current()) return;
@@ -858,19 +869,47 @@ Page({
         const next = info.next_eligible_at
           ? new Date(new Date(info.next_eligible_at).getTime() + 8 * 3600000).toISOString().slice(0, 19).replace('T', ' ')
           : '';
-        this.setData({ regionInfo: { ...info, nextTimeLabel: next } });
+        this.setData({ regionInfo: { ...info, nextTimeLabel: next },
+          serviceRegions: info.service_regions || this.data.serviceRegions,
+          pendingRegionRequest: info.pending_region_request || null });
       },
       fail: () => { if (current()) this.setData({ regionInfoError: '区域变更信息加载失败，请重试' }); },
-      complete: () => { if (current()) this.setData({ regionInfoLoading: false }); }
+      complete: () => { if (current()) { this.setData({ regionInfoLoading: false }); this.loadRegionAdditionStatus(); } }
     });
   },
 
-  openRegionChange() {
-    if (!this.data.certificationLoaded || !this.data.regionInfo?.can_apply || this.data.submitting) return;
+  loadRegionAdditionStatus() {
+    if (!this.isCurrent() || this.data.mode !== 'view') return;
+    const request = {};
+    this.regionAdditionRequest = request;
+    const current = () => this.isCurrent() && this.regionAdditionRequest === request;
+    this.setData({ regionAdditionLoading: true, regionAdditionError: '' });
+    wx.request({
+      url: getApp().globalData.baseUrl + '/electricians/certification/region-addition'
+        + (this.notificationRegionChangeId && this.notificationRegionOperation === 'add' ? '?change_id=' + this.notificationRegionChangeId : ''),
+      header: { Authorization: 'Bearer ' + this.session.token },
+      success: res => {
+        if (!current()) return;
+        if (res.data?.code !== 200) { this.setData({ regionAdditionInfo: null, regionAdditionError: res.data?.message || '新增区域信息加载失败' }); return; }
+        const info = res.data.data;
+        this.setData({ regionAdditionInfo: info, serviceRegions: info.service_regions || [], pendingRegionRequest: info.pending_region_request || null });
+      },
+      fail: () => { if (current()) this.setData({ regionAdditionError: '新增区域信息加载失败，请重试' }); },
+      complete: () => { if (current()) this.setData({ regionAdditionLoading: false }); }
+    });
+  },
+
+  openRegionChange() { this.openRegionEditor('change'); },
+  openRegionAddition() { this.openRegionEditor('add'); },
+  openRegionEditor(operation) {
+    const info = operation === 'add' ? this.data.regionAdditionInfo : this.data.regionInfo;
+    if (!this.data.certificationLoaded || !info?.can_apply || this.data.submitting) return;
     this.targetRegionRequest = null;
     this.regionChangeRequestKey = null;
-    this.setData({ regionEditorOpen: true, targetRegion: ['', '', ''], regionChangeReason: '',
-      targetRegionFees: [], targetRegionError: '' });
+    this.regionEditorRevision = {};
+    this.setData({ regionEditorOpen: true, regionOperation: operation, regionEditorInfo: info,
+      targetRegion: operation === 'add' ? [...this.data.region] : ['', '', ''], regionChangeReason: '',
+      targetRegionChecking: false, targetRegionFees: [], targetRegionError: '' });
   },
 
   closeRegionChange() {
@@ -892,6 +931,10 @@ Page({
     const request = {};
     this.targetRegionRequest = request;
     this.setData({ targetRegion, targetRegionFees: [], targetRegionChecking: true, targetRegionError: '' });
+    if (this.data.regionOperation === 'add' && targetRegion[0] !== this.data.region[0]) {
+      this.setData({ targetRegionChecking: false, targetRegionError: '新增区域仅支持当前省份内的区县' });
+      return;
+    }
     const current = () => this.isCurrent() && this.targetRegionRequest === request;
     wx.request({
       url: getApp().globalData.baseUrl + '/electricians/certification/region',
@@ -910,7 +953,8 @@ Page({
 
   submitRegionChange() {
     if (!this.isCurrent() || this.data.submitting || !this.data.regionEditorOpen) return;
-    const { regionInfo, targetRegionFees, targetRegion, regionChangeReason } = this.data;
+    const { regionEditorInfo: regionInfo, regionOperation: operation, targetRegionFees, targetRegion, regionChangeReason } = this.data;
+    const editor = this.regionEditorRevision;
     if (!regionInfo?.can_apply || targetRegionFees.length !== 3 || this.data.targetRegionChecking) {
       wx.showToast({ title: '请先选择有效区域并读取上门费', icon: 'none' });
       return;
@@ -921,20 +965,22 @@ Page({
     }
     const dirty = this.editSnapshot && JSON.stringify(this.editableValues()) !== this.editSnapshot.comparison;
     wx.showModal({
-      title: regionInfo.can_self_change ? '确认自主变更' : '确认提交人工审核',
-      content: (regionInfo.can_self_change ? '成功后将使用一次自主变更机会。'
+      title: operation === 'add' ? '确认新增接单区域' : (regionInfo.can_self_change ? '确认自主变更' : '确认提交人工审核'),
+      content: (operation === 'add' ? '提交后保留现有认证资格和区域，新增目标待审核通过后生效。' : regionInfo.can_self_change ? '成功后将使用一次自主变更机会。'
         : '提交后认证转为待审核，审核期间按未通过认证门槛处理。')
+        + (operation === 'change' && targetRegion[0] !== this.data.region[0] ? '跨省变更成功后，当前全部接单区域将被替换，仅保留新选择的目标区域。' : '')
         + (dirty ? '本次区域变更独立提交，尚未提交的其他资料修改将被放弃。' : ''),
       success: result => {
         if (!result.confirm || !this.isCurrent() || this.data.submitting || !this.data.regionEditorOpen) return;
-        if (regionInfo.can_self_change) this.sendRegionChange(targetRegion, regionChangeReason, regionInfo, { result: 'unavailable' });
-        else this.requestReviewSubscription(result => this.sendRegionChange(targetRegion, regionChangeReason, regionInfo, result));
+        if (editor !== this.regionEditorRevision) return;
+        if (regionInfo.can_self_change) this.sendRegionChange(targetRegion, regionChangeReason, regionInfo, { result: 'unavailable' }, operation);
+        else this.requestReviewSubscription(result => { if (editor === this.regionEditorRevision) this.sendRegionChange(targetRegion, regionChangeReason, regionInfo, result, operation); });
       }
     });
   },
 
   requestReviewSubscription(done) {
-    const template = this.data.regionInfo?.subscribe_template_id;
+    const template = this.data.regionEditorInfo?.subscribe_template_id;
     if (!template || !wx.requestSubscribeMessage) {
       done({ result: 'unavailable' });
       return;
@@ -953,8 +999,9 @@ Page({
     });
   },
 
-  sendRegionChange(targetRegion, regionChangeReason, regionInfo, authorization) {
+  sendRegionChange(targetRegion, regionChangeReason, regionInfo, authorization, operation = this.data.regionOperation) {
     if (!this.isCurrent() || this.data.submitting || !this.data.regionEditorOpen) return;
+    if (operation !== this.data.regionOperation) return;
     if (targetRegion.join(',') !== this.data.targetRegion.join(',')
       || regionChangeReason !== this.data.regionChangeReason) return;
     if (!this.regionChangeRequestKey) {
@@ -965,7 +1012,7 @@ Page({
     }
     this.setData({ submitting: true });
     wx.request({
-      url: getApp().globalData.baseUrl + '/electricians/certification/region-change',
+      url: getApp().globalData.baseUrl + '/electricians/certification/' + (operation === 'add' ? 'region-addition' : 'region-change'),
       method: 'POST', header: { Authorization: 'Bearer ' + this.session.token },
       data: { province: targetRegion[0], city: targetRegion[1], district: targetRegion[2],
         reason: regionChangeReason.trim(), business_revision: regionInfo.business_revision,

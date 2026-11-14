@@ -163,6 +163,7 @@
       </view>
       <view class="certification-badge">
        <text class="badge-text {{userInfo.certificationStatus === 'approved' ? 'certified' : (userInfo.certificationStatus === 'pending' || certificationStatusText === '待补充资料' ? 'pending' : 'uncertified')}}">{{certificationStatusText}}</text>
+       <text class="badge-text pending" wx:if="{{userInfo.pendingRegionRequest.operation === 'add'}}">新增区域待审核</text>
       </view>
       <text class="menu-arrow">></text>
     </view>
