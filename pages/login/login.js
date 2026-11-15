@@ -43,7 +43,6 @@ Page({
     this.setData({ version: app.globalData.version });
     console.log('登录页面加载，版本号:', this.data.version);
     console.log('初始 selectedRole:', this.data.selectedRole);
-    this.checkTestEnvironment();
   },
 
   onShow() {
@@ -83,6 +82,7 @@ Page({
   openLoginForm(e) {
     if (this.data.isLogging || this.data.showWelcomeModal) return;
     this._conversionConsent = null;
+    this.invalidateSmsRequest();
     const role = e.currentTarget.dataset.role;
     if (!['user', 'electrician'].includes(role)) return;
     this._orderRequested = role === 'user';
@@ -93,6 +93,7 @@ Page({
 
   closeLoginForm() {
     if (this.data.isLogging || this.data.showWelcomeModal || this.data.showModal) return;
+    this.invalidateSmsRequest();
     this._orderRequested = false;
     orderEntry.clear();
     this._contentEntry = false;
@@ -104,21 +105,20 @@ Page({
 
   onUnload() {
     this._unloaded = true;
+    this.invalidateSmsRequest();
     this._conversionConsent = null;
     if (this._countdownTimer) clearInterval(this._countdownTimer);
     this._countdownTimer = null;
   },
+  onHide() { this.invalidateSmsRequest(); },
 
   /**
-   * 检查测试环境
+   * 使旧短信响应失效并清除旧测试提示
    */
-  checkTestEnvironment() {
-    // 在开发环境显示测试提示
-    const isTestEnv = app.globalData.baseUrl.includes('localhost');
-    this.setData({
-      showTestTip: isTestEnv,
-      testCode: '123456'
-    });
+  invalidateSmsRequest() {
+    if (this._smsRequest) app.hideLoading();
+    this._smsRequest = null;
+    if (!this._unloaded) this.setData({ showTestTip: false, testCode: '' });
   },
 
   /**
@@ -167,6 +167,10 @@ Page({
     if (this.data.isLogging) return;
     this._conversionConsent = null;
     const phone = e.detail.value;
+    if (phone !== this.data.phone) {
+      this.invalidateSmsRequest();
+      this.setData({ code: '' });
+    }
     this.setData({
       phone,
       phoneError: ''
@@ -214,6 +218,11 @@ Page({
     }
 
     const { phone } = this.data;
+    const request = {};
+    this._smsRequest = request;
+    const current = () => !this._unloaded && this._smsRequest === request && this.data.phone === phone;
+    this.setData({ showTestTip: false, testCode: '', code: '', codeError: '' });
+    this.validateForm();
 
     // 验证手机号
     if (!validatePhone(phone)) {
@@ -227,23 +236,24 @@ Page({
       app.showLoading('发送中...');
 
       const res = await AuthAPI.sendCode(phone, 'login');
-      if (this._unloaded) return;
+      if (!current()) return;
 
       app.showToast('验证码发送成功', 'success');
 
       // 开始倒计时
       this.startCountdown();
 
-      // 测试环境显示验证码
-      if (res.code) {
+      // 仅接受服务端明确返回的测试码并填入输入框
+      if (res.data?.testMode === true && typeof res.data.code === 'string' && /^\d{6}$/.test(res.data.code)) {
         this.setData({
-          testCode: res.code
+          code: res.data.code, codeError: '', testCode: res.data.code, showTestTip: true
         });
+        this.validateForm();
       }
     } catch (error) {
-      if (!this._unloaded) app.showToast(error.message || '发送失败');
+      if (current()) app.showToast(error.message || '发送失败');
     } finally {
-      app.hideLoading();
+      if (this._smsRequest === request) { app.hideLoading(); this._smsRequest = null; }
     }
   },
 

@@ -101,7 +101,6 @@
             <text>{{item.label}}</text>
           </label>
         </checkbox-group>
-        <view class="tips">请保证所填信息的真实性，系统自动校验证书有效期。</view>
       </view>
       <view class="license-card" wx:for="{{licenses}}" wx:key="license_type">
         <view class="form-label">{{item.label}}</view>
@@ -150,52 +149,51 @@
           </view>
         </view>
       </view>
-      <view class="tips" wx:if="{{mode === 'view' && certificationStatus === 'approved'}}">接单区域选择提交后 6 个月内变更，须填写「变更接单区域申请」。</view>
+      <view class="form-hint" wx:if="{{mode === 'view' && certificationStatus === 'approved'}}">接单区域选择提交后 6 个月内变更，须填写「变更接单区域申请」。</view>
       <view class="region-change-panel" wx:if="{{mode === 'view'}}">
         <view class="region-history" wx:if="{{serviceRegions.length}}">
-          <view>已增加的接单区域</view>
-          <view wx:for="{{serviceRegions}}" wx:key="id">{{item.province}}{{item.city}}{{item.district}}</view>
+          <view class="region-history-title">已增加的接单区域</view>
+          <view class="form-input region-input region-display" wx:for="{{serviceRegions}}" wx:key="id">{{item.province}}{{item.city}}{{item.district}}</view>
         </view>
-        <view class="tips" wx:if="{{pendingRegionRequest.operation === 'add'}}">新增区域待审核，现有认证资格及接单区域保留。</view>
+        <view class="form-hint" wx:if="{{pendingRegionRequest.operation === 'add'}}">新增区域待审核，现有认证资格及接单区域保留。</view>
         <view wx:if="{{regionInfoLoading}}">正在读取区域变更信息…</view>
-        <view class="tips" wx:if="{{regionInfoError}}">{{regionInfoError}}</view>
+        <view class="form-hint" wx:if="{{regionInfoError}}">{{regionInfoError}}</view>
         <button class="reapply-btn" wx:if="{{!regionInfo || regionInfoError}}" bindtap="loadRegionChangeStatus" disabled="{{regionInfoLoading}}">重新读取区域变更信息</button>
         <block wx:if="{{regionInfo}}">
-          <view class="tips">{{regionInfo.can_apply ? (regionInfo.can_self_change ? '可自主变更接单区域' : '本次变更需提交人工审核') : regionInfo.explanation}}</view>
-          <view wx:if="{{regionInfo.nextTimeLabel}}">满足六个月间隔的时间（北京时间）{{regionInfo.nextTimeLabel}}</view>
+          <view class="form-hint" wx:if="{{regionInfo.can_self_change || !regionInfo.can_apply}}">{{regionInfo.can_self_change ? '可自主变更接单区域' : regionInfo.explanation}}</view>
           <view class="region-history" wx:if="{{regionInfo.latest}}">
-            <view>{{regionInfo.latest.source === 'self' ? '信息自行变更' : (regionInfo.latest.status === 'pending' ? '区域变更待审核' : (regionInfo.latest.status === 'approved' ? '区域变更审核通过' : '区域变更申请未通过'))}}</view>
-            <view>目标区域 {{regionInfo.latest.province}}{{regionInfo.latest.city}}{{regionInfo.latest.district}}</view>
+            <view class="region-history-title">{{regionInfo.latest.source === 'self' ? '信息自行变更' : (regionInfo.latest.status === 'pending' ? '区域变更待审核' : (regionInfo.latest.status === 'approved' ? '区域变更审核通过' : '区域变更申请未通过'))}}</view>
+            <view class="form-input region-input region-display">{{regionInfo.latest.province}}{{regionInfo.latest.city}}{{regionInfo.latest.district}}</view>
             <view wx:if="{{regionInfo.latest.reject_reason}}">{{regionInfo.latest.reject_reason}}，请与客服联系。</view>
           </view>
           <view class="region-history" wx:if="{{regionInfo.notification_result && regionInfo.notification_result.id !== regionInfo.latest.id}}">
-            <view>本条通知对应的申请{{regionInfo.notification_result.status === 'approved' ? '已通过' : (regionInfo.notification_result.status === 'rejected' ? '未通过' : '待审核')}}</view>
-            <view>{{regionInfo.notification_result.province}}{{regionInfo.notification_result.city}}{{regionInfo.notification_result.district}}</view>
+            <view class="region-history-title">本条通知对应的申请{{regionInfo.notification_result.status === 'approved' ? '已通过' : (regionInfo.notification_result.status === 'rejected' ? '未通过' : '待审核')}}</view>
+            <view class="form-input region-input region-display">{{regionInfo.notification_result.province}}{{regionInfo.notification_result.city}}{{regionInfo.notification_result.district}}</view>
             <view wx:if="{{regionInfo.notification_result.reject_reason}}">{{regionInfo.notification_result.reject_reason}}，请与客服联系。</view>
           </view>
           <button class="submit-btn region-secondary-btn" wx:if="{{regionInfo.can_apply}}" bindtap="openRegionChange" disabled="{{submitting}}">{{regionInfo.can_self_change ? '自主变更接单区域' : '变更接单区域表单'}}</button>
         </block>
         <view class="region-addition-section">
           <view wx:if="{{regionAdditionLoading}}">正在读取新增区域信息…</view>
-          <view class="tips" wx:if="{{regionAdditionError}}">{{regionAdditionError}}</view>
+          <view class="form-hint" wx:if="{{regionAdditionError}}">{{regionAdditionError}}</view>
           <button class="reapply-btn region-secondary-btn" wx:if="{{regionAdditionError}}" bindtap="loadRegionAdditionStatus">重新读取新增区域信息</button>
           <block wx:if="{{regionAdditionInfo}}">
-            <view class="tips">{{regionAdditionInfo.explanation}}</view>
+            <view class="form-hint" wx:if="{{!regionAdditionInfo.can_apply}}">{{regionAdditionInfo.explanation}}</view>
             <view class="region-history" wx:if="{{regionAdditionInfo.latest}}">
-              <view>{{regionAdditionInfo.latest.status === 'pending' ? '新增区域待审核' : (regionAdditionInfo.latest.status === 'approved' ? '新增区域审核通过' : '新增区域申请未通过')}}</view>
-              <view>目标区域 {{regionAdditionInfo.latest.province}}{{regionAdditionInfo.latest.city}}{{regionAdditionInfo.latest.district}}</view>
+              <view class="region-history-title">{{regionAdditionInfo.latest.status === 'pending' ? '新增区域待审核' : (regionAdditionInfo.latest.status === 'approved' ? '新增区域审核通过' : '新增区域申请未通过')}}</view>
+              <view class="form-input region-input region-display">{{regionAdditionInfo.latest.province}}{{regionAdditionInfo.latest.city}}{{regionAdditionInfo.latest.district}}</view>
               <view wx:if="{{regionAdditionInfo.latest.reject_reason}}">{{regionAdditionInfo.latest.reject_reason}}，如果需要继续增加，请与客服联系。</view>
             </view>
             <view class="region-history" wx:if="{{regionAdditionInfo.notification_result && regionAdditionInfo.notification_result.id !== regionAdditionInfo.latest.id}}">
-              <view>本条通知对应的新增申请{{regionAdditionInfo.notification_result.status === 'approved' ? '已通过' : (regionAdditionInfo.notification_result.status === 'rejected' ? '未通过' : '待审核')}}</view>
-              <view>{{regionAdditionInfo.notification_result.province}}{{regionAdditionInfo.notification_result.city}}{{regionAdditionInfo.notification_result.district}}</view>
+              <view class="region-history-title">本条通知对应的新增申请{{regionAdditionInfo.notification_result.status === 'approved' ? '已通过' : (regionAdditionInfo.notification_result.status === 'rejected' ? '未通过' : '待审核')}}</view>
+              <view class="form-input region-input region-display">{{regionAdditionInfo.notification_result.province}}{{regionAdditionInfo.notification_result.city}}{{regionAdditionInfo.notification_result.district}}</view>
               <view wx:if="{{regionAdditionInfo.notification_result.reject_reason}}">{{regionAdditionInfo.notification_result.reject_reason}}，如果需要继续增加，请与客服联系。</view>
             </view>
             <button class="submit-btn region-secondary-btn" wx:if="{{regionAdditionInfo.can_apply}}" bindtap="openRegionAddition" disabled="{{submitting}}">增加接单区域表单</button>
           </block>
         </view>
       </view>
-      <view class="tips">接单用户对所填写的信息，按照国家法律法规填写人对信息的真实性承担法律责任。</view>
+      <view class="form-hint">接单用户对所填写的信息，按照国家法律法规填写人对信息的真实性承担法律责任。</view>
       <button class="submit-btn" wx:if="{{mode === 'apply'}}" bindtap="nextFeeStep" loading="{{checkingRegion}}" disabled="{{checkingRegion}}">继续填写</button>
     </view>
 
@@ -205,15 +203,15 @@
         <view class="form-label">小时工费（元/小时）</view>
         <input wx:if="{{mode === 'apply' || editing}}" type="digit" class="form-input" value="{{hourlyRate}}" placeholder="18.2–1000" maxlength="7" data-field="hourlyRate" bindinput="editRate" disabled="{{submitting}}" />
         <view wx:else class="form-input readonly-value">{{hourlyRate || '未填写'}}</view>
-        <view wx:if="{{mode === 'apply'}}" class="tips">请输入 18.2–1000 元/小时。</view>
+        <view wx:if="{{mode === 'apply'}}" class="form-hint">请输入 18.2–1000 元/小时。</view>
       </view>
       <view class="form-group">
         <view class="form-label">日工工费（元/日）</view>
         <input wx:if="{{mode === 'apply' || editing}}" type="digit" class="form-input" value="{{dailyRate}}" placeholder="145.6–8000" maxlength="7" data-field="dailyRate" bindinput="editRate" disabled="{{submitting}}" />
         <view wx:else class="form-input readonly-value">{{dailyRate || '未填写'}}</view>
-        <view wx:if="{{mode === 'apply'}}" class="tips">请输入 145.6–8000 元/日。</view>
+        <view wx:if="{{mode === 'apply'}}" class="form-hint">请输入 145.6–8000 元/日。</view>
       </view>
-      <view class="notice-link wage-reference-link" bindtap="openWageReference">点击查看非全日制工作小时最低工资标准参考</view>
+      <view class="notice-link wage-reference-link" bindtap="openWageReference">点击查看：非全日制工作小时最低工资标准参考</view>
       <view class="form-group">
         <view class="form-label">上门费（北京时间）</view>
         <view class="callout-fee-list" wx:if="{{calloutFees.length === 3}}">
@@ -223,7 +221,7 @@
         </view>
         <view wx:else class="form-input readonly-value">{{calloutFeesUnavailable ? '上门费配置暂不可用' : '未填写'}}</view>
       </view>
-      <view class="tips">接单用户对所填写的信息，按照国家法律法规填写人对信息的真实性承担法律责任。</view>
+      <view class="form-hint">接单用户对所填写的信息，按照国家法律法规填写人对信息的真实性承担法律责任。</view>
     <!-- 认证须知勾选 -->
     <view class="cert-notice-agreement" wx:if="{{mode === 'apply'}}">
       <checkbox-group bindchange="onNoticeAgreementChange">
@@ -242,7 +240,7 @@
   <button class="submit-btn" wx:if="{{editing && activeStep < 3}}" bindtap="nextEditStep" disabled="{{submitting}}">继续填写</button>
   <view class="modification-actions" wx:if="{{editing && activeStep === 3}}">
     <button class="submit-btn" bindtap="submitInformation" loading="{{submitting}}" disabled="{{submitting}}">提交修改</button>
-    <button class="reapply-btn" bindtap="cancelEditing" disabled="{{submitting}}">取消修改</button>
+    <button class="reapply-btn cancel-edit-btn" bindtap="cancelEditing" disabled="{{submitting}}">取消修改</button>
   </view>
   <view class="region-modal-mask" wx:if="{{regionEditorOpen}}">
     <scroll-view class="region-modal" scroll-y>
@@ -251,17 +249,17 @@
       <picker mode="region" value="{{targetRegion}}" bindchange="selectTargetRegion" disabled="{{submitting}}">
         <view class="form-input">{{targetRegion[0] ? targetRegion[0] + targetRegion[1] + targetRegion[2] : '请选择目标省市区'}}</view>
       </picker>
-      <view class="tips" wx:if="{{targetRegionChecking}}">正在读取目标区域上门费…</view>
-      <view class="tips" wx:if="{{targetRegionError}}">{{targetRegionError}}</view>
+      <view class="form-hint" wx:if="{{targetRegionChecking}}">正在读取目标区域上门费…</view>
+      <view class="form-hint" wx:if="{{targetRegionError}}">{{targetRegionError}}</view>
       <view wx:if="{{targetRegionFees.length === 3}}">上门费（北京时间）</view>
-      <view class="tips" wx:if="{{targetRegionFees.length === 3}}">
+      <view class="form-hint" wx:if="{{targetRegionFees.length === 3}}">
         <view>05:00–17:00　{{targetRegionFees[0]}} 元</view>
         <view>17:00–22:00　{{targetRegionFees[1]}} 元</view>
         <view>22:00–次日 05:00　{{targetRegionFees[2]}} 元</view>
       </view>
       <view class="form-label">{{regionOperation === 'add' ? '增加原因' : '变更原因'}}{{regionEditorInfo.can_self_change ? '（选填）' : '（必填）'}}</view>
       <textarea class="form-input region-change-reason" value="{{regionChangeReason}}" bindinput="editRegionChangeReason" maxlength="500" disabled="{{submitting}}" placeholder="{{regionOperation === 'add' ? '请填写增加原因' : '请填写变更原因'}}" />
-      <view class="tips region-change-notice" wx:if="{{!regionEditorInfo.can_self_change}}">① 该申请将由人工复核，复核时间 5 个工作日；② 同意微信订阅后可收到审核结果通知，也可在站内信及本页查看结果。</view>
+      <view class="form-hint region-change-notice" wx:if="{{!regionEditorInfo.can_self_change}}">① 该申请将由人工复核，复核时间 5 个工作日；② 同意微信订阅后可收到审核结果通知，也可在站内信及本页查看结果。</view>
       <view class="modification-actions">
         <button class="submit-btn region-secondary-btn" bindtap="submitRegionChange" loading="{{submitting}}" disabled="{{submitting || targetRegionChecking}}">提交</button>
         <button class="reapply-btn region-cancel-btn" bindtap="closeRegionChange" disabled="{{submitting}}">取消</button>

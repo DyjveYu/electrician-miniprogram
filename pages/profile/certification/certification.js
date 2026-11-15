@@ -967,7 +967,7 @@ Page({
     wx.showModal({
       title: operation === 'add' ? '确认新增接单区域' : (regionInfo.can_self_change ? '确认自主变更' : '确认提交人工审核'),
       content: (operation === 'add' ? '提交后保留现有认证资格和区域，新增目标待审核通过后生效。' : regionInfo.can_self_change ? '成功后将使用一次自主变更机会。'
-        : '提交后认证转为待审核，审核期间按未通过认证门槛处理。')
+        : '提交后，认证转为待审核，接单功能暂停。')
         + (operation === 'change' && targetRegion[0] !== this.data.region[0] ? '跨省变更成功后，当前全部接单区域将被替换，仅保留新选择的目标区域。' : '')
         + (dirty ? '本次区域变更独立提交，尚未提交的其他资料修改将被放弃。' : ''),
       success: result => {

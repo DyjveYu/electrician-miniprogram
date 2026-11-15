@@ -35,6 +35,7 @@ test('manual requests require a reason and become a single pending application',
   assert.equal(h.calls.modal.length, 0);
   page.editRegionChangeReason({ detail: { value: '工作地点变化' } });
   page.submitRegionChange();
+  assert.match(h.calls.modal.at(-1).content, /^提交后，认证转为待审核，接单功能暂停。/);
   h.calls.modal.at(-1).success({ confirm: true });
   const request = h.calls.request.at(-1);
   assert.equal(request.method, 'POST');
@@ -52,6 +53,7 @@ test('a retry after network failure keeps its idempotency key', () => {
   load(h, page, true);
   target(h, page);
   page.submitRegionChange();
+  assert.doesNotMatch(h.calls.modal.at(-1).content, /认证转为待审核|接单功能暂停/);
   h.calls.modal.at(-1).success({ confirm: true });
   const first = h.calls.request.at(-1);
   first.fail(); first.complete();

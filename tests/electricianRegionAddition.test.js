@@ -25,7 +25,10 @@ test('a manual addition requests consent from the submit action and preserves ce
   let consent;
   h.wx.requestSubscribeMessage = options => { consent = options; };
   h.wx.login = options => options.success({ code: 'verified-code' });
-  page.submitRegionChange(); h.calls.modal.at(-1).success({ confirm: true });
+  page.submitRegionChange();
+  assert.match(h.calls.modal.at(-1).content, /提交后保留现有认证资格和区域/);
+  assert.doesNotMatch(h.calls.modal.at(-1).content, /接单功能暂停/);
+  h.calls.modal.at(-1).success({ confirm: true });
   assert.equal(consent.tmplIds[0], 'review-template');
   consent.success({ 'review-template': 'accept' });
   const request = h.calls.request.at(-1);

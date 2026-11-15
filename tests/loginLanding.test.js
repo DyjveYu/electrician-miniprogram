@@ -111,7 +111,7 @@ test('R6: 短信请求发出后卸载，迟到成功不创建新倒计时或写�
   await sending;
   assert.equal(page.data.countdown, 0);
   assert.equal(page._countdownTimer, null);
-  assert.equal(page.data.testCode, '123456');
+  assert.equal(page.data.testCode, '');
   assert.equal(h.calls.toast.length, 0);
 });
 

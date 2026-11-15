@@ -460,6 +460,17 @@
   line-height: 1.6;
 }
 
+.form-hint {
+  margin: 12rpx 0 24rpx;
+  padding: 0;
+  color: var(--clean-muted);
+  font-size: 26rpx;
+  line-height: 1.6;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
 .wage-reference-link {
   margin-bottom: 20rpx;
 }
@@ -487,9 +498,17 @@
 }
 .region-history {
   margin-top: 24rpx;
-  padding: 20rpx;
-  border: 1rpx solid #dce8df;
-  border-radius: 16rpx;
+  color: var(--clean-muted);
+  font-size: 26rpx;
+}
+.region-history-title {
+  margin-bottom: 12rpx;
+  color: #172d25;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+.region-display {
+  margin-top: 12rpx;
 }
 .region-addition-section {
   margin-top: 32rpx;
@@ -538,7 +557,9 @@
 }
 
 .region-cancel-btn,
-.region-cancel-btn[disabled] {
+.region-cancel-btn[disabled],
+.cancel-edit-btn,
+.cancel-edit-btn[disabled] {
   background: #fff;
   color: #16835c;
   border: 2rpx solid #cfe5d8;

@@ -125,9 +125,9 @@ function enterprise() {
   const page = h.page('pages/enterprise/certification/certification.js'); page.onLoad({ orderEntry: id }); page.onShow();
   return { h, page, entry, id };
 }
-test('企业pending不跳转；确认approved只续接一次', () => {
+test('企业pending不跳转；主动重新查询确认approved只续接一次', () => {
   const { h, page } = enterprise(); h.respond(0, { certStatus: 'pending' });
-  assert.equal(h.calls.relaunch.length, 0); h.timers[0](); h.respond(1, { certStatus: 'approved' });
+  assert.equal(h.calls.relaunch.length, 0); page.retryContinuation(); h.respond(1, { certStatus: 'approved' });
   assert.equal(h.calls.relaunch.length, 1); assert.equal(h.calls.relaunch[0].url, '/pages/order/create/create');
   page.loadCertificationInfo(); h.respond(2, { certStatus: 'approved' }); assert.equal(h.calls.relaunch.length, 1);
 });
