@@ -311,6 +311,7 @@ Page({
    * 加载附近订单（电工角色）
    */
   async loadNearbyOrders() {
+    const version = this._nearbyRequestVersion = (this._nearbyRequestVersion || 0) + 1;
     try {
       console.log('[DEBUG] 开始加载附近订单...');
       this.setData({ loading: true });
@@ -327,6 +328,7 @@ Page({
       // TODO: 后续实现完整的地理位置筛选功能
 
       const response = await OrderAPI.getOrderList(params);
+      if (version !== this._nearbyRequestVersion) return;
       console.log('[DEBUG] API响应:', response);
 
       if (response.code === 200) {
@@ -388,13 +390,14 @@ Page({
         });
       }
     } catch (error) {
+      if (version !== this._nearbyRequestVersion) return;
       console.error('[DEBUG] 加载附近订单失败:', error);
       wx.showToast({
         title: '加载订单失败',
         icon: 'none'
       });
     } finally {
-      this.setData({ loading: false });
+      if (version === this._nearbyRequestVersion) this.setData({ loading: false });
       console.log('[DEBUG] 加载附近订单完成');
     }
   },

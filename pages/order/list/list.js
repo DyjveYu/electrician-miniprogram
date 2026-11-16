@@ -1,4 +1,5 @@
 const enterpriseSession = require('../../../utils/enterpriseSession');
+const { regionError, isTakeSuccess } = require('../../../utils/orderTakeFeedback');
 // pages/order/list/list.js
 const app = getApp();
 const { getDisplayStatusText, mapOrderToDisplayStatus } = require('../../../utils/util');
@@ -238,6 +239,9 @@ Page({
   acceptOrder(e) {
     const orderId = e.currentTarget.dataset.id;
     const app = getApp();
+    this._takingOrders = this._takingOrders || new Set();
+    if (this._takingOrders.has(orderId)) return;
+    this._takingOrders.add(orderId);
     
     enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${orderId}/take`,
@@ -246,7 +250,12 @@ Page({
         'Authorization': `Bearer ${app.globalData.token}`
       },
       success: (res) => {
-        if (res.data.code === 0) {
+        this._takingOrders.delete(orderId);
+        const regionMessage = regionError(res);
+        if (regionMessage) {
+          wx.showModal({ title: '暂无法接单', content: regionMessage, showCancel: false, confirmColor: '#16835c' });
+          this.refreshOrders();
+        } else if (isTakeSuccess(res)) {
           wx.showToast({ title: '接单成功', icon: 'success' });
           this.refreshOrders();
         } else {
@@ -254,7 +263,9 @@ Page({
         }
       },
       fail: () => {
+        this._takingOrders.delete(orderId);
         wx.showToast({ title: '网络错误，请重试', icon: 'none' });
+        this.refreshOrders();
       }
     });
   },

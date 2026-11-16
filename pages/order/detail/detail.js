@@ -1,4 +1,5 @@
 const enterpriseSession = require('../../../utils/enterpriseSession');
+const { regionError, isTakeSuccess } = require('../../../utils/orderTakeFeedback');
 // pages/order/detail/detail.js
 const app = getApp();
 const MAX_FINAL_AMOUNT = 99999999.99; // 数据库 decimal(10,2) 最大支持 8 位整数 + 2 小数
@@ -23,7 +24,10 @@ Page({
     updating: false,
     rating: 5,
     reviewComment: '',
-    reviewing: false
+    reviewing: false,
+    taking: false,
+    takeBlocked: false,
+    takeSucceeded: false
   },
 
   onLoad(options) {
@@ -326,6 +330,7 @@ Page({
   // 接单（电工）
   acceptOrder() {
     const app = getApp();
+    if (this._takePending || this.data.takeBlocked || this.data.takeSucceeded) return;
 
     // 检查账号是否被冻结
     if (app.globalData.userInfo && app.globalData.userInfo.status === 'banned') {
@@ -336,6 +341,7 @@ Page({
       return;
     }
 
+    this._takePending = true;
     // 夜间接单安全提示（22:00-次日05:00）
     const hour = new Date().getHours();
     if (hour >= 22 || hour < 5) {
@@ -352,8 +358,9 @@ Page({
       content: '确认接下此订单？',
       confirmText: '接单',
       success: (res) => {
-        if (!res.confirm) return;
+        if (!res.confirm) { this._takePending = false; return; }
 
+        this.setData({ taking: true });
         wx.showLoading({ title: '接单中...' });
         enterpriseSession.request({
           url: `${app.globalData.baseUrl}/orders/${this.data.orderId}/take`,
@@ -363,9 +370,18 @@ Page({
           },
           success: (res) => {
             wx.hideLoading();
-            const code = res?.data?.code;
-            const success = code === 0 || code === 200 || res.statusCode === 200 || res?.data?.success === true;
-            if (success) {
+            this._takePending = false;
+            this.setData({ taking: false });
+            const regionMessage = regionError(res);
+            if (regionMessage) {
+              this.setData({ takeBlocked: true });
+              wx.showModal({
+                title: '暂无法接单', content: regionMessage, showCancel: false,
+                confirmText: '返回首页', confirmColor: '#16835c',
+                success: result => { if (result.confirm) this.returnToAvailableOrders(); }
+              });
+            } else if (isTakeSuccess(res)) {
+              this.setData({ takeSucceeded: true });
               wx.showToast({
                 title: '接单成功',
                 icon: 'success',
@@ -382,11 +398,20 @@ Page({
           },
           fail: () => {
             wx.hideLoading();
+            this._takePending = false;
+            this.setData({ taking: false });
             wx.showToast({ title: '网络错误，请重试', icon: 'none' });
+            // 结果未知时只重新查询，不自动重放接单请求。
+            this.loadOrderDetail();
           }
         });
-      }
+      },
+      fail: () => { this._takePending = false; }
     });
+  },
+
+  returnToAvailableOrders() {
+    wx.switchTab({ url: '/pages/index/index' });
   },
 
   // 退单（电工 - 多日工程）

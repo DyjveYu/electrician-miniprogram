@@ -374,9 +374,12 @@
           wx:if="{{order.canAccept}}"
           class="main-action-btn primary"
           bindtap="acceptOrder"
+          disabled="{{taking || takeBlocked || takeSucceeded}}"
+          loading="{{taking}}"
         >
-          接单
+          {{taking ? '接单中...' : (takeBlocked ? '请刷新订单' : (takeSucceeded ? '已接单' : '接单'))}}
         </button>
+        <button wx:if="{{takeBlocked && order.canAccept}}" class="main-action-btn" bindtap="returnToAvailableOrders">返回首页刷新订单</button>
         <!-- 电工可见：退单按钮（多日工程已接单电工） -->
         <button
           wx:if="{{order.canWithdraw}}"
