@@ -1,7 +1,8 @@
 <view wx:if="{{visible}}" class="overlay" catchtouchmove="noop">
   <view class="sheet" catchtap="noop">
     <block wx:if="{{!reading}}">
-      <view class="heading">订单预约服务上门费预付款</view>
+      <view class="heading">{{project ? '工程总费用预付款' : '订单预约服务上门费预付款'}}</view>
+      <view wx:if="{{project}}" class="hint">本次支付工程总费用（含15%平台使用费）</view>
       <view class="amount">¥{{amount}}</view>
       <view class="agreement-link" bindtap="read">阅读《订单预约服务预付款协议》</view>
       <checkbox-group bindchange="changeAgreement">

@@ -4,7 +4,8 @@ Component({
     visible: { type: Boolean, value: false, observer(value) {
       if (value) this.setData({ opened: false, agreed: false, reading: false, confirming: false });
     } },
-    amount: { type: String, value: '0.00' }
+    amount: { type: String, value: '0.00' },
+    project: { type: Boolean, value: false }
   },
   data: { paragraphs, opened: false, agreed: false, reading: false, confirming: false },
   methods: {

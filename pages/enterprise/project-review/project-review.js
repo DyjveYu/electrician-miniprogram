@@ -120,6 +120,8 @@ Page({
     const electricianId = e.currentTarget.dataset.id;
     const rating = this.data.ratings[electricianId];
     const comment = this.data.comments[electricianId] || '';
+    const reviewStage = this.data.electricians.find(item => String(item.electricianId) === String(electricianId))?.status;
+    if (!['pending_review', 'pending_second_review'].includes(reviewStage)) return;
 
     if (!rating || rating < 1 || rating > 5) {
       wx.showToast({ title: '请选择评分', icon: 'none' });
@@ -136,7 +138,7 @@ Page({
       url: `${app.globalData.baseUrl}/miniprogram/enterprise/orders/${this.data.orderId}/review`,
       method: 'POST',
       header: { Authorization: `Bearer ${app.globalData.token}` },
-      data: { electricianId, rating, comment },
+      data: { electricianId, rating, comment, reviewStage },
       success: (res) => {
         submitting[electricianId] = false;
         this.setData({ submitting });

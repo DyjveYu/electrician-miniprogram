@@ -84,23 +84,23 @@
         <text class="label">电工招募：</text>
         <text class="value amount">{{order.recruitedCount}} / {{order.projRequiredCount}} 人</text>
       </view>
-      <view class="info-row" wx:if="{{order.projStartTimeShort}}">
+      <view class="info-row" wx:if="{{order.isNewProject ? order.projectStartDateName : order.projStartTimeShort}}">
         <text class="label">工程时间：</text>
-        <text class="value">{{order.projStartTimeShort}} 至 </text>
+        <text class="value">{{order.isNewProject ? order.projectStartDateName : order.projStartTimeShort}} 至 </text>
 
       </view>
-      <view class="info-row" wx:if="{{order.projStartTimeShort}}">
+      <view class="info-row" wx:if="{{order.isNewProject ? order.projectStartDateName : order.projStartTimeShort}}">
 
         <text class="label"></text>
-        <text class="value">{{order.projEndTimeShort}}</text>
+        <text class="value">{{order.isNewProject ? order.projectEndDateName : order.projEndTimeShort}}</text>
       </view>
       <view class="info-row" wx:if="{{order.projCertRequirement}}">
         <text class="label">持证要求：</text>
-        <text class="value">{{order.projCertRequirement === 'low_voltage' ? '低压电工证' : order.projCertRequirement === 'high_voltage' ? '高压电工证' : '低压电工证 / 高压电工证'}}</text>
+        <text class="value">{{order.isNewProject ? order.requiredCertName : (order.projCertRequirement === 'low_voltage' ? '低压电工证' : order.projCertRequirement === 'high_voltage' ? '高压电工证' : '低压电工证 / 高压电工证')}}</text>
       </view>
       <view class="info-row" wx:if="{{order.projTotalAmount}}">
         <text class="label">工单总费用：</text>
-        <text class="value amount">{{(currentRole === 'enterprise' || currentRole === 'electrician') ? order.projActualAmount : order.projTotalAmount}}元</text>
+        <text class="value amount">{{order.isNewProject ? order.projTotalAmount : ((currentRole === 'enterprise' || currentRole === 'electrician') ? order.projActualAmount : order.projTotalAmount)}}元</text>
       </view>
       <view class="info-row" wx:if="{{order.projElectricianFee}}">
         <text class="label">电工每人费用：</text>
@@ -214,11 +214,11 @@
         </view>
         <view class="info-row">
           <text class="label">工程时间：</text>
-          <text class="value">{{order.projStartTimeShort || '待定'}} 至 {{order.projEndTimeShort || '待定'}}</text>
+          <text class="value">{{order.isNewProject ? order.projectStartDateName : (order.projStartTimeShort || '待定')}} 至 {{order.isNewProject ? order.projectEndDateName : (order.projEndTimeShort || '待定')}}</text>
         </view>
         <view class="info-row" wx:if="{{order.projCertRequirement}}">
           <text class="label">持证要求：</text>
-          <text class="value">{{order.projCertRequirement === 'low_voltage' ? '低压电工证' : order.projCertRequirement === 'high_voltage' ? '高压电工证' : '低压电工证 / 高压电工证'}}</text>
+          <text class="value">{{order.isNewProject ? order.requiredCertName : (order.projCertRequirement === 'low_voltage' ? '低压电工证' : order.projCertRequirement === 'high_voltage' ? '高压电工证' : '低压电工证 / 高压电工证')}}</text>
         </view>
       </block>
       <!-- 非多日工程：原有展示逻辑 -->

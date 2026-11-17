@@ -67,7 +67,7 @@ Page({
           const typeByStatus = order.status === 'pending_repair_payment' ? 'repair' : 'prepay';
           const payType = typeByStatus;
           const personalPrepay = personalOrder.isExplicit(order) && payType === 'prepay';
-          this.setData({ order, payType, personalPrepay, orderLoaded: true, loadError: '', payAmount: Number(payType === 'repair' ? order.final_amount : order.prepay_amount), prepayDisplayAmount: Number(order.prepay_amount).toFixed(2) });
+          this.setData({ order, payType, personalPrepay, projectPrepay: personalPrepay && order.order_type === 'enterprise_project', orderLoaded: true, loadError: '', payAmount: Number(payType === 'repair' ? order.final_amount : order.prepay_amount), prepayDisplayAmount: Number(order.prepay_amount).toFixed(2) });
           if (personalOrder.isExplicit(order) && this._requestedType === 'prepay' && order.status !== 'pending_payment') {
             this.goToOrder(); return;
           }

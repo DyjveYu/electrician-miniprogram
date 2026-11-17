@@ -107,7 +107,7 @@ test('地址读取失败不能当作空地址；换账号后迟到响应无效',
 test('工程切换不接受越区默认，保存地址通过ID重读后带入', async () => {
   const { h, page } = create('enterprise'); addressResponses(h, [raw()], raw()); await flush();
   page.setData({ enterpriseCertDistrict: '另一区' }); page.switchOrderMode({ currentTarget: { dataset: { mode: 'project' } } });
-  assert.equal(page.data.selectedAddress, null); assert.equal(page.data.canSubmit, false);
+  assert.equal(page.data.selectedAddress.id, 2); assert.equal(page._addressUsable(page.data.selectedAddress), false); assert.equal(page.data.canSubmit, false);
   page.addAddress(); h.calls.navigate.at(-1).events.addressSaved({ id: 9 });
   h.respond(h.calls.request.length - 1, { address: raw(9, '另一区') }); await flush();
   assert.equal(page.data.selectedAddress.id, 9); assert.equal(page.data.projectRegion[2], '另一区');

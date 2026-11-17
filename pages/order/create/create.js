@@ -1,3 +1,5 @@
+const certOptions = require('../../../utils/orderCertificateOptions');
+const projectOrder = require('../../../utils/projectOrder');
 const enterpriseSession = require('../../../utils/enterpriseSession');
 const orderEntry = require('../../../utils/orderEntry');
 const personalOrder = require('../../../utils/personalOrder');
@@ -21,8 +23,12 @@ function calculateCurrentPrepayAmount(feeList = []) {
 
 Page({
   data: {
+    enterpriseCount: 1, enterpriseCountRange: Array.from({ length: 100 }, (_, i) => i + 1),
+    showProjectDates: false, projectDateConfirmed: false, projectDateSummary: '', projectDateError: '',
+    draftStartDate: '', draftEndDate: '', draftStartLabel: '', draftEndLabel: '', minProjectDate: '',
+    createdIsProject: false,
     serviceMode: 'on_site',
-    requiredCertType: '',
+    requiredCertType: '', enterpriseLowChecked: false, enterpriseHighChecked: false, enterpriseConstructionChecked: false,
     showPrepay: false,
     createdPrepayAmount: '0.00',
     serviceTypes: [],
@@ -65,8 +71,6 @@ Page({
     // 企业多日工程
     userType: 'user',
     orderMode: 'quick',        // quick | project
-    projRequiredCount: 2,
-    projRequiredRange: Array.from({ length: 29 }, (_, i) => i + 2), // 2-30
     projStartDate: '',
     projStartTime: '',
     projEndDate: '',
@@ -100,7 +104,8 @@ Page({
       wx.reLaunch({ url: '/pages/index/index' });
       return;
     }
-    this.setData({ userType });
+    this.setData({ userType, minProjectDate: projectOrder.today() });
+    if (userType === 'enterprise' && wx.setNavigationBarTitle) wx.setNavigationBarTitle({ title: '创建企业订单' });
     this.setData({ descriptionTitle: '订单服务内容文字描述', selectedServiceTypeId: SERVICE_TYPES[0].id, selectedServiceType: SERVICE_TYPES[0] });
     // 企业用户加载认证信息（用于区校验）
     if (userType === 'enterprise') {
@@ -543,6 +548,12 @@ Page({
     this.updateSubmitEnable();
   },
 
+  onEnterpriseCertChange(e) {
+    const value = certOptions.serialize(e.detail.value);
+    this.setData({ requiredCertType: value, enterpriseLowChecked: value.split(',').includes('low_voltage'), enterpriseHighChecked: value.split(',').includes('high_voltage'), enterpriseConstructionChecked: value.split(',').includes('construction') });
+    this.updateSubmitEnable();
+  },
+
   onRequiredCertChange(e) { this.setData({ requiredCertType: e.detail.value }); this.updateSubmitEnable(); },
 
   confirmPersonalPrepay() {
@@ -561,7 +572,7 @@ Page({
   },
 
   validateForm() {
-    if (this.data.serviceMode !== 'on_site' || !['low_voltage', 'high_voltage', 'construction'].includes(this.data.requiredCertType)) {
+    if (this.data.serviceMode !== 'on_site' || !certOptions.parse(this.data.requiredCertType, this.data.userType === 'enterprise').length) {
       wx.showToast({ title: this.data.serviceMode === 'off_site' ? '不上门服务暂未开放' : '请选择所需资质', icon: 'none' });
       return false;
     }
@@ -622,7 +633,7 @@ Page({
   },
 
   async submitOrder() {
-    if (!this.validateForm()) return;
+    if (!this.validateForm() || (this.data.orderMode === 'project' && !this.validateProjectForm())) return;
     if (this.data.submitting || this._createdOrderId) return;
     this.setData({ submitting: true });
     const app = getApp();
@@ -643,7 +654,9 @@ Page({
     }
 
     if (!this._current() || this._visible === false) { this.setData({ submitting: false }); return; }
+    const project = this.data.userType === 'enterprise' && this.data.orderMode === 'project';
     const payload = {
+      ...(project ? { addressId: this.data.selectedAddress.id, projRequiredCount: this.data.enterpriseCount, projStartDate: this.data.projStartDate, projEndDate: this.data.projEndDate, projTotalAmount: this.data.projTotalAmount, contactPhone: this.data.contactPhone } : {}),
       service_type_id: this.data.selectedServiceType.id,
       title: '上门服务 维修维护与安装',
       service_mode: this.data.serviceMode,
@@ -666,7 +679,7 @@ Page({
 
 
     enterpriseSession.request({
-      url: `${app.globalData.baseUrl}/orders`,
+      url: `${app.globalData.baseUrl}${project ? '/miniprogram/enterprise/orders/project' : '/orders'}`,
       method: 'POST',
       header: { 'Authorization': `Bearer ${app.globalData.token}`, 'Content-Type': 'application/json' },
       data: payload,
@@ -674,7 +687,7 @@ Page({
         if (!this._current()) return;
         if (this.handleReturnedProfile(res?.data)) return;
         if (res && res.data && (res.statusCode === undefined || (res.statusCode >= 200 && res.statusCode < 300)) && res.data.success !== false && (res.data.code === 0 || res.data.code === 200)) {
-          const orderId = res.data.data?.id || res.data.id;
+          const orderId = res.data.data?.id || res.data.data?.orderId || res.data.id;
           const amount = Number(res.data.data?.prepay_amount);
           this._createdOrderId = orderId;
           if (!orderId || !Number.isFinite(amount) || amount <= 0) {
@@ -682,7 +695,7 @@ Page({
             wx.showToast({ title: '订单信息未确认，请查看我的订单', icon: 'none' });
             return;
           }
-          this.setData({ createdPrepayAmount: amount.toFixed(2), showPrepay: this._visible !== false, submitting: false, canSubmit: false });
+          this.setData({ createdIsProject: project, createdPrepayAmount: amount.toFixed(2), showPrepay: this._visible !== false, submitting: false, canSubmit: false });
         } else {
           if (res.statusCode >= 500 || res.data?.code >= 500) {
             this.setData({ submitting: false, submissionUncertain: true, canSubmit: false });
@@ -705,7 +718,7 @@ Page({
   updateSubmitEnable() {
     if (this.data.orderMode === 'project') { this.updateProjectSubmitEnable(); return; }
     const ok = !!this.data.selectedServiceTypeId && this.data.serviceMode === 'on_site'
-      && ['low_voltage', 'high_voltage', 'construction'].includes(this.data.requiredCertType)
+      && certOptions.parse(this.data.requiredCertType, this.data.userType === 'enterprise').length > 0
       && !!this.data.description?.trim() && this._addressUsable(this.data.selectedAddress)
       && (this.data.userType !== 'user' || !!this.data.electricityType)
       && !this._createdOrderId && !this.data.submissionUncertain;
@@ -765,207 +778,60 @@ Page({
     });
   },
 
-  // 切换下单模式
-  switchOrderMode(e) {
-    const mode = e.currentTarget.dataset.mode;
-    if (!['quick', 'project'].includes(mode)) return;
-    this.setData({ orderMode: mode });
-    if (this.data.selectedAddress && !this._addressUsable(this.data.selectedAddress)) {
-      this.setData({ selectedAddress: null, selectedAddressStr: '', projectRegion: ['', '', ''], projectAddressDetail: '', showAddressSheet: true, addressError: '请选择与企业认证区县一致的服务地址' });
-      this.loadAddresses();
-    } else if (!this.data.selectedAddress && mode === 'project') {
-      this.loadAddresses({ initial: true });
-    }
-    this.updateAddressSubmit();
-  },
-
-  // 多日工程 - 电工人数变更
-  onProjCountChange(e) {
-    const idx = e.detail.value;
-    const count = this.data.projRequiredRange[idx];
-    this.setData({ projRequiredCount: count });
+  onEnterpriseCountChange(e) {
+    if (!this._current() || this.data.userType !== 'enterprise' || this.data.submitting || this._createdOrderId || this.data.submissionUncertain) return;
+    const count = this.data.enterpriseCountRange[Number(e.detail.value)];
+    if (!count) return;
+    this.setData({ enterpriseCount: count, orderMode: count > 1 ? 'project' : 'quick', projectDateConfirmed: false,
+      projectDateSummary: '', ...(count === 1 ? { projStartDate: '', projEndDate: '', projTotalAmount: '', projElectricianFee: '' } : {}) });
     this.calcElectricianFee();
-    this.updateProjectSubmitEnable();
+    this.updateSubmitEnable();
   },
-
-  // 多日工程 - 日期变更
-  onProjDateChange(e) {
-    const { field } = e.currentTarget.dataset;
-    const val = e.detail.value;
-    this.setData({ [field]: val });
-    this.updateProjectSubmitEnable();
+  // 兼容已有页面内部调用；页面不再提供旧模式切换。
+  switchOrderMode(e) { this.onEnterpriseCountChange({ detail: { value: e.currentTarget.dataset.mode === 'project' ? 1 : 0 } }); },
+  openProjectDates() {
+    if (this.data.enterpriseCount < 2 || this.data.submitting || this._createdOrderId || this.data.submissionUncertain) return;
+    this.setData({ showProjectDates: true, draftStartDate: this.data.projStartDate || '', draftEndDate: this.data.projEndDate || '',
+      draftStartLabel: projectOrder.label(this.data.projStartDate), draftEndLabel: projectOrder.label(this.data.projEndDate), projectDateError: '', minProjectDate: projectOrder.today() });
   },
-
-  // 多日工程 - 持证要求变更（多选）
-  onProjCertChange(e) {
-    const values = e.detail.value || [];
-    this.setData({
-      projCertLowChecked: values.includes('low_voltage'),
-      projCertHighChecked: values.includes('high_voltage')
-    });
-    this.updateProjectSubmitEnable();
+  onProjectDraftDate(e) {
+    const field = e.currentTarget.dataset.field;
+    if (!['draftStartDate', 'draftEndDate'].includes(field)) return;
+    this.setData({ [field]: e.detail.value, [field === 'draftStartDate' ? 'draftStartLabel' : 'draftEndLabel']: projectOrder.label(e.detail.value), projectDateError: '' });
   },
-
-  // 多日工程 - 总费用变更
+  cancelProjectDates() {
+    if (this.data.submitting || this._createdOrderId || this.data.submissionUncertain) return;
+    this.setData({ showProjectDates: false });
+    this.onEnterpriseCountChange({ detail: { value: 0 } });
+  },
+  confirmProjectDates() {
+    if (!this.data.showProjectDates || this.data.enterpriseCount < 2) return;
+    const { draftStartDate: start, draftEndDate: end } = this.data;
+    if (!projectOrder.allowed(start, end)) { this.setData({ projectDateError: '请选择当天或未来日期，包含首尾共2至29天' }); return; }
+    this.setData({ showProjectDates: false, projStartDate: start, projEndDate: end, projectDateConfirmed: true,
+      projectDateSummary: `${projectOrder.label(start)} 至 ${projectOrder.label(end)}（共${projectOrder.days(start, end)}天）` });
+    this.updateSubmitEnable();
+  },
   onProjAmountInput(e) {
     this.setData({ projTotalAmount: e.detail.value });
-    this.calcElectricianFee();
-    this.updateProjectSubmitEnable();
+    this.calcElectricianFee(); this.updateSubmitEnable();
   },
-
-  // 多日工程 - 省市区变更
-  onProjectRegionChange(e) {
-    this.setData({ projectRegion: e.detail.value });
-    this.updateProjectSubmitEnable();
-  },
-
-  // 多日工程 - 详细地址变更
-  onProjectAddressInput(e) {
-    this.setData({ projectAddressDetail: e.detail.value });
-    this.updateProjectSubmitEnable();
-  },
-
-  // 计算每个电工应得金额
   calcElectricianFee() {
-    const amount = parseFloat(this.data.projTotalAmount);
-    const count = this.data.projRequiredCount;
-    if (amount > 0 && count > 0) {
-      const fee = ((amount * 0.85) / count).toFixed(2);
-      this.setData({ projElectricianFee: fee });
-    } else {
-      this.setData({ projElectricianFee: '' });
-    }
+    const amount = this.data.projTotalAmount, count = this.data.enterpriseCount;
+    this.setData({ projElectricianFee: projectOrder.money(amount) && count > 1 ? (Math.round(Math.round(Number(amount) * 100) * 85 / (count * 100)) / 100).toFixed(2) : '' });
   },
-
-  // 多日工程 - 更新提交按钮状态
   updateProjectSubmitEnable() {
-    const { projStartDate, projStartTime, projEndDate, projEndTime, projTotalAmount, projectRegion, projectAddressDetail } = this.data;
-    const ok = projStartDate && projStartTime && projEndDate && projEndTime
-      && parseFloat(projTotalAmount) > 0
-      && projectRegion[0] && projectRegion[1] && projectRegion[2]
-      && projectAddressDetail && projectAddressDetail.trim() && this._addressUsable(this.data.selectedAddress) && !this.data.submissionUncertain;
+    const ok = this.data.userType === 'enterprise' && this.data.enterpriseCount > 1 && this.data.projectDateConfirmed
+      && projectOrder.allowed(this.data.projStartDate, this.data.projEndDate) && projectOrder.money(this.data.projTotalAmount)
+      && this.data.serviceMode === 'on_site' && certOptions.parse(this.data.requiredCertType, this.data.userType === 'enterprise').length > 0
+      && !!this.data.description?.trim() && this._addressUsable(this.data.selectedAddress)
+      && !this._createdOrderId && !this.data.submissionUncertain;
     this.setData({ canSubmit: !!ok });
   },
-
-  // 多日工程 - 表单校验
   validateProjectForm() {
-    if (!this._current() || this.data.submissionUncertain || !this._addressUsable(this.data.selectedAddress)) {
-      wx.showToast({ title: this.data.submissionUncertain ? '请先核对我的订单' : '请选择符合条件的服务地址', icon: 'none' });
-      return false;
-    }
-    const { projStartDate, projStartTime, projEndDate, projEndTime,
-            projCertLowChecked, projCertHighChecked,
-            projTotalAmount, projectRegion, projectAddressDetail,
-            enterpriseCertDistrict, contactPhone } = this.data;
-
-    if (!projStartDate || !projStartTime || !projEndDate || !projEndTime) {
-      wx.showToast({ title: '请完整选择工程起止日期和时间', icon: 'none' }); return false;
-    }
-
-    const start = new Date((projStartDate + 'T' + projStartTime).replace(/-/g, '/'));
-    const end = new Date((projEndDate + 'T' + projEndTime).replace(/-/g, '/'));
-    const diffHours = (end - start) / (1000 * 60 * 60);
-    const diffDays = (end - start) / (1000 * 60 * 60 * 24);
-    if (diffHours < 8) {
-      wx.showToast({ title: '工程时间段不能少于8小时', icon: 'none' }); return false;
-    }
-    if (diffDays > 29) {
-      wx.showToast({ title: '工程时间段不能超过29天', icon: 'none' }); return false;
-    }
-    if (diffHours <= 0) {
-      wx.showToast({ title: '结束时间必须晚于开始时间', icon: 'none' }); return false;
-    }
-
-    if (!projCertLowChecked && !projCertHighChecked) {
-      wx.showToast({ title: '请至少选择一种持证要求', icon: 'none' }); return false;
-    }
-
-    if (!projectRegion[0] || !projectRegion[1] || !projectRegion[2]) {
-      wx.showToast({ title: '请选择完整的省市区', icon: 'none' }); return false;
-    }
-    if (!projectAddressDetail.trim()) {
-      wx.showToast({ title: '请填写详细地址', icon: 'none' }); return false;
-    }
-
-    // 区级校验：必须与企业认证地址的区一致
-    if (enterpriseCertDistrict && projectRegion[2] !== enterpriseCertDistrict) {
-      wx.showToast({ title: `工单地址区(${projectRegion[2]})须与企业认证区(${enterpriseCertDistrict})一致`, icon: 'none' });
-      return false;
-    }
-
-    if (!parseFloat(projTotalAmount) || parseFloat(projTotalAmount) <= 0) {
-      wx.showToast({ title: '请输入有效的工单总费用', icon: 'none' }); return false;
-    }
-
-    if (contactPhone && !/^1[3-9]\d{9}$/.test(contactPhone)) {
-      wx.showToast({ title: '联系电话格式不正确', icon: 'none' }); return false;
-    }
-
-    return true;
+    this.updateProjectSubmitEnable();
+    if (!this.data.canSubmit) wx.showToast({ title: '请确认人数日期、工程总费用和符合条件的地址', icon: 'none' });
+    return this.data.canSubmit;
   },
-
-  // 多日工程 - 提交
-  async submitProjectOrder() {
-    if (!this.validateProjectForm()) return;
-    if (this.data.projectSubmitting) return;
-    this.setData({ projectSubmitting: true });
-
-    const app = getApp();
-    const { description, projRequiredCount, projStartDate, projStartTime,
-            projEndDate, projEndTime, projCertLowChecked, projCertHighChecked,
-            projTotalAmount, contactPhone, projectRegion, projectAddressDetail } = this.data;
-
-    // 构建持证要求：逗号分隔
-    const certReqs = [];
-    if (projCertLowChecked) certReqs.push('low_voltage');
-    if (projCertHighChecked) certReqs.push('high_voltage');
-    const projCertRequirement = certReqs.join(',');
-
-    // 构建完整 datetime
-    const startDateTime = projStartDate + ' ' + projStartTime + ':00';
-    const endDateTime = projEndDate + ' ' + projEndTime + ':00';
-
-    const payload = {
-      addressId: this.data.selectedAddress.id,
-      description: description || '',
-      projRequiredCount: projRequiredCount,
-      projStartTime: startDateTime,
-      projEndTime: endDateTime,
-      projCertRequirement: projCertRequirement,
-      projTotalAmount: parseFloat(projTotalAmount),
-      contactPhone: contactPhone || '',
-      province: projectRegion[0],
-      city: projectRegion[1],
-      district: projectRegion[2],
-      addressDetail: projectAddressDetail
-    };
-
-    enterpriseSession.request({
-      url: `${app.globalData.baseUrl}/miniprogram/enterprise/orders/project`,
-      method: 'POST',
-      header: { 'Authorization': `Bearer ${app.globalData.token}`, 'Content-Type': 'application/json' },
-      data: payload,
-      success: (res) => {
-        if (!this._current()) return;
-        if (this.handleReturnedProfile(res?.data)) return;
-        if (res && res.data && (res.data.code === 0 || res.data.code === 200)) {
-          wx.showToast({ title: '创建成功，跳转支付', icon: 'none' });
-          const orderId = res.data.data?.orderId || res.data.data?.id;
-          setTimeout(() => {
-            if (!this._current()) return;
-            wx.navigateTo({ url: `/pages/payment/payment/payment?orderId=${orderId}` });
-          }, 500);
-        } else {
-          this.setData({ projectSubmitting: false });
-          wx.showToast({ title: res.data?.message || '提交失败', icon: 'none' });
-        }
-      },
-      fail: (err) => {
-        if (!this._current()) return;
-        this.setData({ projectSubmitting: false, submissionUncertain: true, canSubmit: false });
-        console.error('提交多日工程失败：', err);
-        wx.showToast({ title: '结果未确认，请先查看我的订单', icon: 'none' });
-      }
-    });
-  }
+  submitProjectOrder() { return this.submitOrder(); }
 });

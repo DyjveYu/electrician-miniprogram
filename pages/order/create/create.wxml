@@ -1,122 +1,15 @@
 <wxs module="workNumber" src="../../../utils/workNo.wxs" />
-<view class="page-container">
+<view class="page-container {{userType === 'enterprise' ? 'enterprise-create' : ''}}">
   <view class="address-error" wx:if="{{submissionUncertain}}"><text>提交结果未确认，请先查看我的订单，避免重复下单</text><button bindtap="viewOrders">查看我的订单</button></view>
-  <!-- 企业用户：下单模式选择 -->
-  <view class="form-section" wx:if="{{userType === 'enterprise'}}">
-    <view class="section-title">选择下单类型</view>
-    <view class="mode-selector">
-      <view class="mode-option {{orderMode === 'quick' ? 'active' : ''}}" bindtap="switchOrderMode" data-mode="quick">
-            <text class="mode-label">单日快修</text>
-        <text class="mode-desc">即时上门维修服务</text>
-      </view>
-      <view class="mode-option {{orderMode === 'project' ? 'active' : ''}}" bindtap="switchOrderMode" data-mode="project">
-             <text class="mode-label">多日工程</text>
-        <text class="mode-desc">长期项目，多电工协作</text>
-      </view>
-    </view>
-  </view>
-
-  <!-- 多日工程表单 -->
-  <block wx:if="{{userType === 'enterprise' && orderMode === 'project'}}">
-    <!-- 工程描述 -->
-    <view class="form-section">
-      <view class="section-title">工程描述</view>
-      <textarea placeholder="请描述工程内容，如：机柜装配、配电盘组装、线路巡检、设备维保等" value="{{description}}" bindinput="onDescriptionInput" maxlength="500" class="desc-textarea" />
-      <!-- 语音输入按钮 -->
-      <view class="voice-btn {{isRecording ? 'voice-btn-recording' : ''}}" catchtap="onMicTap">
-        <image class="voice-btn-icon ui-icon" src="/images/content-ui/mic.svg" mode="aspectFit" aria-hidden="true" />
-        <text class="voice-btn-text">{{isRecording ? '录音中…' : (orderMode === 'quick' ? '订单语音描述' : '语音输入')}}</text>
-      </view>
-    </view>
-
-    <!-- 需要电工人数 -->
-    <view class="form-section">
-      <view class="section-title">需要电工人数</view>
-      <picker mode="selector" range="{{projRequiredRange}}" value="{{projRequiredCount - 2}}" bindchange="onProjCountChange">
-        <view class="picker-display">{{projRequiredCount}} 人</view>
-      </picker>
-    </view>
-
-    <!-- 工程时间 -->
-    <view class="form-section">
-      <view class="section-title">工程起止时间</view>
-      <view class="time-row">
-        <view class="time-item">
-          <text class="time-label">开始日期</text>
-          <picker mode="date" value="{{projStartDate}}" end="2099-12-31" bindchange="onProjDateChange" data-field="projStartDate">
-            <view class="picker-display {{projStartDate ? '' : 'placeholder'}}">{{projStartDate || '请选择日期'}}</view>
-          </picker>
-        </view>
-        <view class="time-item">
-          <text class="time-label">开始时间</text>
-          <picker mode="time" value="{{projStartTime}}" bindchange="onProjDateChange" data-field="projStartTime">
-            <view class="picker-display {{projStartTime ? '' : 'placeholder'}}">{{projStartTime || '请选择时间'}}</view>
-          </picker>
-        </view>
-      </view>
-      <view class="time-row">
-        <view class="time-item">
-          <text class="time-label">结束日期</text>
-          <picker mode="date" value="{{projEndDate}}" end="2099-12-31" bindchange="onProjDateChange" data-field="projEndDate">
-            <view class="picker-display {{projEndDate ? '' : 'placeholder'}}">{{projEndDate || '请选择日期'}}</view>
-          </picker>
-        </view>
-        <view class="time-item">
-          <text class="time-label">结束时间</text>
-          <picker mode="time" value="{{projEndTime}}" bindchange="onProjDateChange" data-field="projEndTime">
-            <view class="picker-display {{projEndTime ? '' : 'placeholder'}}">{{projEndTime || '请选择时间'}}</view>
-          </picker>
-        </view>
-      </view>
-    </view>
-
-    <!-- 电工持证要求（多选） -->
-    <view class="form-section">
-      <view class="section-title">电工持证要求（可多选）</view>
-      <checkbox-group bindchange="onProjCertChange">
-        <label class="cert-radio"><checkbox value="low_voltage" checked="{{projCertLowChecked}}"  color="#16835c"/>低压电工证</label>
-        <label class="cert-radio"><checkbox value="high_voltage" checked="{{projCertHighChecked}}"  color="#16835c"/>高压电工证</label>
-      </checkbox-group>
-    </view>
-
-    <!-- 工单总费用 -->
-    <view class="form-section">
-      <view class="section-title">工单总费用（含15%平台使用费）</view>
-      <view class="amount-input-box">
-        <text class="amount-currency">¥</text>
-        <input class="amount-input" type="digit" placeholder="请输入总费用" value="{{projTotalAmount}}" bindinput="onProjAmountInput" />
-      </view>
-      <view class="fee-hint" wx:if="{{projElectricianFee}}">
-        每位电工应得：<text class="fee-num">¥{{projElectricianFee}}</text>（总费用×85%÷{{projRequiredCount}}人）
-      </view>
-    </view>
-
-    <!-- 工单地址 -->
-    <view class="form-section">
-      <view class="section-title">工单地址（须与企业认证区一致）</view>
-      <view class="form-item" bindtap="openAddressSheet"><text>{{selectedAddressStr || '点击选择服务地址'}}</text></view>
-      <text class="fee-hint" wx:if="{{enterpriseCertDistrict}}">企业认证区：{{enterpriseCertDistrict}}</text>
-    </view>
-
-    <!-- 联系电话 -->
-    <view class="form-section">
-      <view class="section-title">联系电话</view>
-      <input class="form-input" type="number" maxlength="11" placeholder="请输入联系电话" value="{{contactPhone}}" bindinput="onContactPhoneInput" />
-    </view>
-
-    <!-- 提交按钮 -->
-    <view class="form-section">
-      <button class="submit-btn {{canSubmit ? '' : 'disabled'}}" bindtap="submitProjectOrder" disabled="{{!canSubmit || projectSubmitting}}">
-        {{projectSubmitting ? '提交中...' : '提交多日工程（¥' + (projTotalAmount || '0') + '）'}}
-      </button>
-    </view>
-  </block>
-
   <!-- 单日快修 / 个人用户表单 -->
-  <block wx:if="{{orderMode === 'quick'}}">
+
   <view class="form-section">
     <view class="section-title">选择服务类型</view>
-    <radio-group bindchange="onServiceModeChange">
+    <radio-group wx:if="{{userType === 'enterprise'}}" class="enterprise-service-options" bindchange="onServiceModeChange">
+      <label class="enterprise-service-card {{serviceMode === 'on_site' ? 'selected' : ''}}"><radio class="service-radio" value="on_site" checked="{{serviceMode === 'on_site'}}" /><text>上门服务</text><text class="service-caption">维修维护与安装</text></label>
+      <label class="enterprise-service-card {{serviceMode === 'off_site' ? 'selected' : ''}}"><radio class="service-radio" value="off_site" checked="{{serviceMode === 'off_site'}}" /><text>不上门服务</text><text class="service-caption">技术服务与加工</text></label>
+    </radio-group>
+    <radio-group wx:else bindchange="onServiceModeChange">
       <label class="cert-radio"><radio value="on_site" checked="{{serviceMode === 'on_site'}}" color="#16835c" />上门服务 维修维护与安装</label>
       <label class="cert-radio"><radio value="off_site" checked="{{serviceMode === 'off_site'}}" color="#16835c" />不上门服务 技术服务与加工</label>
     </radio-group>
@@ -133,7 +26,7 @@
     <!-- 语音输入按钮：白底长方形 -->
     <view class="voice-btn {{isRecording ? 'voice-btn-recording' : ''}}" catchtap="onMicTap">
       <image class="voice-btn-icon ui-icon" src="/images/content-ui/mic.svg" mode="aspectFit" aria-hidden="true" />
-      <text class="voice-btn-text">{{isRecording ? '录音中…' : (orderMode === 'quick' ? '订单语音描述' : '语音输入')}}</text>
+      <text class="voice-btn-text">{{isRecording ? '录音中…' : '订单语音描述'}}</text>
     </view>
   </view>
 
@@ -165,16 +58,35 @@
   </view>
 
   <view class="form-section">
-    <view class="section-title">所需资质 <text class="required">*</text></view>
-    <radio-group bindchange="onRequiredCertChange">
+    <view class="section-title">{{userType === 'enterprise' ? '电工需要' : '所需资质'}} <text class="required">*</text></view>
+    <checkbox-group wx:if="{{userType === 'enterprise'}}" class="enterprise-cert-options" bindchange="onEnterpriseCertChange">
+      <label class="cert-radio"><checkbox value="low_voltage" checked="{{enterpriseLowChecked}}" color="#16835c" />低压电工</label>
+      <label class="cert-radio"><checkbox value="high_voltage" checked="{{enterpriseHighChecked}}" color="#16835c" />高压电工</label>
+      <label class="cert-radio"><checkbox value="construction" checked="{{enterpriseConstructionChecked}}" color="#16835c" />建筑电工</label>
+    </checkbox-group>
+    <radio-group wx:else bindchange="onRequiredCertChange">
       <label class="cert-radio"><radio value="low_voltage" checked="{{requiredCertType === 'low_voltage'}}" color="#16835c" />低压电工</label>
       <label class="cert-radio"><radio value="high_voltage" checked="{{requiredCertType === 'high_voltage'}}" color="#16835c" />高压电工</label>
       <label class="cert-radio"><radio value="construction" checked="{{requiredCertType === 'construction'}}" color="#16835c" />建筑电工</label>
     </radio-group>
   </view>
+  <block wx:if="{{userType === 'enterprise'}}">
+    <view class="form-section enterprise-count-row">
+      <view class="enterprise-count-control"><text>需要</text><picker mode="selector" range="{{enterpriseCountRange}}" value="{{enterpriseCount - 1}}" bindchange="onEnterpriseCountChange" disabled="{{submitting || submissionUncertain || showPrepay}}"><view class="enterprise-count">{{enterpriseCount}}⌄</view></picker><text>名着安电工</text></view>
+      <button class="multi-date-btn" disabled="{{enterpriseCount === 1 || submitting || submissionUncertain}}" bindtap="openProjectDates">多日期订单</button>
+      <text class="project-date-summary" wx:if="{{projectDateConfirmed}}">{{projectDateSummary}}</text>
+    </view>
+    <view class="form-section" wx:if="{{enterpriseCount > 1}}">
+      <view class="section-title">工程总费用 <text class="required">*</text></view>
+      <view class="amount-input-box"><text class="amount-currency">¥</text><input class="amount-input" type="digit" value="{{projTotalAmount}}" bindinput="onProjAmountInput" placeholder="请输入整个工程的总费用" /></view>
+      <text class="fee-hint">含15%平台使用费，整个日期区间只支付一次</text>
+      <text class="fee-hint" wx:if="{{projElectricianFee}}">每位电工应得 ¥{{projElectricianFee}}</text>
+    </view>
+  </block>
   <!-- 服务地址（非定向时展示） -->
   <view class="form-section" wx:if="{{!isDirected}}">
     <view class="section-title">服务地址</view>
+    <text class="fee-hint" wx:if="{{enterpriseCount > 1 && selectedAddress && selectedAddress.district !== enterpriseCertDistrict}}">多人工程请选择与企业认证区县一致的服务地址</text>
     <view class="form-item" bindtap="openAddressSheet">
       <view class="value">
         <text wx:if="{{selectedAddressStr}}">{{selectedAddressStr}}</text>
@@ -221,7 +133,23 @@
     </view>
   </view>
 
-</block>
+
+  <view wx:if="{{showProjectDates}}" class="project-date-mask" bindtap="cancelProjectDates" catchtouchmove="noop">
+    <view class="project-date-dialog" catchtap="noop">
+      <view class="project-date-title">企业多日期订单</view>
+      <text class="project-date-count">已选择需要{{enterpriseCount}}名着安电工</text>
+      <view class="project-date-range">
+        <view class="section-title">订单起止日期</view>
+        <view class="project-date-columns">
+          <view><text>开始日期</text><picker mode="date" start="{{minProjectDate}}" value="{{draftStartDate}}" data-field="draftStartDate" bindchange="onProjectDraftDate"><view class="picker-display">{{draftStartLabel || '请选择日期'}}</view></picker></view>
+          <view><text>结束日期</text><picker mode="date" start="{{draftStartDate || minProjectDate}}" value="{{draftEndDate}}" data-field="draftEndDate" bindchange="onProjectDraftDate"><view class="picker-display">{{draftEndLabel || '请选择日期'}}</view></picker></view>
+        </view>
+      </view>
+      <text class="fee-hint">包含开始和结束日，共2至29天</text>
+      <text class="project-date-error" wx:if="{{projectDateError}}">{{projectDateError}}</text>
+      <view class="project-date-actions"><button bindtap="cancelProjectDates">取消</button><button class="confirm-dates" bindtap="confirmProjectDates">确定</button></view>
+    </view>
+  </view>
 
   <!-- 语音录音弹出层（单日快修 & 多日工程共用） -->
   <view class="record-mask" wx:if="{{showRecordPanel}}" catchtap="noop">
@@ -258,4 +186,4 @@
 
 </view>
 
-<order-prepay visible="{{showPrepay}}" amount="{{createdPrepayAmount}}" bind:confirm="confirmPersonalPrepay" bind:close="closePersonalPrepay" />
+<order-prepay visible="{{showPrepay}}" project="{{createdIsProject}}" amount="{{createdPrepayAmount}}" bind:confirm="confirmPersonalPrepay" bind:close="closePersonalPrepay" />

@@ -85,7 +85,7 @@ test('new enterprise detail and direct payment entry both use the common agreeme
 });
 
 test('enterprise legacy and project payments keep their old paths and have no new agreement gate', async () => {
-  for (const extra of [{ service_mode: null, required_cert_type: null }, { order_type: 'enterprise_project', status: 'pending_payment' }]) {
+  for (const extra of [{ service_mode: null, required_cert_type: null }, { order_type: 'enterprise_project', status: 'pending_payment', service_mode: null, required_cert_type: null }]) {
     const { p, posted } = pay(extra); await flush();
     assert.equal(p.data.showPrepay, false); assert.equal(posted.length, 1); assert.equal('prepay_agreed' in posted[0], false);
   }
@@ -118,9 +118,9 @@ test('new enterprise rendering flags hide electricity type without erasing perso
 
 test('the old project switch still enforces its original district rule and returning to quick recovers single-form validation', async () => {
   const { p } = await create(); p.switchOrderMode({ currentTarget: { dataset: { mode: 'project' } } });
-  assert.equal(p.data.orderMode, 'project'); assert.equal(p.data.selectedAddress, null);
+  assert.equal(p.data.orderMode, 'project'); assert.equal(p.data.selectedAddress.id, 2); assert.equal(p._addressUsable(p.data.selectedAddress), false);
   p._applyAddress(p._mapAddress({ ...address, district: '认证区' }));
-  p.setData({ projStartDate: '2026-12-01', projStartTime: '08:00', projEndDate: '2026-12-03', projEndTime: '17:00', projTotalAmount: '300', projectRegion: ['省', '市', '认证区'], projectAddressDetail: '测试路1号' });
+  p.setData({ projStartDate: '2090-12-01', projEndDate: '2090-12-03', projectDateConfirmed: true, projTotalAmount: '300' });
   p.onDescriptionInput({ detail: { value: '原工程描述' } }); assert.equal(p.data.canSubmit, true);
   p.switchOrderMode({ currentTarget: { dataset: { mode: 'quick' } } }); assert.equal(p.data.canSubmit, true);
 });

@@ -104,3 +104,31 @@
 
 .address-error { padding: 20rpx 24rpx; margin: 16rpx 0; color: var(--clean-warn); background: #fff7ed; border-radius: 22rpx; word-break: break-all; }
 .address-error button { width: 100%; margin-top: 16rpx; white-space: normal; background: var(--clean-mint); color: var(--clean-green); border-color: var(--clean-green); }
+
+/* M5.3：原型仅用于布局，企业控件沿用项目共用视觉变量。 */
+.enterprise-service-options { display: flex; gap: 16rpx; }
+.enterprise-service-card { box-sizing: border-box; flex: 1; min-width: 0; position: relative; padding: 20rpx 16rpx; border: 2rpx solid var(--clean-line); border-radius: 22rpx; text-align: center; font-size: 28rpx; color: var(--clean-text); background: #fff; }
+.enterprise-service-card.selected { background: var(--clean-mint); border-color: var(--clean-green); color: var(--clean-green); }
+.enterprise-service-card .service-radio { position: absolute; opacity: 0; width: 1rpx; height: 1rpx; }
+.service-caption { display: block; font-size: 25rpx; margin-top: 4rpx; }
+.enterprise-cert-options { display: flex; flex-wrap: wrap; gap: 8rpx; }
+.enterprise-cert-options .cert-radio { flex: 1; min-width: 160rpx; margin-right: 0; white-space: nowrap; font-size: 26rpx; }
+.enterprise-cert-options checkbox { transform: scale(.8); transform-origin: left center; margin-right: -8rpx; }
+.enterprise-count-row { display: flex; align-items: center; flex-wrap: wrap; gap: 16rpx; }
+.enterprise-count-control { flex: 1; display: flex; align-items: center; gap: 12rpx; font-size: 28rpx; white-space: nowrap; }
+.enterprise-count { box-sizing: border-box; min-width: 100rpx; padding: 18rpx 16rpx; text-align: center; border: 2rpx solid var(--clean-line); border-radius: 22rpx; background: var(--clean-soft); color: var(--clean-text); }
+.multi-date-btn { margin: 0; padding: 20rpx 16rpx; font-size: 28rpx; background: var(--clean-mint); border-color: var(--clean-green); color: var(--clean-green); }
+.multi-date-btn[disabled] { background: var(--clean-soft); color: var(--clean-muted); border-color: var(--clean-line); }
+.project-date-summary { width: 100%; color: var(--clean-green); font-size: 26rpx; }
+.project-date-mask { position: fixed; left: 0; right: 0; top: 0; bottom: 0; z-index: 1100; background: rgba(7,29,23,.65); display: flex; align-items: flex-end; }
+.project-date-dialog { width: 100%; box-sizing: border-box; max-height: 90vh; overflow-y: auto; padding: 32rpx; padding-bottom: calc(32rpx + env(safe-area-inset-bottom)); border-radius: 40rpx 40rpx 0 0; background: #fff; color: var(--clean-text); }
+.project-date-title { font-size: 34rpx; font-weight: 600; margin-bottom: 24rpx; }
+.project-date-count { display: block; color: var(--clean-green); font-size: 28rpx; margin-bottom: 20rpx; }
+.project-date-range { border: 2rpx solid var(--clean-line); border-radius: 24rpx; padding: 24rpx; }
+.project-date-columns { display: flex; gap: 16rpx; font-size: 28rpx; }
+.project-date-columns > view { flex: 1; min-width: 0; }
+.project-date-columns .picker-display { margin-top: 16rpx; padding: 20rpx 12rpx; font-size: 24rpx; }
+.project-date-actions { display: flex; gap: 16rpx; margin-top: 28rpx; }
+.project-date-actions button { flex: 1; margin: 0; font-size: 28rpx; background: var(--clean-mint); color: var(--clean-green); }
+.project-date-actions .confirm-dates { background: var(--clean-green); color: #fff; }
+.project-date-error { display: block; margin-top: 16rpx; color: var(--clean-danger); font-size: 26rpx; }

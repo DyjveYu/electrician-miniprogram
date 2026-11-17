@@ -22,7 +22,7 @@
  -->
   <!-- 支付金额 -->
   <view class="amount-section">
-    <view class="amount-label">支付金额</view>
+    <view class="amount-label">{{projectPrepay ? '工程总费用（含15%平台使用费）' : '支付金额'}}</view>
     <view class="amount-value">¥{{payAmount || 0}}</view>
   </view>
 
@@ -46,4 +46,4 @@
     <button bindtap="goToOrder">查看原订单</button>
   </view>
 </view>
-<order-prepay visible="{{showPrepay}}" amount="{{prepayDisplayAmount}}" bind:confirm="confirmPrepay" bind:close="goToOrder" />
+<order-prepay visible="{{showPrepay}}" amount="{{prepayDisplayAmount}}" project="{{projectPrepay}}" bind:confirm="confirmPrepay" bind:close="goToOrder" />
