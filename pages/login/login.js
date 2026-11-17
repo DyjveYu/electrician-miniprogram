@@ -32,7 +32,9 @@ Page({
 
   onLoad(options = {}) {
     this._unloaded = false;
-    this._orderRequested = false;
+    this._orderRequested = options.entry === 'personal-order';
+    this._orderReferrerId = this._orderRequested && /^\d+$/.test(String(options.referrerId || '')) ? Number(options.referrerId) : null;
+    if (this._orderRequested) this.setData({ selectedRole: 'user', showLoginForm: true });
     this._conversionConsent = null;
     this._contentEntry = options.entry === 'electrician-home';
     this._identityEntry = options.entry === 'identity-conversion';
@@ -57,7 +59,7 @@ Page({
       });
 
       // 如果已经登录,直接返回首页
-      if (!this._unloaded && !this.data.isLogging && !this._routingOrder && !this._identityEntry && !this._contentEntry && app.globalData.isLogin && app.globalData.token) {
+      if (!this._unloaded && !this.data.isLogging && !this._routingOrder && !this._orderRequested && !this._identityEntry && !this._contentEntry && app.globalData.isLogin && app.globalData.token) {
         console.log('[登录页] 已登录,跳转到首页');
         wx.reLaunch({
           url: '/pages/index/index'
@@ -95,6 +97,7 @@ Page({
     if (this.data.isLogging || this.data.showWelcomeModal || this.data.showModal) return;
     this.invalidateSmsRequest();
     this._orderRequested = false;
+    this._orderReferrerId = null;
     orderEntry.clear();
     this._contentEntry = false;
     app.globalData.contentLoginEntry = null;
@@ -116,8 +119,12 @@ Page({
    * 使旧短信响应失效并清除旧测试提示
    */
   invalidateSmsRequest() {
-    if (this._smsRequest) app.hideLoading();
+    const request = this._smsRequest;
     this._smsRequest = null;
+    if (request?.loading) {
+      request.loading = false;
+      app.hideLoading();
+    }
     if (!this._unloaded) this.setData({ showTestTip: false, testCode: '' });
   },
 
@@ -218,8 +225,15 @@ Page({
     }
 
     const { phone } = this.data;
-    const request = {};
+    // 关闭前一次请求自己的 loading，不能让迟到的 finally 关闭新请求。
+    this.invalidateSmsRequest();
+    const request = { loading: false };
     this._smsRequest = request;
+    const closeLoading = () => {
+      if (!request.loading) return;
+      request.loading = false;
+      app.hideLoading();
+    };
     const current = () => !this._unloaded && this._smsRequest === request && this.data.phone === phone;
     this.setData({ showTestTip: false, testCode: '', code: '', codeError: '' });
     this.validateForm();
@@ -229,15 +243,18 @@ Page({
       this.setData({
         phoneError: '请输入正确的手机号'
       });
+      this._smsRequest = null;
       return;
     }
 
     try {
       app.showLoading('发送中...');
+      request.loading = true;
 
       const res = await AuthAPI.sendCode(phone, 'login');
       if (!current()) return;
 
+      closeLoading();
       app.showToast('验证码发送成功', 'success');
 
       // 开始倒计时
@@ -251,9 +268,11 @@ Page({
         this.validateForm();
       }
     } catch (error) {
+      closeLoading();
       if (current()) app.showToast(error.message || '发送失败');
     } finally {
-      if (this._smsRequest === request) { app.hideLoading(); this._smsRequest = null; }
+      closeLoading();
+      if (this._smsRequest === request) this._smsRequest = null;
     }
   },
 
@@ -380,7 +399,7 @@ Page({
           if (enterprise && !approved) {
             wx.reLaunch({ url: `/pages/enterprise/certification/certification?orderEntry=${orderIntent}` });
           } else if (orderEntry.consume(app, orderIntent)) {
-            wx.reLaunch({ url: '/pages/order/create/create' });
+            wx.reLaunch({ url: '/pages/order/create/create' + (role === 'user' && this._orderReferrerId ? `?referrerId=${this._orderReferrerId}` : '') });
           }
           return;
         }

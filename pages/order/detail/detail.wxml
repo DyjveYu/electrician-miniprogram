@@ -27,8 +27,12 @@
         <text class="label">服务类型：</text>
         <text class="value">{{order.serviceTypeName}}</text>
       </view>
+      <block wx:if="{{order.order_type === 'personal_quick'}}">
+        <view class="info-row"><text class="label">服务方式：</text><text class="value">{{order.serviceModeName}}</text></view>
+        <view class="info-row"><text class="label">所需资质：</text><text class="value">{{order.requiredCertName}}</text></view>
+      </block>
       <!-- 用电类型：企业端多日工程/电工不展示 -->
-      <view class="info-row" wx:if="{{currentRole !== 'electrician' && order.electricityTypeName && !(currentRole === 'enterprise' && order.projRequiredCount)}}">
+      <view class="info-row" wx:if="{{(currentRole !== 'electrician' || order.order_type === 'personal_quick') && order.electricityTypeName && !(currentRole === 'enterprise' && order.projRequiredCount)}}">
         <text class="label">用电类型：</text>
         <text class="value">{{order.electricityTypeName}}</text>
       </view>

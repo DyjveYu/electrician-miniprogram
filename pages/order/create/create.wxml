@@ -25,7 +25,7 @@
       <!-- 语音输入按钮 -->
       <view class="voice-btn {{isRecording ? 'voice-btn-recording' : ''}}" catchtap="onMicTap">
         <image class="voice-btn-icon ui-icon" src="/images/content-ui/mic.svg" mode="aspectFit" aria-hidden="true" />
-        <text class="voice-btn-text">{{isRecording ? '录音中…' : '语音输入'}}</text>
+        <text class="voice-btn-text">{{isRecording ? '录音中…' : (userType === 'user' ? '订单语音描述' : '语音输入')}}</text>
       </view>
     </view>
 
@@ -114,8 +114,16 @@
 
   <!-- 单日快修 / 个人用户表单 -->
   <block wx:if="{{orderMode === 'quick'}}">
+  <view class="form-section" wx:if="{{userType === 'user'}}">
+    <view class="section-title">选择服务类型</view>
+    <radio-group bindchange="onServiceModeChange">
+      <label class="cert-radio"><radio value="on_site" checked="{{serviceMode === 'on_site'}}" color="#16835c" />上门服务 维修维护与安装</label>
+      <label class="cert-radio"><radio value="off_site" checked="{{serviceMode === 'off_site'}}" color="#16835c" />不上门服务 技术服务与加工</label>
+    </radio-group>
+    <text class="fee-hint" wx:if="{{serviceMode === 'off_site'}}">不上门服务暂未开放</text>
+  </view>
   <!-- 服务类型 -->
-  <view class="form-section">
+  <view class="form-section" wx:if="{{userType !== 'user'}}">
     <view class="section-title">选择服务类型</view>
     <view class="service-list">
       <block wx:for="{{serviceTypes}}" wx:key="id">
@@ -139,7 +147,7 @@
     <!-- 语音输入按钮：白底长方形 -->
     <view class="voice-btn {{isRecording ? 'voice-btn-recording' : ''}}" catchtap="onMicTap">
       <image class="voice-btn-icon ui-icon" src="/images/content-ui/mic.svg" mode="aspectFit" aria-hidden="true" />
-      <text class="voice-btn-text">{{isRecording ? '录音中…' : '语音输入'}}</text>
+      <text class="voice-btn-text">{{isRecording ? '录音中…' : (userType === 'user' ? '订单语音描述' : '语音输入')}}</text>
     </view>
   </view>
 
@@ -154,8 +162,8 @@
     </view>
   </view>
 
-  <!-- 定向下单 -->
-  <view class="form-section">
+  <!-- 企业既有定向下单 -->
+  <view class="form-section" wx:if="{{userType !== 'user'}}">
     <view class="directed-row">
       <text class="directed-label">定向下单</text>
       <switch checked="{{isDirected}}" bindchange="onDirectedToggle" color="#16835c"/>
@@ -185,17 +193,6 @@
     </view>
   </view>
 
-  <!-- 服务地址（非定向时展示） -->
-  <view class="form-section" wx:if="{{!isDirected}}">
-    <view class="section-title">服务地址</view>
-    <view class="form-item" bindtap="openAddressSheet">
-      <view class="value">
-        <text wx:if="{{selectedAddressStr}}">{{selectedAddressStr}}</text>
-        <text wx:else class="placeholder">点击选择地址</text>
-      </view>
-    </view>
-  </view>
-
   <!-- 用电类型选择 -->
   <view class="form-section">
     <view class="section-title">用电类型 <text class="required">*</text></view>
@@ -212,8 +209,27 @@
     </radio-group>
   </view>
 
-  <!-- 复选框 -->
-  <view class="form-section">
+  <view class="form-section" wx:if="{{userType === 'user'}}">
+    <view class="section-title">所需资质 <text class="required">*</text></view>
+    <radio-group bindchange="onRequiredCertChange">
+      <label class="cert-radio"><radio value="low_voltage" checked="{{requiredCertType === 'low_voltage'}}" color="#16835c" />低压电工</label>
+      <label class="cert-radio"><radio value="high_voltage" checked="{{requiredCertType === 'high_voltage'}}" color="#16835c" />高压电工</label>
+      <label class="cert-radio"><radio value="construction" checked="{{requiredCertType === 'construction'}}" color="#16835c" />建筑电工</label>
+    </radio-group>
+  </view>
+  <!-- 服务地址（非定向时展示） -->
+  <view class="form-section" wx:if="{{!isDirected}}">
+    <view class="section-title">服务地址</view>
+    <view class="form-item" bindtap="openAddressSheet">
+      <view class="value">
+        <text wx:if="{{selectedAddressStr}}">{{selectedAddressStr}}</text>
+        <text wx:else class="placeholder">点击选择地址</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 企业既有建单前协议 -->
+  <view class="form-section" wx:if="{{userType !== 'user'}}">
     <view class="terms-row">
       <checkbox-group bindchange="onAgreeChange">
         <label class="terms-label">
@@ -231,9 +247,9 @@
 
   <!-- 底部提交预约条 -->
   <view class="submit-bar">
-    <view class="prepay-text">预付 ￥{{prepayAmount}}</view>
+    <view class="prepay-text" wx:if="{{userType !== 'user'}}">预付 ￥{{prepayAmount}}</view>
     <button class="booking-btn" bindtap="submitOrder" loading="{{submitting}}" disabled="{{!canSubmit}}">
-      {{submitting ? '正在创建订单' : '立即下单预约'}}
+      {{submitting ? '正在创建订单' : (userType === 'user' ? '立即生成订单' : '立即下单预约')}}
     </button>
   </view>
 
@@ -304,3 +320,5 @@
   </view>
 
 </view>
+
+<order-prepay visible="{{showPrepay}}" amount="{{createdPrepayAmount}}" bind:confirm="confirmPersonalPrepay" bind:close="closePersonalPrepay" />

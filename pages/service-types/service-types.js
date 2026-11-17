@@ -66,7 +66,7 @@ Page({
     const prevPage = pages[pages.length - 2];
     
     if (prevPage && prevPage.route === 'pages/order/create/create') {
-      prevPage.setData({ selectedServiceType: serviceType });
+      if (prevPage.data.userType !== 'user') prevPage.setData({ selectedServiceType: serviceType });
       wx.navigateBack();
     } else {
       // 直接跳转到下单页面

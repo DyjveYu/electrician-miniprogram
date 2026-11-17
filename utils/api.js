@@ -51,6 +51,13 @@ class API {
           }
 
           if (res.statusCode === 200) {
+            if (!res.data || typeof res.data !== 'object' || Array.isArray(res.data)) {
+              const error = new Error('接口返回了非 JSON 数据，请检查服务地址和端口');
+              error.code = 'INVALID_API_RESPONSE';
+              if (showError) app.showToast(error.message);
+              reject(error);
+              return;
+            }
             // 兼容后端返回的code格式：0表示成功，200也表示成功
             if (res.data.code === 0 || res.data.code === 200) {
               resolve(res.data);

@@ -4,5 +4,8 @@
   "backgroundColorTop": "#ffffff",
   "backgroundColorBottom": "#ffffff",
   "navigationBarBackgroundColor": "#ffffff",
-  "navigationBarTextStyle": "black"
+  "navigationBarTextStyle": "black",
+  "usingComponents": {
+    "order-prepay": "/components/order-prepay/index"
+  }
 }

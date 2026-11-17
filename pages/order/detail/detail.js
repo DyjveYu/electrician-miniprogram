@@ -1,3 +1,4 @@
+const personalOrder = require('../../../utils/personalOrder');
 const enterpriseSession = require('../../../utils/enterpriseSession');
 const { regionError, isTakeSuccess } = require('../../../utils/orderTakeFeedback');
 // pages/order/detail/detail.js
@@ -137,6 +138,7 @@ Page({
 
           const order = {
             ...raw,
+            ...personalOrder.labels(raw),
             review: normalizedReview,
             electrician: normalizedElectrician,
             // 字段名映射，兼容后端字段
@@ -155,7 +157,7 @@ Page({
             repairAmount,
             prefillUpdateAmount,
             // 用电类型映射
-            electricityTypeName: raw.electricityTypeName || (raw.electricity_type === 'industrial' ? '工业用电' : raw.electricity_type === 'residential' ? '居民用电' : ''),
+            electricityTypeName: personalOrder.labels(raw).electricityTypeName,
             // 多日工程：格式化工程时间（YYYY-MM-DD HH:mm）
             projStartTimeShort: raw.projStartTime ? this.formatShortTime(raw.projStartTime) : '',
             projEndTimeShort: raw.projEndTime ? this.formatShortTime(raw.projEndTime) : '',
@@ -701,6 +703,10 @@ Page({
   },
 
   async handlePayment(type) {
+    if (type === 'prepay' && personalOrder.isExplicit(this.data.order)) {
+      wx.navigateTo({ url: `/pages/payment/payment/payment?orderId=${this.data.orderId}` });
+      return;
+    }
     if (this.data.paying) return;
     this.setData({ paying: true });
 

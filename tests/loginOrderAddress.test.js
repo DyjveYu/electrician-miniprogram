@@ -168,7 +168,7 @@ test('测试支付确认成功才显示成功；换账号后旧确认不跳转',
 
 test('建单按钮重复操作只发一次；网络未知后保留核对入口', async () => {
   const { h, page } = create(); addressResponses(h, [raw()], raw()); await flush();
-  page.setData({ selectedServiceTypeId: 1, selectedServiceType: { id: 1, name: '测试服务' }, description: '测试内容', agreePrepayTerms: true, hasOpenedAgreement: true });
+  page.setData({ selectedServiceTypeId: 1, selectedServiceType: { id: 1, name: '测试服务' }, requiredCertType: 'low_voltage', description: '测试内容', agreePrepayTerms: true, hasOpenedAgreement: true });
   await page.submitOrder(); await page.submitOrder();
   const posts = h.calls.request.filter(r => r.method === 'POST' && r.url.endsWith('/orders'));
   assert.equal(posts.length, 1); assert.equal(posts[0].data.address_id, 2);

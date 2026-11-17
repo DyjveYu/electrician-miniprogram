@@ -1,3 +1,4 @@
+const personalOrder = require('../../../utils/personalOrder');
 const enterpriseSession = require('../../../utils/enterpriseSession');
 const { regionError, isTakeSuccess } = require('../../../utils/orderTakeFeedback');
 // pages/order/list/list.js
@@ -133,7 +134,7 @@ Page({
               createTime: this.formatOrderTime(o.createTime || o.created_at),
               serviceTypeName: o.title || o.serviceTypeName || (o.serviceType && o.serviceType.name) || '未知服务',
               orderTypeText: this.getOrderTypeText(o.order_type || o.orderType),
-              electricityTypeName: o.electricityTypeName || (o.electricity_type === 'industrial' ? '工业用电' : o.electricity_type === 'residential' ? '居民用电' : ''),
+              ...personalOrder.labels(o),
               // 确保有更新时间字段用于排序
               updatedAt: o.updated_at || o.updatedAt || o.updateTime || o.created_at || o.createTime,
               totalAmount,
@@ -282,7 +283,7 @@ Page({
   goToPay(e) {
     const orderId = e.currentTarget.dataset.id;
     wx.navigateTo({
-      url: `/pages/payment/payment?orderId=${orderId}`
+      url: `/pages/payment/payment/payment?orderId=${orderId}`
     });
   },
 

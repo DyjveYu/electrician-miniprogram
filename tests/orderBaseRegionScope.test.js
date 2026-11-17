@@ -19,6 +19,7 @@ function setup(file = 'pages/order/detail/detail.js') {
     console: { log() {}, warn() {}, error() {} },
     setTimeout: fn => calls.timers.push(fn), clearTimeout() {},
     require: name => {
+      if (name.endsWith('personalOrder')) return require('../utils/personalOrder');
       if (name.endsWith('enterpriseSession')) return { request: options => calls.requests.push(options) };
       if (name.endsWith('orderTakeFeedback')) return feedback;
       if (name.endsWith('/util')) return { getOrderStatusText: value => value, formatTime: value => value, mapOrderToDisplayStatus: order => ({ code: order.status, text: order.status }), getDisplayStatusText: value => value };

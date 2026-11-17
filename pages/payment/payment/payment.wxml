@@ -29,7 +29,7 @@
   <!-- 自动拉起提示 -->
   <view class="payment-section">
     <view class="section-title">微信支付</view>
-    <view class="auto-tip">系统正在为您自动拉起微信支付，请在弹出的支付框中完成操作。如支付失败，您可在订单详情页重新支付或取消订单。</view>
+    <view class="auto-tip">{{loadError || (personalPrepay ? (unknownResult ? '支付结果尚未确认，请查询原订单，不要重复付款。' : '请阅读预付款协议并主动勾选同意后付款。') : '请在弹出的支付框中完成操作。如支付失败，可在订单详情页重新支付。')}}</view>
   </view>
 
   <!-- 支付按钮 -->
@@ -39,7 +39,11 @@
       bindtap="startPayment"
       disabled="{{paying}}"
     >
-      {{paying ? '自动拉起微信支付中...' : '重试支付'}}
+      {{paying ? '处理中...' : (unknownResult ? '查询支付结果' : (orderLoaded ? '去支付' : '重新加载订单'))}}
     </button>
   </view>
+  <view class="pay-section" wx:if="{{unknownResult}}">
+    <button bindtap="goToOrder">查看原订单</button>
+  </view>
 </view>
+<order-prepay visible="{{showPrepay}}" amount="{{prepayDisplayAmount}}" bind:confirm="confirmPrepay" bind:close="goToOrder" />

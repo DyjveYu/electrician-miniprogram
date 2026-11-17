@@ -28,7 +28,7 @@
         </view>
         <view class="info-item">
           <text class="info-label">用电类型:</text>
-          <text class="info-value">{{item.electricityTypeName || '低压订单'}}</text>
+          <text class="info-value">{{item.electricityTypeName || '未记录'}}</text>
         </view>
         <view class="info-item">
           <text class="info-label">故障描述:</text>
