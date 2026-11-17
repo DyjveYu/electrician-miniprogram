@@ -1,5 +1,6 @@
 const enterpriseSession = require('../../utils/enterpriseSession');
 const personalOrder = require('../../utils/personalOrder');
+const { regionError, isTakeSuccess } = require('../../utils/orderTakeFeedback');
 // pages/order-landing-detail/index.js
 // 落地页订单详情（独立副本）—— 所有操作后留在本页刷新，不跳转其他页面
 const app = getApp();
@@ -23,7 +24,10 @@ Page({
     updating: false,
     rating: 5,
     reviewComment: '',
-    reviewing: false
+    reviewing: false,
+    taking: false,
+    takeBlocked: false,
+    takeSucceeded: false
   },
 
   onLoad(options) {
@@ -251,10 +255,12 @@ Page({
 
   // ── 接单 ──
   acceptOrder() {
+    if (this._takePending || this.data.takeBlocked || this.data.takeSucceeded) return;
     if (app.globalData.userInfo && app.globalData.userInfo.status === 'banned') {
       wx.showToast({ title: '您的账号已被冻结，无法接单', icon: 'none' });
       return;
     }
+    this._takePending = true;
     const hour = new Date().getHours();
     if (hour >= 22 || hour < 5) {
       wx.showModal({ confirmColor: '#16835c',
@@ -269,7 +275,8 @@ Page({
       content: '确认接下此订单？',
       confirmText: '接单',
       success: (res) => {
-        if (!res.confirm) return;
+        if (!res.confirm) { this._takePending = false; return; }
+        this.setData({ taking: true });
         wx.showLoading({ title: '接单中...' });
         enterpriseSession.request({
           url: `${app.globalData.baseUrl}/orders/${this.data.orderId}/take`,
@@ -277,9 +284,18 @@ Page({
           header: { 'Authorization': `Bearer ${app.globalData.token}` },
           success: (res) => {
             wx.hideLoading();
-            const code = res?.data?.code;
-            const ok = code === 0 || code === 200 || res.statusCode === 200 || res?.data?.success === true;
-            if (ok) {
+            this._takePending = false;
+            this.setData({ taking: false });
+            const message = regionError(res);
+            if (message) {
+              this.setData({ takeBlocked: true });
+              wx.showModal({
+                title: '暂无法接单', content: message, showCancel: false,
+                confirmText: '返回首页', confirmColor: '#16835c',
+                success: result => { if (result.confirm) this.returnToAvailableOrders(); }
+              });
+            } else if (isTakeSuccess(res)) {
+              this.setData({ takeSucceeded: true });
               wx.showToast({ title: '接单成功', icon: 'success' });
               // 留在本页刷新
               setTimeout(() => this.loadOrderDetail(), 1000);
@@ -287,10 +303,21 @@ Page({
               wx.showToast({ title: res?.data?.message || '接单失败', icon: 'none' });
             }
           },
-          fail: () => { wx.hideLoading(); wx.showToast({ title: '网络错误', icon: 'none' }); }
+          fail: () => {
+            wx.hideLoading();
+            this._takePending = false;
+            this.setData({ taking: false });
+            wx.showToast({ title: '网络错误，请刷新核对接单结果', icon: 'none' });
+            this.loadOrderDetail();
+          }
         });
-      }
+      },
+      fail: () => { this._takePending = false; }
     });
+  },
+
+  returnToAvailableOrders() {
+    wx.switchTab({ url: '/pages/index/index' });
   },
 
   // ── 退单 ──
@@ -308,9 +335,8 @@ Page({
           header: { 'Authorization': `Bearer ${app.globalData.token}` },
           success: (res) => {
             wx.hideLoading();
-            const code = res?.data?.code;
-            const ok = code === 0 || code === 200 || res.statusCode === 200 || res?.data?.success === true;
-            if (ok) {
+            if (isTakeSuccess(res)) {
+              this.setData({ takeSucceeded: false });
               wx.showToast({ title: '退单成功', icon: 'success' });
               // 留在本页刷新
               setTimeout(() => this.loadOrderDetail(), 1000);

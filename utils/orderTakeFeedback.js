@@ -1,4 +1,6 @@
 const messages = {
+  ORDER_NOT_AVAILABLE: '工单已被接单或状态已变化，请返回首页刷新订单',
+  ORDER_PROJECT_FULL: '该工程名额已满，请返回首页刷新订单',
   ORDER_QUALIFICATION_MISMATCH: '该订单所需资质与您当前有效证书不匹配，请返回首页刷新订单',
   ORDER_OUTSIDE_BASE_REGION: '该订单不在您当前的接单区域，请返回首页刷新订单',
   ORDER_REGION_UNAVAILABLE: '接单区域或订单服务地址信息不完整，暂无法接单，请刷新后重试或联系客服'

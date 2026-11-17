@@ -301,7 +301,7 @@
 
         <!-- 待接单 / 招募中 -->
         <block wx:if="{{order.status === 'pending' || order.status === 'recruiting' || order.status === 'full'}}">
-          <button wx:if="{{order.canAccept}}" class="main-action-btn primary" bindtap="acceptOrder">接单</button>
+          <button wx:if="{{order.canAccept}}" class="main-action-btn primary" bindtap="acceptOrder" loading="{{taking}}" disabled="{{taking || takeBlocked || takeSucceeded}}">{{taking ? '接单中...' : (takeBlocked ? '请刷新订单' : (takeSucceeded ? '已接单' : '接单'))}}</button>
           <button wx:if="{{order.canWithdraw}}" class="main-action-btn danger" bindtap="withdrawOrder">退单</button>
           <button wx:if="{{order.canCancel && (currentRole === 'user' || currentRole === 'enterprise')}}" class="service-btn" bindtap="cancelOrder">
             <text class="service-text">取消订单</text>
