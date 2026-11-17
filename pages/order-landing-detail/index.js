@@ -1,4 +1,5 @@
 const enterpriseSession = require('../../utils/enterpriseSession');
+const personalOrder = require('../../utils/personalOrder');
 // pages/order-landing-detail/index.js
 // 落地页订单详情（独立副本）—— 所有操作后留在本页刷新，不跳转其他页面
 const app = getApp();
@@ -106,6 +107,7 @@ Page({
 
           const order = {
             ...raw,
+            ...personalOrder.labels(raw),
             review: normalizedReview,
             electrician: normalizedElectrician,
             orderNumber: raw.orderNumber || raw.order_no,
@@ -485,6 +487,10 @@ Page({
   goToRepairPay() { return this.handlePayment('repair'); },
 
   async handlePayment(type) {
+    if (type === 'prepay' && personalOrder.isExplicit(this.data.order)) {
+      wx.navigateTo({ url: `/pages/payment/payment/payment?orderId=${this.data.orderId}` });
+      return;
+    }
     if (this.data.paying) return;
     this.setData({ paying: true });
 

@@ -161,7 +161,7 @@ test('new personal detail routes to the agreement page while legacy and repair a
   assert.equal(h.calls.request.length, 0);
   const model = h.load('utils/personalOrder.js');
   assert.equal(model.isExplicit(order({ service_mode: null, required_cert_type: null })), false);
-  assert.equal(model.isExplicit(order({ order_type: 'enterprise_quick' })), false);
+  assert.equal(model.isExplicit(order({ order_type: 'enterprise_quick', service_mode: null, required_cert_type: null })), false);
 });
 
 test('sharing retains recommendation and routes anonymous visitors through phone login', () => {

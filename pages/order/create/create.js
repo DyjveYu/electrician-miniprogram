@@ -101,7 +101,7 @@ Page({
       return;
     }
     this.setData({ userType });
-    if (userType === 'user') this.setData({ descriptionTitle: '订单服务内容文字描述', selectedServiceTypeId: SERVICE_TYPES[0].id, selectedServiceType: SERVICE_TYPES[0] });
+    this.setData({ descriptionTitle: '订单服务内容文字描述', selectedServiceTypeId: SERVICE_TYPES[0].id, selectedServiceType: SERVICE_TYPES[0] });
     // 企业用户加载认证信息（用于区校验）
     if (userType === 'enterprise') {
       this.loadEnterpriseCert();
@@ -121,11 +121,11 @@ Page({
       wx.reLaunch({ url: '/pages/index/index' });
       return;
     }
+    if (this._createdOrderId) { this.setData({ showPrepay: true }); return; }
     if (this.data.userType === 'enterprise' && this._certNeedsRefresh) {
       this._certNeedsRefresh = false;
       this.loadEnterpriseCert();
     }
-    if (this._createdOrderId) { this.setData({ showPrepay: true }); return; }
     if (this.data.selectedAddress?.id) this.refreshSelectedAddress(this.data.selectedAddress.id);
     else this.loadAddresses({ initial: true });
   },
@@ -561,7 +561,7 @@ Page({
   },
 
   validateForm() {
-    if (this.data.userType === 'user' && (this.data.serviceMode !== 'on_site' || !['low_voltage', 'high_voltage', 'construction'].includes(this.data.requiredCertType))) {
+    if (this.data.serviceMode !== 'on_site' || !['low_voltage', 'high_voltage', 'construction'].includes(this.data.requiredCertType)) {
       wx.showToast({ title: this.data.serviceMode === 'off_site' ? '不上门服务暂未开放' : '请选择所需资质', icon: 'none' });
       return false;
     }
@@ -585,16 +585,12 @@ Page({
       wx.showToast({ title: '请搜索并选择电工', icon: 'none' });
       return false;
     }
-    if (!this.data.electricityType) {
+    if (this.data.userType === 'user' && !this.data.electricityType) {
       wx.showToast({ title: '请选择用电类型', icon: 'none' });
       return false;
     }
     if (this.data.contactPhone && !/^1[3-9]\d{9}$/.test(this.data.contactPhone)) {
       wx.showToast({ title: '联系人手机号格式不正确', icon: 'none' });
-      return false;
-    }
-    if (this.data.userType !== 'user' && !this.data.agreePrepayTerms) {
-      wx.showToast({ title: '请勾选预付款说明', icon: 'none' });
       return false;
     }
     return true;
@@ -628,11 +624,6 @@ Page({
   async submitOrder() {
     if (!this.validateForm()) return;
     if (this.data.submitting || this._createdOrderId) return;
-    // 未阅读协议时弹出协议弹层
-    if (this.data.userType !== 'user' && !this.data.hasOpenedAgreement) {
-      this.setData({ showAgreementModal: true, hasOpenedAgreement: true });
-      return;
-    }
     this.setData({ submitting: true });
     const app = getApp();
 
@@ -654,8 +645,9 @@ Page({
     if (!this._current() || this._visible === false) { this.setData({ submitting: false }); return; }
     const payload = {
       service_type_id: this.data.selectedServiceType.id,
-      title: this.data.userType === 'user' ? '上门服务 维修维护与安装' : (this.data.selectedServiceType.name || '无标题'),
-      ...(this.data.userType === 'user' ? { service_mode: this.data.serviceMode, required_cert_type: this.data.requiredCertType } : {}),
+      title: '上门服务 维修维护与安装',
+      service_mode: this.data.serviceMode,
+      required_cert_type: this.data.requiredCertType,
       description: this.data.description || '',
       contact_name: this.data.contactName || '',
       contact_phone: this.data.contactPhone || '',
@@ -664,7 +656,7 @@ Page({
       longitude: this.data.isDirected ? null : this.data.longitude,
       images: imageUrls,
       address_id: this.data.isDirected ? null : (this.data.selectedAddress?.id || null),
-      electricity_type: this.data.electricityType,
+      ...(this.data.userType === 'user' ? { electricity_type: this.data.electricityType } : {}),
       isDirected: this.data.isDirected,
       electricianId: this.data.isDirected ? (this.data.searchedElectrician?.id || null) : null,
       // 推荐达人追踪：从缓存读取 referrer_id，当次会话有效
@@ -683,24 +675,16 @@ Page({
         if (this.handleReturnedProfile(res?.data)) return;
         if (res && res.data && (res.statusCode === undefined || (res.statusCode >= 200 && res.statusCode < 300)) && res.data.success !== false && (res.data.code === 0 || res.data.code === 200)) {
           const orderId = res.data.data?.id || res.data.id;
-          if (this.data.userType === 'user') {
-            const amount = Number(res.data.data?.prepay_amount);
-            this._createdOrderId = orderId;
-            if (!orderId || !Number.isFinite(amount) || amount <= 0) {
-              this.setData({ submitting: false, submissionUncertain: true, canSubmit: false });
-              wx.showToast({ title: '订单信息未确认，请查看我的订单', icon: 'none' });
-              return;
-            }
-            this.setData({ createdPrepayAmount: amount.toFixed(2), showPrepay: this._visible !== false, submitting: false, canSubmit: false });
+          const amount = Number(res.data.data?.prepay_amount);
+          this._createdOrderId = orderId;
+          if (!orderId || !Number.isFinite(amount) || amount <= 0) {
+            this.setData({ submitting: false, submissionUncertain: true, canSubmit: false });
+            wx.showToast({ title: '订单信息未确认，请查看我的订单', icon: 'none' });
             return;
           }
-          wx.showToast({ title: '正在支付', icon: 'none' });
-          setTimeout(() => {
-            if (!this._current()) return;
-            wx.navigateTo({ url: `/pages/payment/payment/payment?orderId=${orderId}` });
-          }, 500);
+          this.setData({ createdPrepayAmount: amount.toFixed(2), showPrepay: this._visible !== false, submitting: false, canSubmit: false });
         } else {
-          if (this.data.userType === 'user' && (res.statusCode >= 500 || res.data?.code >= 500)) {
+          if (res.statusCode >= 500 || res.data?.code >= 500) {
             this.setData({ submitting: false, submissionUncertain: true, canSubmit: false });
             wx.showToast({ title: '结果未确认，请先查看我的订单', icon: 'none' });
             return;
@@ -719,33 +703,27 @@ Page({
   },
 
   updateSubmitEnable() {
-    let ok = !!this.data.selectedServiceTypeId
-      && !!(this.data.description && this.data.description.trim())
-      && !!this.data.agreePrepayTerms
-      && !!this.data.hasOpenedAgreement;
-    if (this.data.userType === 'user') {
-      ok = this.data.serviceMode === 'on_site' && ['low_voltage', 'high_voltage', 'construction'].includes(this.data.requiredCertType)
-        && !!this.data.description?.trim() && this._addressUsable(this.data.selectedAddress) && !this._createdOrderId;
-    }
-    if (this.data.isDirected && this.data.userType !== 'user') {
-      ok = ok && !!this.data.searchedElectrician;
-    } else {
-      ok = ok && this._addressUsable(this.data.selectedAddress);
-    }
-    this.setData({ canSubmit: ok && !this.data.submissionUncertain });
+    if (this.data.orderMode === 'project') { this.updateProjectSubmitEnable(); return; }
+    const ok = !!this.data.selectedServiceTypeId && this.data.serviceMode === 'on_site'
+      && ['low_voltage', 'high_voltage', 'construction'].includes(this.data.requiredCertType)
+      && !!this.data.description?.trim() && this._addressUsable(this.data.selectedAddress)
+      && (this.data.userType !== 'user' || !!this.data.electricityType)
+      && !this._createdOrderId && !this.data.submissionUncertain;
+    this.setData({ canSubmit: !!ok });
   },
 
   // ─── 企业多日工程 ────────────────────────────────────────────
 
   // 资料打回只限制新建订单，不清除登录态。
   handleReturnedProfile(body) {
-    if (!this._current() || body?.data?.reason !== 'ENTERPRISE_PROFILE_RETURNED') return false;
+    if (this._createdOrderId || !this._current() || !['ENTERPRISE_PROFILE_RETURNED', 'ENTERPRISE_CERTIFICATION_REQUIRED'].includes(body?.data?.reason)) return false;
     if (this._visible === false) return true;
     if (this._certRedirectPending) return true;
     this._certRedirectPending = true;
     this.setData({ submitting: false, projectSubmitting: false });
-    wx.showModal({ title: '企业资料需重新提交',
-      content: `${body.data.returnReason || '企业资料已被打回'}。请前往企业认证页重新提交，通过后可继续下单。`,
+    const returned = body.data.reason === 'ENTERPRISE_PROFILE_RETURNED';
+    wx.showModal({ title: returned ? '企业资料需重新提交' : '请先完善企业资料',
+      content: returned ? `${body.data.returnReason || '企业资料已被打回'}。请前往企业认证页重新提交，通过后可继续下单。` : '请先提交完整企业资料，通过后继续本次下单。',
       confirmText: '前往认证', cancelText: '暂不处理', confirmColor: '#16835c',
       success: result => {
         if (!this._current() || this._visible === false) return;
@@ -767,11 +745,16 @@ Page({
       header: { 'Authorization': `Bearer ${app.globalData.token}` },
       success: (res) => {
         if (!this._current() || this._visible === false || generation !== this._certQueryGeneration) return;
+        if (this._createdOrderId) return;
         if (res?.data?.data?.certStatus === 'returned') {
           this.handleReturnedProfile({ data: { reason: 'ENTERPRISE_PROFILE_RETURNED', returnReason: res.data.data.returnReason } });
           return;
         }
         const ok = res?.data?.success === true || res?.data?.code === 0 || res?.data?.code === 200;
+        if (ok && res.data.data?.certStatus !== 'approved') {
+          this.handleReturnedProfile({ data: { reason: 'ENTERPRISE_CERTIFICATION_REQUIRED' } });
+          return;
+        }
         if (ok && res.data.data && res.data.data.certStatus === 'approved') {
           if (!this._current()) return;
           this.setData({ enterpriseCertDistrict: res.data.data.district || '' });

@@ -26,7 +26,7 @@
           <text class="info-label">订单类型:</text>
           <text class="info-value">{{item.orderTypeText}}</text>
         </view>
-        <view class="info-item">
+        <view class="info-item" wx:if="{{!item.isNewEnterprise}}">
           <text class="info-label">用电类型:</text>
           <text class="info-value">{{item.electricityTypeName || '未记录'}}</text>
         </view>
