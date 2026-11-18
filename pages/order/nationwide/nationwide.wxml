@@ -1,10 +1,13 @@
 <view class="page">
   <view class="hint">持有效资质可查看全国订单，接单前须缴纳电工接单押金。</view>
+  <input class="card" placeholder="搜索服务内容或工单号" value="{{draftSearch}}" maxlength="100" bindinput="editSearch" bindconfirm="searchOrders" confirm-type="search" />
+  <button size="mini" bindtap="searchOrders">搜索</button>
   <view wx:if="{{error}}" class="empty">{{error}}<button bindtap="retry">重新读取</button></view>
   <view wx:for="{{orders}}" wx:key="id" class="card" data-id="{{item.id}}" bindtap="view">
     <view class="title">{{item.orderTypeText}} · {{item.title}}</view>
     <view class="description">{{item.description}}</view>
     <view wx:if="{{item.isNewProject}}">{{item.proj_required_count}}人 · {{item.projectStartDateName}} 至 {{item.projectEndDateName}}</view>
+    <view wx:if="{{item.project_price_estimate}}">整单一口价 ¥{{item.project_price_estimate.total}} · 每人预计 ¥{{item.project_price_estimate.min}}{{item.project_price_estimate.max > item.project_price_estimate.min ? '–' + item.project_price_estimate.max : ''}}</view>
     <view>所需资质：{{item.requiredCertName}}</view>
   </view>
   <view wx:if="{{loading}}" class="empty">正在读取全国订单…</view>

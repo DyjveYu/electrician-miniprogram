@@ -137,7 +137,7 @@ Page({
               ...personalOrder.labels(o),
               // 确保有更新时间字段用于排序
               updatedAt: o.updated_at || o.updatedAt || o.updateTime || o.created_at || o.createTime,
-              totalAmount: o.service_mode === 'off_site' ? (Number(o.offsite_finance?.feeAmount || (isProject ? o.final_amount : 0)) > 0 ? Number(o.offsite_finance?.feeAmount || o.final_amount).toFixed(2) : null) : totalAmount,
+              totalAmount: o.service_mode === 'off_site' ? (Number(o.offsite_finance?.feeAmount || (isProject ? (o.project_price_estimate?.total ?? o.final_amount) : 0)) > 0 ? Number(o.offsite_finance?.feeAmount || o.project_price_estimate?.total || o.final_amount).toFixed(2) : null) : totalAmount,
               ...this.computeActionFlags(o)
             };
           });

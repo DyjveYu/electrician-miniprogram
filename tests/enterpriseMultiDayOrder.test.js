@@ -121,3 +121,42 @@ test('enterprise single and project share multi-select options, while personal s
   await p.submitOrder(); const post = h.calls.request.find(r => r.method === 'POST');
   assert.equal(post.data.projRequiredCount, 100); assert.equal(post.data.required_cert_type, 'low_voltage,construction');
 });
+
+test('enterprise project prepayment binds the chosen amount and confirmed version to its original order', async () => {
+  const h = harness();
+  h.login('enterprise');
+  const events = [];
+  const widget = {
+    ...h.component('components/order-prepay/index.js'),
+    data:{orderId:10, offsite:true, project:true, projectPrice:{deposit:'600.00',priceRevision:0}, opened:true, agreed:true},
+    setData(value) { Object.assign(this.data,value); },
+    triggerEvent(name,detail) { events.push({name,detail}); }
+  };
+  widget.chooseMode({detail:{value:'fixed_price'}});
+  widget.inputPrice({detail:{value:'100.00'}});
+  await widget.confirm();
+  assert.equal(h.calls.request.length,0);
+  widget.changeAgreement({detail:{value:['agree']}});
+  const work = widget.confirm();
+  const selection = h.calls.request[0];
+  assert.match(selection.url,/orders\/10\/project-billing\/price$/);
+  assert.deepEqual(JSON.parse(JSON.stringify(selection.data)),{pricing_mode:'fixed_price',amount:'100.00',prepay_agreed:true,price_revision:0});
+  h.respond(0,{pricing_mode:'fixed_price',price_revision:1,amount:100});
+  await work;
+  assert.equal(events[0].detail.priceRevision,1);
+
+  h.app.globalData.paymentMethod='test';
+  h.load('utils/personalOrder.js').grant(h.app,10,events[0].detail);
+  const payment = h.page('pages/payment/payment/payment.js');
+  const api = h.load('utils/api.js').PaymentAPI;
+  let body;
+  api.createPayment = async value => {body=value;return {code:400,message:'isolated'};};
+  payment.onLoad({orderId:'10'});
+  h.respond(1,{order:{id:10,order_type:'enterprise_project',service_mode:'off_site',required_cert_type:'construction',
+    pricing_mode:'fixed_price',status:'pending_payment',prepay_amount:100,project_billing:{deposit:600,priceRevision:1,pricingMode:'fixed_price'}}});
+  await flush();
+  assert.equal(body.pricing_mode,'fixed_price');
+  assert.equal(body.price_revision,1);
+  assert.equal(body.agreed_amount,'100.00');
+  assert.equal(body.type,'prepay');
+});

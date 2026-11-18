@@ -66,6 +66,7 @@ Page({
           const order = res.data.data?.order || res.data.data;
           // 根据订单状态判定支付类型
           const typeByStatus = order.status === 'pending_repair_payment' ? 'repair' : 'prepay';
+          if (order.project_billing?.pricingMode === 'fixed_price' && this._requestedType === 'repair') { this.goToOrder(); return; }
           const payType = order.project_billing && this._requestedType === 'repair' ? 'repair' : typeByStatus;
           const personalPrepay = personalOrder.isExplicit(order) && payType === 'prepay';
           this.setData({ order, payType, personalPrepay, safePayment: personalPrepay || order.service_mode === 'off_site', offsitePayment: order.service_mode === 'off_site', projectPrepay: personalPrepay && order.order_type === 'enterprise_project', orderLoaded: true, loadError: '', payAmount: Number(payType === 'repair' ? order.final_amount : order.prepay_amount), prepayDisplayAmount: Number(order.prepay_amount).toFixed(2) });
@@ -75,6 +76,7 @@ Page({
           if (personalPrepay) {
             if (order.status !== 'pending_payment') { this.goToOrder(); return; }
             if (this._choice?.mode && (this._choice.mode !== order.pricing_mode || Number(this._choice.amount) !== Number(order.prepay_amount))) this._prepayAgreed = false;
+            if (order.project_billing?.priceRevision != null && this._choice?.priceRevision !== order.project_billing.priceRevision) this._prepayAgreed = false;
             if (!this._prepayAgreed) { this.setData({ showPrepay: true }); return; }
           }
           this.startPayment();
@@ -117,6 +119,7 @@ Page({
         type: this.data.payType,
         ...(this.data.offsitePayment && this.data.payType === 'repair' ? { fee_revision: this.data.order.fee_revision } : {}),
         ...(this.data.offsitePayment && this.data.payType === 'prepay' && this._choice?.mode ? { pricing_mode: this._choice.mode, agreed_amount: String(this._choice.amount) } : {}),
+        ...(this._choice?.priceRevision != null && this.data.payType === 'prepay' ? {price_revision:this._choice.priceRevision} : {}),
         openid,
         ...(this.data.personalPrepay ? { prepay_agreed: this._prepayAgreed === true } : {})
       });
@@ -324,7 +327,7 @@ Page({
 
   confirmPrepay(e) {
     if (!this.paymentCurrent() || !this._visible) return;
-    if (this.data.offsitePayment && !this.data.projectPrepay) {
+    if (this.data.offsitePayment && (!this.data.projectPrepay || this.data.order?.project_billing?.priceRevision != null)) {
       this._choice = e?.detail;
       if (!this._choice?.mode) return;
       this.setData({ order: { ...this.data.order, pricing_mode: this._choice.mode, prepay_amount: this._choice.amount }, payAmount: Number(this._choice.amount), prepayDisplayAmount: Number(this._choice.amount).toFixed(2) });

@@ -156,6 +156,7 @@
               <view class="detail-row"><text class="detail-label">发布时间：</text><text class="detail-value">{{item.createdTime}}</text></view>
               <view class="detail-row"><text class="detail-label">所需资质：</text><text class="detail-value">{{item.requiredCertName}}</text></view>
               <view wx:if="{{item.isNewProject}}" class="detail-row"><text class="detail-label">招募：</text><text class="detail-value">{{item.proj_required_count}}人 · {{item.projectStartDateName}} 至 {{item.projectEndDateName}}</text></view>
+              <view wx:if="{{item.project_price_estimate}}" class="detail-row"><text class="detail-label">整单一口价：</text><text class="detail-value">¥{{item.project_price_estimate.total}} · 每人预计 ¥{{item.project_price_estimate.min}}{{item.project_price_estimate.max > item.project_price_estimate.min ? '–' + item.project_price_estimate.max : ''}}</text></view>
             </view>
             <view class="order-description">
               <view wx:if="{{item.description}}"><text class="description-text">{{item.description}}</text></view>
