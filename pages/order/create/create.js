@@ -10,7 +10,7 @@ const SERVICE_TYPES = require('../../../config/service-types')
 
 function supportsServiceMode({ serviceMode, userType, orderMode, enterpriseCount }) {
   if (serviceMode === 'on_site') return true;
-  return serviceMode === 'off_site' && (userType === 'user' || (userType === 'enterprise' && orderMode !== 'project' && enterpriseCount === 1));
+  return serviceMode === 'off_site' && (userType === 'user' || (userType === 'enterprise' && enterpriseCount >= 1 && enterpriseCount <= 100));
 }
 
 function calculateCurrentPrepayAmount(feeList = []) {
@@ -370,7 +370,7 @@ Page({
 
   _addressUsable(address) {
     return !!address?.id && [address.province, address.city, address.district, address.detail].every(v => typeof v === 'string' && v.trim()) &&
-      (this.data.orderMode !== 'project' || (!!this.data.enterpriseCertDistrict && address.district === this.data.enterpriseCertDistrict));
+      (this.data.serviceMode === 'off_site' || this.data.orderMode !== 'project' || (!!this.data.enterpriseCertDistrict && address.district === this.data.enterpriseCertDistrict));
   },
 
   _applyAddress(address) {
@@ -550,7 +550,6 @@ Page({
   onServiceModeChange(e) {
     if (this._createdOrderId) { wx.showToast({ title: '请在已生成的原订单中处理', icon: 'none' }); return; }
     this.setData({ serviceMode: e.detail.value });
-    if (e.detail.value === 'off_site' && this.data.orderMode === 'project') wx.showToast({ title: '企业多人不上门服务暂未开放', icon: 'none' });
     this.updateSubmitEnable();
   },
 
@@ -662,7 +661,7 @@ Page({
     if (!this._current() || this._visible === false) { this.setData({ submitting: false }); return; }
     const project = this.data.userType === 'enterprise' && this.data.orderMode === 'project';
     const payload = {
-      ...(project ? { addressId: this.data.selectedAddress.id, projRequiredCount: this.data.enterpriseCount, projStartDate: this.data.projStartDate, projEndDate: this.data.projEndDate, projTotalAmount: this.data.projTotalAmount, contactPhone: this.data.contactPhone } : {}),
+      ...(project ? { addressId: this.data.selectedAddress.id, projRequiredCount: this.data.enterpriseCount, projStartDate: this.data.projStartDate, projEndDate: this.data.projEndDate, ...(this.data.serviceMode === 'off_site' ? { request_key: this._projectRequestKey ||= 'project_' + Date.now().toString(36) + Math.random().toString(36).slice(2) } : {projTotalAmount:this.data.projTotalAmount}), contactPhone: this.data.contactPhone } : {}),
       service_type_id: this.data.selectedServiceType.id,
       title: this.data.serviceMode === 'off_site' ? '不上门服务 技术服务与加工' : '上门服务 维修维护与安装',
       service_mode: this.data.serviceMode,
@@ -827,8 +826,8 @@ Page({
   },
   updateProjectSubmitEnable() {
     const ok = this.data.userType === 'enterprise' && this.data.enterpriseCount > 1 && this.data.projectDateConfirmed
-      && projectOrder.allowed(this.data.projStartDate, this.data.projEndDate) && projectOrder.money(this.data.projTotalAmount)
-      && this.data.serviceMode === 'on_site' && certOptions.parse(this.data.requiredCertType, this.data.userType === 'enterprise').length > 0
+      && projectOrder.allowed(this.data.projStartDate, this.data.projEndDate) && (this.data.serviceMode === 'off_site' || projectOrder.money(this.data.projTotalAmount))
+      && supportsServiceMode(this.data) && certOptions.parse(this.data.requiredCertType, this.data.userType === 'enterprise').length > 0
       && !!this.data.description?.trim() && this._addressUsable(this.data.selectedAddress)
       && !this._createdOrderId && !this.data.submissionUncertain;
     this.setData({ canSubmit: !!ok });

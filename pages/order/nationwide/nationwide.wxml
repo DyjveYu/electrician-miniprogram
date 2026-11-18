@@ -4,6 +4,7 @@
   <view wx:for="{{orders}}" wx:key="id" class="card" data-id="{{item.id}}" bindtap="view">
     <view class="title">{{item.orderTypeText}} · {{item.title}}</view>
     <view class="description">{{item.description}}</view>
+    <view wx:if="{{item.isNewProject}}">{{item.proj_required_count}}人 · {{item.projectStartDateName}} 至 {{item.projectEndDateName}}</view>
     <view>所需资质：{{item.requiredCertName}}</view>
   </view>
   <view wx:if="{{loading}}" class="empty">正在读取全国订单…</view>

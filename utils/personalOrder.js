@@ -2,6 +2,7 @@ const orderEntry = require('./orderEntry');
 let pending = null;
 function typeName(order) {
   const type = typeof order === 'string' ? order : order?.order_type || order?.orderType;
+  if (type === 'enterprise_project' && order?.service_mode === 'off_site') return '企业多人不上门订单';
   if (type === 'enterprise_quick' && order?.service_mode === 'off_site') return '企业不上门订单';
   if (type === 'personal_quick' && order?.service_mode === 'off_site') return '个人不上门订单';
   return ({ enterprise_project: '企业多日工程', enterprise_quick: '企业快修订单', personal_quick: '个人快修订单' })[type] || type || '';

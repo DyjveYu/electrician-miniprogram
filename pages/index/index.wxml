@@ -155,6 +155,7 @@
               <view class="detail-row"><text class="detail-label">工单类型：</text><text class="detail-value">{{item.orderTypeText}}</text></view>
               <view class="detail-row"><text class="detail-label">发布时间：</text><text class="detail-value">{{item.createdTime}}</text></view>
               <view class="detail-row"><text class="detail-label">所需资质：</text><text class="detail-value">{{item.requiredCertName}}</text></view>
+              <view wx:if="{{item.isNewProject}}" class="detail-row"><text class="detail-label">招募：</text><text class="detail-value">{{item.proj_required_count}}人 · {{item.projectStartDateName}} 至 {{item.projectEndDateName}}</text></view>
             </view>
             <view class="order-description">
               <view wx:if="{{item.description}}"><text class="description-text">{{item.description}}</text></view>

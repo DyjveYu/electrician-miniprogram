@@ -9,7 +9,7 @@
       <label class="enterprise-service-card {{serviceMode === 'on_site' ? 'selected' : ''}}"><radio class="service-radio" value="on_site" checked="{{serviceMode === 'on_site'}}" /><text>上门服务</text><text class="service-caption">维修维护与安装</text></label>
       <label class="enterprise-service-card {{serviceMode === 'off_site' ? 'selected' : ''}}"><radio class="service-radio" value="off_site" checked="{{serviceMode === 'off_site'}}" /><text>不上门服务</text><text class="service-caption">技术服务与加工</text></label>
     </radio-group>
-    <text class="fee-hint" wx:if="{{serviceMode === 'off_site'}}">{{orderMode === 'project' ? '企业多人不上门服务暂未开放' : '付款时选择200元订单押金或一口价全额工费'}}</text>
+    <text class="fee-hint" wx:if="{{serviceMode === 'off_site'}}">{{orderMode === 'project' ? '每名电工收取200元订单押金，工费另付' : '付款时选择200元订单押金或一口价全额工费'}}</text>
   </view>
   <!-- 问题描述 -->
   <view class="form-section">
@@ -72,7 +72,7 @@
       <button class="multi-date-btn" disabled="{{enterpriseCount === 1 || submitting || submissionUncertain}}" bindtap="openProjectDates">多日期订单</button>
       <text class="project-date-summary" wx:if="{{projectDateConfirmed}}">{{projectDateSummary}}</text>
     </view>
-    <view class="form-section" wx:if="{{enterpriseCount > 1}}">
+    <view class="form-section" wx:if="{{enterpriseCount > 1 && serviceMode === 'on_site'}}">
       <view class="section-title">工程总费用 <text class="required">*</text></view>
       <view class="amount-input-box"><text class="amount-currency">¥</text><input class="amount-input" type="digit" value="{{projTotalAmount}}" bindinput="onProjAmountInput" placeholder="请输入整个工程的总费用" /></view>
       <text class="fee-hint">含15%平台使用费，整个日期区间只支付一次</text>

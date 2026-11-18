@@ -184,9 +184,9 @@ Page({
 
   computeActionFlags(order, role) {
     const st = order.status;
-    const canCancel = st === 'pending' || st === 'pending_payment';
+    const canCancel = !order.project_billing && (st === 'pending' || st === 'pending_payment');
     const canAccept = role === 'electrician' && (st === 'pending' || st === 'recruiting') && !order.hasJoined;
-    const canWithdraw = role === 'electrician' && (st === 'recruiting' || st === 'full') && order.hasJoined;
+    const canWithdraw = !order.project_billing && role === 'electrician' && (st === 'recruiting' || st === 'full') && order.hasJoined;
     const canComplete = role === 'electrician' && st === 'in_progress';
     const isPayer = role === 'user' || role === 'enterprise';
     const canPay = isPayer && (st === 'pending_payment' || st === 'pending_repair_payment');

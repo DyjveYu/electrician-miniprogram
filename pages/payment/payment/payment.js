@@ -66,7 +66,7 @@ Page({
           const order = res.data.data?.order || res.data.data;
           // 根据订单状态判定支付类型
           const typeByStatus = order.status === 'pending_repair_payment' ? 'repair' : 'prepay';
-          const payType = typeByStatus;
+          const payType = order.project_billing && this._requestedType === 'repair' ? 'repair' : typeByStatus;
           const personalPrepay = personalOrder.isExplicit(order) && payType === 'prepay';
           this.setData({ order, payType, personalPrepay, safePayment: personalPrepay || order.service_mode === 'off_site', offsitePayment: order.service_mode === 'off_site', projectPrepay: personalPrepay && order.order_type === 'enterprise_project', orderLoaded: true, loadError: '', payAmount: Number(payType === 'repair' ? order.final_amount : order.prepay_amount), prepayDisplayAmount: Number(order.prepay_amount).toFixed(2) });
           if (personalOrder.isExplicit(order) && this._requestedType === 'prepay' && order.status !== 'pending_payment') {
@@ -324,7 +324,7 @@ Page({
 
   confirmPrepay(e) {
     if (!this.paymentCurrent() || !this._visible) return;
-    if (this.data.offsitePayment) {
+    if (this.data.offsitePayment && !this.data.projectPrepay) {
       this._choice = e?.detail;
       if (!this._choice?.mode) return;
       this.setData({ order: { ...this.data.order, pricing_mode: this._choice.mode, prepay_amount: this._choice.amount }, payAmount: Number(this._choice.amount), prepayDisplayAmount: Number(this._choice.amount).toFixed(2) });

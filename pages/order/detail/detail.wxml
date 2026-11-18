@@ -1,5 +1,6 @@
 <wxs module="workNumber" src="../../../utils/workNo.wxs" />
 <order-subscription wx:if="{{!loading && order && (currentRole === 'user' || currentRole === 'enterprise') && order.order_type !== 'enterprise_project' && (order.status === 'pending' || order.status === 'pending_payment')}}" order-id="{{order.id}}" />
+<project-billing wx:if="{{order.project_billing}}" order="{{order}}" role="{{currentRole}}" bind:refresh="loadOrderDetail" />
 <block wx:if="{{!order.isOffsite}}">
 
 <!--pages/order/detail/detail.wxml-->

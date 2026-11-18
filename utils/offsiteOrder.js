@@ -12,7 +12,7 @@ async function request(method, url, data = {}) {
 }
 function labels(order) {
   const f = order.offsite_finance;
-  return { isFixedPrice: order.pricing_mode === 'fixed_price', isOffsite: order.service_mode === 'off_site' || order.pricing_mode != null,
+  return { isFixedPrice: order.pricing_mode === 'fixed_price', isOffsite: order.order_type !== 'enterprise_project' && (order.service_mode === 'off_site' || order.pricing_mode != null),
     offsiteStatusName: require('./util').getDisplayStatusText(order),
     offsiteFeeName: f?.feeAmount > 0 ? Number(f.feeAmount).toFixed(2) : '待双方确认',
     offsiteRefundName: order.pricing_mode === 'fixed_price' && f?.refundState === 'success' ? '一口价已原路退回' : refundLabels[f?.refundState] || '待核对',

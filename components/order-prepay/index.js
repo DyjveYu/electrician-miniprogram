@@ -22,7 +22,7 @@ Component({
     async confirm() {
       if (!this.data.opened || !this.data.agreed || this.data.confirming) return;
       this.setData({ confirming: true });
-      if (!this.data.offsite) { this.triggerEvent('confirm'); return; }
+      if (!this.data.offsite || this.data.project) { this.triggerEvent('confirm'); return; }
       const mode = this.data.mode, amount = mode === 'fixed_price' ? this.data.price : '200.00';
       try {
         if (amount.length > 12 || !/^\d+(\.\d{1,2})?$/.test(amount) || Number(amount) < 0.01 || Number(amount) > 99999999.99) throw new Error('请输入0.01至99,999,999.99元，最多两位小数');

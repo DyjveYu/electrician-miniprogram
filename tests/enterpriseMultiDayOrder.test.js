@@ -73,10 +73,12 @@ test('project image upload failures, hidden page and invalid fee never issue cre
   const second = await ready(); second.p.onHide(); await second.p.submitOrder(); assert.equal(second.h.calls.request.some(r => r.method === 'POST'), false);
   const third = await ready(); for (const value of ['1.001', '0', 'Infinity', '2foo', '10000000000']) { third.p.onProjAmountInput({ detail: { value } }); assert.equal(third.p.data.canSubmit, false); }
 });
-test('offsite project keeps its draft but cannot generate', async () => {
+test('offsite project creates the deposit contract without an upfront service fee', async () => {
   const { h, p } = await ready(); p.onServiceModeChange({ detail: { value: 'off_site' } }); await p.submitOrder();
-  assert.equal(p.data.canSubmit, false); assert.equal(h.calls.request.some(r => r.method === 'POST'), false);
-  p.onServiceModeChange({ detail: { value: 'on_site' } }); assert.equal(p.data.canSubmit, true);
+  const request = h.calls.request.find(r => r.method === 'POST');
+  assert.equal(request.data.pricing_mode,'fixed_deposit');
+  assert.equal(request.data.projTotalAmount,undefined);
+  assert.ok(request.data.request_key);
 });
 test('direct new-project payment requires consent and confirms actual recruiting state after test payment', async () => {
   const h = harness(); h.login('enterprise'); h.app.globalData.paymentMethod = 'test'; let payload;
