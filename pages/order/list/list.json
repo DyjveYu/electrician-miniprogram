@@ -6,5 +6,6 @@
   "backgroundColorTop": "#ffffff",
   "backgroundColorBottom": "#ffffff",
   "navigationBarBackgroundColor": "#ffffff",
-  "navigationBarTextStyle": "black"
+  "navigationBarTextStyle": "black",
+  "usingComponents": {"dispatch-wait":"/components/dispatch-wait/index"}
 }

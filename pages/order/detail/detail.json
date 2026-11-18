@@ -7,6 +7,7 @@
   "navigationBarBackgroundColor": "#ffffff",
   "navigationBarTextStyle": "black",
   "usingComponents": {
+    "dispatch-wait": "/components/dispatch-wait/index",
     "project-billing": "/components/project-billing/index",
     "offsite-order": "/components/offsite-order/index",
     "order-subscription": "/components/order-subscription/index"
