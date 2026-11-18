@@ -32,7 +32,8 @@ Page({
       wx.reLaunch({ url: '/pages/login/login' });
       return;
     }
-    this._prepayAgreed = personalOrder.consume(getApp(), options.orderId);
+    this._choice = personalOrder.consume(getApp(), options.orderId);
+    this._prepayAgreed = !!this._choice;
     if (options.type === 'prepay' || options.type === 'repair') this.setData({ payType: options.type });
     if (options.orderId && options.orderId !== 'undefined') {
       this.setData({ orderId: options.orderId });
@@ -73,6 +74,7 @@ Page({
           }
           if (personalPrepay) {
             if (order.status !== 'pending_payment') { this.goToOrder(); return; }
+            if (this._choice?.mode && (this._choice.mode !== order.pricing_mode || Number(this._choice.amount) !== Number(order.prepay_amount))) this._prepayAgreed = false;
             if (!this._prepayAgreed) { this.setData({ showPrepay: true }); return; }
           }
           this.startPayment();
@@ -114,6 +116,7 @@ Page({
         payment_method: method,
         type: this.data.payType,
         ...(this.data.offsitePayment && this.data.payType === 'repair' ? { fee_revision: this.data.order.fee_revision } : {}),
+        ...(this.data.offsitePayment && this.data.payType === 'prepay' && this._choice?.mode ? { pricing_mode: this._choice.mode, agreed_amount: String(this._choice.amount) } : {}),
         openid,
         ...(this.data.personalPrepay ? { prepay_agreed: this._prepayAgreed === true } : {})
       });
@@ -319,8 +322,13 @@ Page({
 
   paymentCurrent() { return !this._unloaded && (!this._account || this._account === orderEntry.key(getApp())); },
 
-  confirmPrepay() {
+  confirmPrepay(e) {
     if (!this.paymentCurrent() || !this._visible) return;
+    if (this.data.offsitePayment) {
+      this._choice = e?.detail;
+      if (!this._choice?.mode) return;
+      this.setData({ order: { ...this.data.order, pricing_mode: this._choice.mode, prepay_amount: this._choice.amount }, payAmount: Number(this._choice.amount), prepayDisplayAmount: Number(this._choice.amount).toFixed(2) });
+    }
     this._prepayAgreed = true;
     this.setData({ showPrepay: false });
     this.startPayment();

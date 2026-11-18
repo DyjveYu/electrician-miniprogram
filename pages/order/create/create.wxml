@@ -9,7 +9,7 @@
       <label class="enterprise-service-card {{serviceMode === 'on_site' ? 'selected' : ''}}"><radio class="service-radio" value="on_site" checked="{{serviceMode === 'on_site'}}" /><text>上门服务</text><text class="service-caption">维修维护与安装</text></label>
       <label class="enterprise-service-card {{serviceMode === 'off_site' ? 'selected' : ''}}"><radio class="service-radio" value="off_site" checked="{{serviceMode === 'off_site'}}" /><text>不上门服务</text><text class="service-caption">技术服务与加工</text></label>
     </radio-group>
-    <text class="fee-hint" wx:if="{{serviceMode === 'off_site'}}">{{userType === 'user' ? '固定订单押金200元，工费另付，工费支付成功后押金全退' : '企业不上门服务暂未开放'}}</text>
+    <text class="fee-hint" wx:if="{{serviceMode === 'off_site'}}">{{userType === 'user' ? '付款时选择200元订单押金或一口价全额工费' : '企业不上门服务暂未开放'}}</text>
   </view>
   <!-- 问题描述 -->
   <view class="form-section">

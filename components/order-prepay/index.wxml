@@ -2,10 +2,17 @@
   <view class="sheet" catchtap="noop">
     <block wx:if="{{!reading}}">
       <view class="heading">{{offsite ? '订单预约服务不上门费预付款' : (project ? '工程总费用预付款' : '订单预约服务上门费预付款')}}</view>
-      <view wx:if="{{offsite}}" class="hint">订单押金200元；工费另付，工费支付成功后押金全额原路退回。</view>
-      <view wx:if="{{offsite}}" class="hint"><radio checked="{{true}}" color="#16835c" />押金200元 <text bindtap="onePriceUnavailable">　一口价（暂未开放）</text></view>
+      <radio-group wx:if="{{offsite}}" class="hint" bindchange="chooseMode">
+        <label><radio value="fixed_deposit" checked="{{mode !== 'fixed_price'}}" disabled="{{confirming}}" color="#16835c"/>押金200元</label>
+        <label><radio value="fixed_price" checked="{{mode === 'fixed_price'}}" disabled="{{confirming}}" color="#16835c"/>一口价</label>
+      </radio-group>
+      <block wx:if="{{offsite && mode === 'fixed_price'}}">
+        <text class="hint">总工费含15%平台费，下单时一次付清</text>
+        <input class="amount" type="digit" placeholder="输入一口价（元）" value="{{price}}" bindinput="inputPrice" disabled="{{confirming}}" />
+      </block>
+      <view wx:elif="{{offsite}}" class="hint">订单押金200元；工费另付，工费支付成功后押金全额原路退回。</view>
       <view wx:if="{{project}}" class="hint">本次支付工程总费用（含15%平台使用费）</view>
-      <view class="amount">¥{{amount}}</view>
+      <view wx:if="{{!offsite || mode !== 'fixed_price'}}" class="amount">¥{{offsite ? '200.00' : amount}}</view>
       <view class="agreement-link" bindtap="read">阅读《订单预约服务预付款协议》</view>
       <checkbox-group bindchange="changeAgreement">
         <label class="agreement-choice"><checkbox value="agree" checked="{{agreed}}" color="#16835c" />我已阅读并同意《订单预约服务预付款协议》</label>

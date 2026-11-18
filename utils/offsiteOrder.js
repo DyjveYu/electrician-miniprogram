@@ -12,11 +12,11 @@ async function request(method, url, data = {}) {
 }
 function labels(order) {
   const f = order.offsite_finance;
-  return { isOffsite: order.service_mode === 'off_site' || order.pricing_mode != null,
+  return { isFixedPrice: order.pricing_mode === 'fixed_price', isOffsite: order.service_mode === 'off_site' || order.pricing_mode != null,
     offsiteStatusName: require('./util').getDisplayStatusText(order),
     offsiteFeeName: f?.feeAmount > 0 ? Number(f.feeAmount).toFixed(2) : '待双方确认',
-    offsiteRefundName: refundLabels[f?.refundState] || '待核对',
-    offsiteSettlementName: ({ not_due: '尚未进入结算', waiting_review: '等待评价', waiting_refund: '等待押金原路退回', waiting_time: '等待五星后24小时', ready: '已满足结算条件，提现以收入页余额为准', unsettled: '已完成不结算', needs_review: '资金状态需平台核对' })[f?.settlementStage] || '待核对',
+    offsiteRefundName: order.pricing_mode === 'fixed_price' && f?.refundState === 'success' ? '一口价已原路退回' : refundLabels[f?.refundState] || '待核对',
+    offsiteSettlementName: ({ held: '争议处理中，暂停结算', not_due: '尚未进入结算', waiting_review: '等待评价', waiting_refund: '等待押金原路退回', waiting_time: '等待五星后24小时', ready: '已满足结算条件，提现以收入页余额为准', unsettled: '已完成不结算', needs_review: '资金状态需平台核对' })[f?.settlementStage] || '待核对',
     offsiteElectricianName: f?.feeAmount > 0 ? Number(f.electricianAmount).toFixed(2) : '待确认' };
 }
 module.exports = { request, labels, refundLabels };

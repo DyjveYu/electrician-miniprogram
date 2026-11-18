@@ -43,7 +43,8 @@
           <text class="info-label">工单总费用:</text>
           <text class="info-value price">{{item.totalAmount}}元</text>
         </view>
-        <view wx:if="{{item.isOffsite}}" class="info-item"><text class="info-label">工费另付：</text><text class="info-value">{{item.offsiteFeeName}}　押金：{{item.offsiteRefundName}}</text></view>
+        <view wx:if="{{item.isFixedPrice}}" class="info-item"><text class="info-label">一口价：</text><text class="info-value">¥{{item.offsiteFeeName}}</text></view>
+        <view wx:elif="{{item.isOffsite}}" class="info-item"><text class="info-label">工费另付：</text><text class="info-value">{{item.offsiteFeeName}}　押金：{{item.offsiteRefundName}}</text></view>
         <!-- 非多日工程：按原逻辑显示预付款/维修款 -->
         <block wx:if="{{!item.isOffsite && item.order_type !== 'enterprise_project'}}">
           <view class="info-item" wx:if="{{item.has_paid_prepay && item.status !== 'cancelled' && item.status !== 'closed'}}">

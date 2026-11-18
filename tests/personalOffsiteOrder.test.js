@@ -155,3 +155,28 @@ test('optional service proof upload reaches the quoted original order and can be
   const work=p.quote();h.calls.modal.at(-1).success({confirm:true});await flush();assert.equal(h.calls.request[0].data.repair_images[0],'/uploads/isolated-proof.jpg');h.respond(0,{});await work;
   p.removeImage({currentTarget:{dataset:{index:0}}});assert.equal(p.data.images.length,0);
 });
+
+test('fixed price popup clears agreement on edits and persists the exact original order choice before confirmation', async () => {
+  const h = harness(); h.login('user');
+  const events = [];
+  const p = { ...h.component('components/order-prepay/index.js'), data: { orderId:10, offsite:true, opened:true, agreed:true },
+    setData(value) { Object.assign(this.data,value); }, triggerEvent(name,choice) { events.push({name,choice}); } };
+  p.chooseMode({detail:{value:'fixed_price'}});
+  p.inputPrice({detail:{value:'200.00'}});
+  await p.confirm();
+  assert.equal(h.calls.request.length,0);
+  p.changeAgreement({detail:{value:['agree']}});
+  const work = p.confirm();
+  assert.ok(h.calls.request[0].url.endsWith('/orders/10/offsite/price'));
+  assert.equal(h.calls.request[0].data.amount,'200.00');
+  assert.equal(events.length,0);
+  h.respond(0,{}); await work;
+  assert.equal(events[0].choice.mode,'fixed_price');
+});
+test('fixed price electrician submits delivery without another quote', async () => {
+  const {h,p} = widget('electrician',{pricing_mode:'fixed_price',status:'in_progress'});
+  const work = p.quote(); h.calls.modal.at(-1).success({confirm:true}); await flush();
+  assert.equal(h.calls.request[0].data.amount,undefined);
+  assert.equal(h.calls.request[0].data.repair_content,'已完成服务');
+  h.respond(0,{}); await work;
+});

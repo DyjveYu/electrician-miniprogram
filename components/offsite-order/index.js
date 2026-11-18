@@ -29,9 +29,17 @@ Component({
       const app = getApp(), key = entry.key(app), generation = this._generation;
       return new Promise(resolve => wx.showModal({ title: '请确认', content: text, confirmColor: '#16835c', success: result => resolve(!!result.confirm && this._active !== false && generation === this._generation && key === entry.key(app)), fail: () => resolve(false) }));
     },
-    take() { return this.run(async () => { if (await this.confirm('确认接取此不上门订单？工费由双方确认，200元订单押金不属于电工收入。')) await flow.request('POST', `/orders/${this.data.order.id}/take`); }); },
+    take() { return this.run(async () => { if (await this.confirm(this.data.order.isFixedPrice ? '确认按约定的一口价接取此订单？' : '确认接取此不上门订单？工费由双方确认，200元订单押金不属于电工收入。')) await flow.request('POST', `/orders/${this.data.order.id}/take`); }); },
     start() { return this.run(() => flow.request('PUT', `/orders/${this.data.order.id}/start`)); },
+    delivery() { return this.run(async () => {
+      if (await this.confirm('确认电工已按约完成服务并进入评价？')) await flow.request('POST', `/orders/${this.data.order.id}/offsite/confirm-delivery`);
+    }); },
     quote() { return this.run(async () => {
+      if (this.data.order.isFixedPrice) {
+        if (!this.data.content.trim()) throw new Error('请填写完成说明');
+        if (await this.confirm('提交交付内容供下单人确认？')) await flow.request('POST', `/orders/${this.data.order.id}/offsite/quote`, { repair_content: this.data.content.trim(), repair_images: this.data.images });
+        return;
+      }
       if (!/^\d+(\.\d{1,2})?$/.test(this.data.amount) || Number(this.data.amount) < .01 || Number(this.data.amount) > 99999999.99) throw new Error('工费为0.01至99,999,999.99元，最多两位小数');
       if (!this.data.content.trim()) throw new Error('请填写已经完成的服务内容');
       if (await this.confirm(`已完成服务，提交工费${this.data.amount}元（含15%平台费），等待用户另行支付？`)) {
@@ -47,16 +55,16 @@ Component({
       if (current()) wx.navigateTo({ url: `/pages/payment/payment/payment?orderId=${order.id}&type=repair` });
     }); },
     closeFee() { return this.run(async () => {
-      if (await this.confirm('核对并关闭原工费支付，确认未付款后允许电工重新报价？')) await flow.request('POST', `/orders/${this.data.order.id}/offsite/close-fee`);
+      if (await this.confirm('查询并关闭原支付，仅在确认未付款后允许重新选择金额。')) await flow.request('POST', `/orders/${this.data.order.id}/offsite/close-fee`);
     }); },
     refreshFunds() { return this.run(async current => {
       if (this.data.role === 'user') await flow.request('POST', `/orders/${this.data.order.id}/offsite/check-payments`);
       if (current()) await flow.request('POST', `/orders/${this.data.order.id}/offsite/refund`);
     }); },
     cancel() { return this.run(async () => {
-      if (await this.confirm('取消未接单订单？已支付订单押金将办理原路退款，到账结果另行确认。')) await flow.request('PUT', `/orders/${this.data.order.id}/cancel`, { cancel_reason: '用户取消不上门订单' });
+      if (await this.confirm('取消未接单订单？已实付款项将办理全额原路退款，到账结果另行确认。')) await flow.request('PUT', `/orders/${this.data.order.id}/cancel`, { cancel_reason: '用户取消不上门订单' });
     }); },
-    review() { return this.run(() => flow.request('PUT', `/orders/${this.data.order.id}/review`, { rating: this.data.rating, comment: this.data.comment })); },
+    review() { return this.run(() => flow.request('PUT', `/orders/${this.data.order.id}/review`, { rating: this.data.rating, comment: this.data.comment, ...(this.data.order.isFixedPrice && { expected_review_status: this.data.order.status }) })); },
     chooseImages() {
       if (this.data.busy || this.data.images.length >= 9) return;
       wx.chooseImage({ count: 9 - this.data.images.length, success: result => this.run(async current => {

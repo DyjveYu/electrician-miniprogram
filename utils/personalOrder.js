@@ -31,11 +31,11 @@ function projectDate(value) {
   return require('./projectOrder').label(date) || '未记录';
 }
 // 只由主动确认事件写入，不能靠 URL 参数恢复同意；跨账号或消费后失效。
-function grant(app, id) { pending = { key: orderEntry.key(app), id: String(id) }; }
+function grant(app, id, choice) { pending = { choice, key: orderEntry.key(app), id: String(id) }; }
 function consume(app, id) {
   const value = pending;
   pending = null;
-  return !!value?.key && value.key === orderEntry.key(app) && value.id === String(id);
+  return !!value?.key && value.key === orderEntry.key(app) && value.id === String(id) && (value.choice || true);
 }
 function clear() { pending = null; }
 module.exports = { isExplicit, typeName, labels, grant, consume, clear };

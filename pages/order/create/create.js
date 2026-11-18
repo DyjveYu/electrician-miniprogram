@@ -557,10 +557,10 @@ Page({
 
   onRequiredCertChange(e) { this.setData({ requiredCertType: e.detail.value }); this.updateSubmitEnable(); },
 
-  confirmPersonalPrepay() {
+  confirmPersonalPrepay(e) {
     if (!this._current() || !this._visible || !this._createdOrderId || this._leavingForPay) return;
     this._leavingForPay = true;
-    personalOrder.grant(getApp(), this._createdOrderId);
+    personalOrder.grant(getApp(), this._createdOrderId, e?.detail?.mode ? e.detail : undefined);
     wx.redirectTo({ url: `/pages/payment/payment/payment?orderId=${this._createdOrderId}`, fail: () => {
       personalOrder.clear(); this._leavingForPay = false; this.setData({ showPrepay: false }, () => this.setData({ showPrepay: true }));
     } });
