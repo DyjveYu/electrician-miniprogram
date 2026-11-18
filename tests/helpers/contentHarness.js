@@ -18,6 +18,7 @@ function harness() {
     navigateBack: () => {},
     switchTab: options => calls.switchTab.push(options),
     showLoading() {}, hideLoading() {},
+    stopPullDownRefresh() {},
     getNetworkType: options => options.success?.({ networkType: 'wifi' }),
     getSetting: options => options.success?.({ authSetting: { 'scope.userLocation': true } }),
     authorize: options => options.success?.(),
@@ -45,7 +46,7 @@ function harness() {
       setInterval() {}, clearInterval() {},
       require: specifier => {
         if (specifier.includes('log.js')) return { error() {} };
-        if (specifier.includes('utils/util')) return { validatePhone: () => true, getOrderStatusText: status => status };
+        if (specifier.includes('utils/util')) return { ...load('utils/util.js'), validatePhone: () => true, getOrderStatusText: status => status };
         const target = path.resolve(path.dirname(file), specifier);
         return load(path.relative(root, fs.existsSync(target) ? target : target + '.js'));
       }

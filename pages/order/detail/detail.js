@@ -164,7 +164,7 @@ Page({
             // 多日工程：实际到账金额（扣除15%平台费）
             projActualAmount: raw.projTotalAmount ? (Number(raw.projTotalAmount) * 0.85).toFixed(2) : null,
             // 工单类型中文映射
-            orderTypeText: this.getOrderTypeText(raw.order_type || raw.orderType)
+            orderTypeText: this.getOrderTypeText(raw)
           };
 
           // 计算“维修安装费”合计（仅在进行中/待评价/已完成展示）
@@ -971,12 +971,7 @@ Page({
 
   // 工单类型映射
   getOrderTypeText(orderType) {
-    const map = {
-      enterprise_project: '企业多日工程',
-      enterprise_quick: '企业快修订单',
-      personal_quick: '个人快修订单'
-    };
-    return map[orderType] || orderType || '';
+    return personalOrder.typeName(orderType);
   },
 
   // 手机号脱敏：138****5678

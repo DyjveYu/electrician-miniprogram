@@ -1,10 +1,17 @@
 const orderEntry = require('./orderEntry');
 let pending = null;
+function typeName(order) {
+  const type = typeof order === 'string' ? order : order?.order_type || order?.orderType;
+  if (type === 'personal_quick' && order?.service_mode === 'off_site') return '个人不上门订单';
+  return ({ enterprise_project: '企业多日工程', enterprise_quick: '企业快修订单', personal_quick: '个人快修订单' })[type] || type || '';
+}
 function isExplicit(order) {
-  return ['personal_quick', 'enterprise_quick', 'enterprise_project'].includes(order?.order_type) && (order.service_mode != null || order.required_cert_type != null);
+  return ['personal_quick', 'enterprise_quick', 'enterprise_project'].includes(order?.order_type) && (order.service_mode != null || order.required_cert_type != null || order.pricing_mode != null);
 }
 function labels(order) {
   return {
+    ...require('./offsiteOrder').labels(order),
+    orderTypeText: typeName(order),
     isExplicitSingle: isExplicit(order),
     isNewEnterprise: ['enterprise_quick', 'enterprise_project'].includes(order.order_type) && isExplicit(order),
     isNewProject: order.order_type === 'enterprise_project' && isExplicit(order),
@@ -31,4 +38,4 @@ function consume(app, id) {
   return !!value?.key && value.key === orderEntry.key(app) && value.id === String(id);
 }
 function clear() { pending = null; }
-module.exports = { isExplicit, labels, grant, consume, clear };
+module.exports = { isExplicit, typeName, labels, grant, consume, clear };

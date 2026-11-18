@@ -1,0 +1,7 @@
+<view wx:if="{{orderSubscriptionEnabled}}" class="subscription-card">
+  <view class="subscription-copy">
+    <text class="subscription-title">接单微信提醒</text>
+    <text class="subscription-note">订阅后，电工接单时微信提醒你；每次订阅提醒一次</text>
+  </view>
+  <button class="subscription-button" bindtap="subscribe" loading="{{orderSubscriptionBusy}}" disabled="{{orderSubscriptionBusy}}">订阅提醒</button>
+</view>

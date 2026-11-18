@@ -1,4 +1,7 @@
 <wxs module="workNumber" src="../../../utils/workNo.wxs" />
+<order-subscription wx:if="{{!loading && order && (currentRole === 'user' || currentRole === 'enterprise') && order.order_type !== 'enterprise_project' && (order.status === 'pending' || order.status === 'pending_payment')}}" order-id="{{order.id}}" />
+<block wx:if="{{!order.isOffsite}}">
+
 <!--pages/order/detail/detail.wxml-->
 <view class="container">
   <view wx:if="{{!loading && order}}" class="content-wrapper">
@@ -547,3 +550,6 @@
     <text>加载中...</text>
   </view>
 </view>
+
+</block>
+<offsite-order wx:if="{{!loading && order.isOffsite}}" order="{{order}}" role="{{currentRole}}" bind:refresh="loadOrderDetail" />

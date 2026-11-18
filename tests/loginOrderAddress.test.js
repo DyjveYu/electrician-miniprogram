@@ -46,7 +46,7 @@ test('取消找电工后再登录电工，旧下单意图不生效', () => {
   assert.equal(page._orderRequested, false);
 });
 
-for (const hasAddress of [false, true]) test(`R1/R3串联：下单登录进入创建页，${hasAddress ? '已有地址直接带入' : '无地址先添加'}`, async () => {
+for (const hasAddress of [false, true]) test(`R1/R3串联：下单登录进入创建页，${hasAddress ? '已有地址直接带入' : '无地址引导添加'}`, async () => {
   const h = harness();
   const login = h.page('pages/login/login.js'); login.onLoad({});
   h.wx.login = async () => ({});
@@ -86,8 +86,8 @@ test('已有地址但无默认只提示选择，不选第一条或恢复历史�
   assert.equal(h.calls.navigate.length, 0);
 });
 
-test('空地址只引导添加一次，取消返回不重复弹出；拒绝权限仍可手动添加', async () => {
-  const { h, page } = create(); h.wx.getSetting = o => o.success({ authSetting: {} }); h.wx.authorize = o => o.fail();
+test('企业空地址只引导添加一次，取消返回不重复弹出；拒绝权限仍可手动添加', async () => {
+  const { h, page } = create('enterprise'); h.wx.getSetting = o => o.success({ authSetting: {} }); h.wx.authorize = o => o.fail();
   addressResponses(h, [], null); await flush();
   assert.equal(h.calls.navigate.length, 1);
   assert.match(h.calls.navigate[0].url, /from=order-create/);

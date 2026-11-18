@@ -56,6 +56,7 @@ test('home renders the combined server list without applying its own base-only f
       if (name.endsWith('/api')) return { OrderAPI: { getOrderList: async value => { params = value; return { code: 200, data: { list: orders, total: 3 } }; } } };
       if (name.endsWith('/util')) return { getOrderStatusText: value => value, formatTime: value => value };
       if (name.endsWith('enterpriseSession')) return {};
+      if (name.endsWith('orderSubscription')) return { load: async () => {}, subscribe() {}, hide() {} };
       throw new Error('Unexpected dependency: ' + name);
     }
   });

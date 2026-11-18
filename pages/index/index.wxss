@@ -11,6 +11,12 @@
 .scope-title { font-size: 28rpx; font-weight: 600; margin-bottom: 12rpx; }
 .scope-body { font-size: 26rpx; line-height: 1.9; color: var(--clean-muted); }
 .electrician-dashboard { display: flex; gap: 20rpx; margin-bottom: 40rpx; }
+.order-subscription { display: flex; align-items: center; gap: 20rpx; padding: 24rpx; margin-bottom: 32rpx; border: 2rpx solid var(--clean-line); border-radius: 22rpx; }
+.order-subscription-copy { flex: 1; min-width: 0; }
+.order-subscription-title { display: block; font-size: 28rpx; font-weight: 500; }
+.order-subscription-note { display: block; margin-top: 8rpx; font-size: 22rpx; color: var(--clean-muted); line-height: 1.6; }
+.order-subscription-button { flex-shrink: 0; margin: 0; padding: 0 20rpx; font-size: 24rpx; line-height: 2.8; color: var(--clean-green); background: var(--clean-mint); border-radius: 16rpx; }
+.order-subscription-button::after { border: none; }
 .dashboard-item { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 16rpx; padding: 28rpx 12rpx; border-radius: 22rpx; background: var(--clean-mint); color: var(--clean-green); }
 .dashboard-title { font-size: 28rpx; font-weight: 500; }
 .section { margin-bottom: 36rpx; }

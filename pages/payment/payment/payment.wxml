@@ -46,4 +46,4 @@
     <button bindtap="goToOrder">查看原订单</button>
   </view>
 </view>
-<order-prepay visible="{{showPrepay}}" amount="{{prepayDisplayAmount}}" project="{{projectPrepay}}" bind:confirm="confirmPrepay" bind:close="goToOrder" />
+<order-prepay offsite="{{offsitePayment}}" visible="{{showPrepay}}" order-id="{{orderId}}" amount="{{prepayDisplayAmount}}" project="{{projectPrepay}}" bind:confirm="confirmPrepay" bind:close="goToOrder" />

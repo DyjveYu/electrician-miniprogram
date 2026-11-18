@@ -210,6 +210,7 @@ const getOrderStatusText = (status) => {
     'pending_repair_payment': '待支付维修费',
     'pending_review': '待评价',
     'closed': '交易关闭',
+    'pending_deposit_refund': '待押金退回后结算',
     'pending_second_review': '可追评',
     'completed_unsettle': '非五星订单',
     'settled': '已结算',
@@ -225,8 +226,21 @@ const getOrderStatusText = (status) => {
  * 不改变数据库枚举，只返回展示用文案与代码
  */
 const mapOrderToDisplayStatus = (order) => {
+  if (order?.status === 'pending_deposit_refund') return { code: 'pending_deposit_refund', text: '待押金退回后结算' };
   if (!order || typeof order !== 'object') {
     return { code: 'unknown', text: '未知状态' };
+  }
+  if (order.service_mode === 'off_site' || order.pricing_mode != null) {
+    const stages = {
+      pending_payment: ['prepay_pending', '待支付订单押金'], pending: ['waiting_accept', '待接单'],
+      accepted: ['accepted', '已接单'], in_progress: ['in_progress', '服务中'],
+      pending_repair_payment: ['repair_pay_pending', order.offsite_finance?.feePaymentReview ? '工费已收，待核对' : '待确认／支付工费'],
+      pending_review: ['pending_review', '待评价'], pending_second_review: ['pending_second_review', '可追评'],
+      completed_settled: ['completed_settled', '已完成'], completed_unsettle: ['completed_unsettle', '已完成不结算'],
+      cancelled: ['cancelled', '订单已取消'], closed: ['closed', '交易关闭']
+    };
+    const stage = stages[order.status];
+    return stage ? { code: stage[0], text: stage[1] } : { code: 'unknown', text: '待平台核对' };
   }
   const st = order.status;
   const hasPaidPrepay = !!order.prepaid_at || !!order.has_paid_prepay;

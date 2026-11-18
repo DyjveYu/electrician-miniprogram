@@ -133,11 +133,11 @@ Page({
               orderNumber: o.orderNumber || o.order_no,
               createTime: this.formatOrderTime(o.createTime || o.created_at),
               serviceTypeName: o.title || o.serviceTypeName || (o.serviceType && o.serviceType.name) || '未知服务',
-              orderTypeText: this.getOrderTypeText(o.order_type || o.orderType),
+              orderTypeText: this.getOrderTypeText(o),
               ...personalOrder.labels(o),
               // 确保有更新时间字段用于排序
               updatedAt: o.updated_at || o.updatedAt || o.updateTime || o.created_at || o.createTime,
-              totalAmount,
+              totalAmount: o.service_mode === 'off_site' ? (o.offsite_finance?.feeAmount > 0 ? Number(o.offsite_finance.feeAmount).toFixed(2) : null) : totalAmount,
               ...this.computeActionFlags(o)
             };
           });
@@ -325,12 +325,7 @@ Page({
 
   // 工单类型映射（同详情页 getOrderTypeText）
   getOrderTypeText(orderType) {
-    const map = {
-      enterprise_project: '企业多日工程',
-      enterprise_quick: '企业快修订单',
-      personal_quick: '个人快修订单'
-    };
-    return map[orderType] || orderType || '';
+    return personalOrder.typeName(orderType);
   },
 
   // 格式化相对时间（保留原方法，可能其他地方用到）

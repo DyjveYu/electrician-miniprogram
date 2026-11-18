@@ -1,0 +1,28 @@
+@import "../../styles/order-detail-cards.wxss";
+
+.offsite-page { padding-bottom: calc(220rpx + env(safe-area-inset-bottom)); }
+.offsite-content { font-size: 28rpx; line-height: 1.8; white-space: pre-wrap; word-break: break-all; }
+.offsite-created { margin-top: 20rpx; }
+.offsite-page .image-list { margin-top: 20rpx; }
+.offsite-hint { display: block; font-size: 26rpx; color: #687a71; line-height: 1.8; margin-top: 16rpx; }
+.offsite-notice { margin-top: 20rpx; padding: 20rpx; border-radius: 20rpx; background: #f5f7f5; font-size: 26rpx; line-height: 1.8; color: #687a71; word-break: break-all; }
+.offsite-notice.warning { color: #956321; background: #faf4e9; }
+.offsite-payment-note { font-size: 24rpx; font-weight: 400; color: #687a71; }
+.offsite-electrician { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16rpx; padding: 20rpx; border-radius: 20rpx; background: #f5f7f5; }
+.offsite-electrician-name { color: #172d25; font-size: 30rpx; font-weight: 500; }
+.offsite-form-item { margin-bottom: 24rpx; }
+.offsite-form-label { display: block; margin-bottom: 16rpx; color: #172d25; font-size: 28rpx; }
+.offsite-input, .offsite-textarea, .offsite-picker { box-sizing: border-box; width: 100%; min-width: 0; padding: 20rpx 24rpx; border: 2rpx solid #e9efeb; border-radius: 22rpx; background: #f5f7f5; color: #172d25; font-size: 28rpx; line-height: 1.8; }
+.offsite-input { min-height: 96rpx; height: 96rpx; }
+.offsite-textarea { min-height: 200rpx; height: 220rpx; }
+.offsite-picker { margin-bottom: 24rpx; color: #956321; }
+.offsite-picker-hint { float: right; color: #687a71; font-size: 24rpx; }
+.offsite-button { display: block; box-sizing: border-box; width: 100%; min-height: 88rpx; height: auto; margin: 20rpx 0 0; padding: 20rpx 24rpx; border: 2rpx solid transparent; border-radius: 22rpx; font-size: 28rpx; font-weight: 500; line-height: 1.6; white-space: normal; box-shadow: none; }
+.offsite-button::after { border: none; }
+.offsite-button.primary { color: #fff; background: #16835c; }
+.offsite-button.secondary { color: #16835c; background: #eff7f1; border-color: #16835c; }
+.offsite-button.danger { color: #b74434; background: #faf0ed; border-color: #e7b9af; }
+.offsite-button.is-disabled { opacity: .5; }
+.offsite-button.offsite-contact { width: auto; margin: 0; }
+.offsite-proof-row { display: flex; justify-content: space-between; gap: 16rpx; margin-top: 16rpx; font-size: 26rpx; color: #687a71; }
+.offsite-remove { color: #b74434; }

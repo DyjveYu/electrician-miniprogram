@@ -1,4 +1,5 @@
 @import "./clean-surfaces.wxss";
+@import "./order-detail-cards.wxss";
 /* pages/order/detail/detail.wxss */
 .container {
   background-color: #fff;

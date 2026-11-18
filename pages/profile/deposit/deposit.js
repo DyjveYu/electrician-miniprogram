@@ -1,4 +1,5 @@
 // pages/profile/deposit/deposit.js
+const sessionKey = () => { const app = getApp(); return `${app.globalData.userInfo?.id || ''}:${app.globalData.token || ''}:${app._orderSessionVersion || 0}`; };
 Page({
   data: {
     depositInfo: {
@@ -10,7 +11,8 @@ Page({
     expireMinutes: 30,
     statusText: '未缴纳',
     paying: false,
-    refunding: false
+    refunding: false,
+    statusLoaded: false, statusError: '', testPaymentEnabled: false, isTestPayment: false
   },
 
   onLoad() {
@@ -38,7 +40,7 @@ Page({
       method: 'GET',
       header: { 'Authorization': `Bearer ${app.globalData.token}` },
       success: (res) => {
-        if (res.data.code === 200) {
+        if (res.statusCode === 200 && [0, 200].includes(res.data?.code) && res.data.success !== false) {
           const data = res.data.data || {};
           // 如果状态已变为 paid，说明回调已处理
           if (data.status === 'paid') {
@@ -79,6 +81,8 @@ Page({
   // 获取押金状态
   loadDepositStatus() {
     const app = getApp();
+    const session = sessionKey(), version = this._statusVersion = (this._statusVersion || 0) + 1;
+    this.setData({ statusLoaded: false, statusError: '' });
 
     if (!app.globalData.token) {
       wx.showToast({ title: '请先登录', icon: 'none' });
@@ -93,8 +97,13 @@ Page({
       method: 'GET',
       header: { 'Authorization': `Bearer ${app.globalData.token}` },
       success: (res) => {
-        if (res.data.code === 200) {
+        if (session !== sessionKey() || version !== this._statusVersion) return;
+        if (res.statusCode === 200 && [0, 200].includes(res.data?.code) && res.data.success !== false) {
           const data = res.data.data || {};
+          if (typeof data.testPaymentEnabled !== 'boolean') {
+            this.setData({ statusError: '押金支付方式未确认，请更新并重启后端后重试' });
+            return;
+          }
           const statusMap = {
             'paid': '已缴纳',
             'pending': '待支付',
@@ -102,7 +111,9 @@ Page({
             'refunding': '退款中',
             'expired': '已过期'
           };
+          this._statusSession = session;
           this.setData({
+            statusLoaded: true, testPaymentEnabled: data.testPaymentEnabled === true, isTestPayment: data.isTestPayment === true,
             depositInfo: {
               status: data.status || null,
               paidAt: data.paidAt ? this.formatDate(data.paidAt) : null,
@@ -113,10 +124,14 @@ Page({
             statusText: statusMap[data.status] || '未缴纳'
           });
         } else {
-          wx.showToast({ title: res.data.message || '获取押金状态失败', icon: 'none' });
+          const message = res.data?.message || '获取押金状态失败';
+          this.setData({ statusError: message });
+          wx.showToast({ title: message, icon: 'none' });
         }
       },
       fail: () => {
+        if (session !== sessionKey() || version !== this._statusVersion) return;
+        this.setData({ statusError: '押金状态读取失败，请重新读取' });
         wx.showToast({ title: '网络错误', icon: 'none' });
       }
     });
@@ -149,13 +164,15 @@ Page({
   // 缴纳押金
   handlePay() {
     if (this.data.paying) return;
+    if (!this.data.statusLoaded || this._statusSession !== sessionKey()) { wx.showToast({ title: '请先刷新押金支付方式', icon: 'none' }); return; }
 
     const amount = this.data.configuredAmount;
+    const session = sessionKey();
     wx.showModal({ confirmColor: '#16835c',
-      title: '确认缴纳',
-      content: `确定要缴纳${amount}元押金吗？`,
+      title: this.data.testPaymentEnabled ? '确认模拟缴纳' : '确认缴纳',
+      content: this.data.testPaymentEnabled ? `本次仅模拟缴纳${amount}元押金，不发生真实扣款。是否继续？` : `确定要缴纳${amount}元押金吗？`,
       success: (res) => {
-        if (res.confirm) {
+        if (res.confirm && session === sessionKey()) {
           this.createDepositOrder();
         }
       }
@@ -165,7 +182,26 @@ Page({
   // 创建押金支付订单
   createDepositOrder() {
     const app = getApp();
+    if (!this.data.statusLoaded || this.data.paying || this._statusSession !== sessionKey()) return;
     this.setData({ paying: true });
+    if (this.data.testPaymentEnabled) {
+      const session = sessionKey();
+      wx.request({ url: `${app.globalData.baseUrl}/deposits/create`, method: 'POST',
+        header: { Authorization: `Bearer ${app.globalData.token}`, 'Content-Type': 'application/json' },
+        data: { payment_method: 'test' },
+        success: response => {
+          if (session !== sessionKey()) return;
+          const body = response.data, result = body?.data;
+          if (response.statusCode === 200 && [0, 200].includes(body?.code) && body?.success !== false && result?.status === 'paid') {
+            wx.showToast({ title: result.isTestPayment ? '押金已模拟缴纳' : '押金已缴纳', icon: 'success' });
+            this.loadDepositStatus();
+          } else wx.showToast({ title: body?.message || '模拟缴纳结果未确认，请刷新状态', icon: 'none' });
+        },
+        fail: () => { if (session === sessionKey()) wx.showToast({ title: '结果未确认，请刷新押金状态', icon: 'none' }); },
+        complete: () => { if (session === sessionKey()) this.setData({ paying: false }); }
+      });
+      return;
+    }
 
     // 获取openid
     wx.login({
@@ -203,11 +239,13 @@ Page({
                   const resData = createRes.data.data;
 
                   // 后端查单发现已支付：无需再拉起收银台
-                  if (resData.status === 'paid' || !resData.payParams) {
-                    wx.showToast({ title: resData.message || '押金已缴纳', icon: 'success' });
+                  if (resData.status === 'paid') {
+                    wx.showToast({ title: resData.isTestPayment ? '押金已模拟缴纳' : (resData.message || '押金已缴纳'), icon: 'success' });
                     this.loadDepositStatus();
                     return;
                   }
+
+                  if (!resData.payParams) { wx.showToast({ title: '支付参数未确认，请刷新押金状态', icon: 'none' }); return; }
 
                   const payParams = resData.payParams;
                   // 调起微信支付
@@ -262,7 +300,7 @@ Page({
 
     wx.showModal({ confirmColor: '#16835c',
       title: '申请退款',
-      content: '确定要申请退回押金吗？审核通过后将在1-3个工作日内原路退回。',
+      content: this.data.isTestPayment ? '本记录为测试模拟押金，审核通过后模拟退回，不发生真实退款。确定申请吗？' : '确定要申请退回押金吗？审核通过后将在1-3个工作日内原路退回。',
       success: (res) => {
         if (res.confirm) {
           this.submitRefund('');

@@ -1,0 +1,31 @@
+/* 上门页和不上门组件共用的卡片外观；仅使用类选择器，兼容组件样式隔离。 */
+.container { box-sizing: border-box; min-height: 100vh; background: #fff; color: #172d25; font-size: 28rpx; line-height: 1.6; }
+.content-wrapper { padding: 32rpx 44rpx 16rpx; }
+.card, .section { box-sizing: border-box; background: #fff; padding: 28rpx 24rpx; border: 2rpx solid #e9efeb; border-radius: 24rpx; margin: 0 0 24rpx; box-shadow: none; }
+.status-section { background: #eff7f1; border-color: #eff7f1; display: flex; align-items: center; justify-content: space-between; }
+.status-text { min-width: 0; flex: 1; }
+.status-title { display: block; font-size: 36rpx; font-weight: 600; color: #172d25; margin-bottom: 10rpx; }
+.status-desc { display: block; font-size: 26rpx; color: #687a71; line-height: 1.8; }
+.section-title { font-size: 32rpx; font-weight: 600; color: #172d25; margin-bottom: 20rpx; padding-bottom: 15rpx; border-bottom: 2rpx solid #e9efeb; }
+.info-row { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 12rpx; margin-bottom: 20rpx; font-size: 28rpx; }
+.info-row:last-child { margin-bottom: 0; }
+.info-row .label { width: 150rpx; flex-shrink: 0; color: #687a71; }
+.info-row .value { flex: 1; min-width: 0; color: #172d25; word-break: break-all; }
+.value.amount { color: #16835c; font-weight: 600; font-size: 32rpx; }
+.image-list { display: flex; flex-wrap: wrap; gap: 15rpx; }
+.image-item { width: 160rpx; height: 160rpx; border-radius: 20rpx; overflow: hidden; }
+.address-info { padding: 20rpx; background: #f5f7f5; border-radius: 20rpx; }
+.contact-row { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 12rpx; margin-bottom: 15rpx; }
+.contact-name { font-size: 28rpx; font-weight: 600; color: #172d25; margin-right: 30rpx; }
+.contact-phone { font-size: 28rpx; color: #16835c; }
+.address-detail { font-size: 26rpx; color: #687a71; line-height: 1.8; word-break: break-all; }
+.bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; z-index: 1001; background: #fff; border-top: 1rpx solid #e9efeb; padding-bottom: env(safe-area-inset-bottom); }
+.bottom-content { display: flex; align-items: center; justify-content: space-between; padding: 20rpx 32rpx; flex-wrap: wrap; gap: 16rpx; }
+.action-area { display: flex; align-items: center; justify-content: flex-end; flex: 1; min-width: 240rpx; flex-wrap: wrap; gap: 16rpx; }
+.service-btn, .main-action-btn { box-sizing: border-box; min-height: 88rpx; height: auto; margin: 0; padding: 20rpx 24rpx; line-height: 1.6; border-radius: 22rpx; font-size: 28rpx; box-shadow: none; border: 2rpx solid transparent; white-space: normal; }
+.service-btn { display: flex; align-items: center; justify-content: center; min-width: 120rpx; background: #eff7f1; color: #16835c; border-color: #16835c; }
+.service-text { color: #16835c; font-size: 24rpx; white-space: normal; }
+.main-action-btn { min-width: 160rpx; flex: 1; }
+.main-action-btn.primary { background: #16835c; color: #fff; }
+.main-action-btn.disabled, .service-btn.disabled { opacity: .5; }
+.service-btn::after, .main-action-btn::after { border: none; }

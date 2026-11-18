@@ -26,7 +26,7 @@ Page({
     enterpriseCount: 1, enterpriseCountRange: Array.from({ length: 100 }, (_, i) => i + 1),
     showProjectDates: false, projectDateConfirmed: false, projectDateSummary: '', projectDateError: '',
     draftStartDate: '', draftEndDate: '', draftStartLabel: '', draftEndLabel: '', minProjectDate: '',
-    createdIsProject: false,
+    createdIsProject: false, createdOrderId: 0,
     serviceMode: 'on_site',
     requiredCertType: '', enterpriseLowChecked: false, enterpriseHighChecked: false, enterpriseConstructionChecked: false,
     showPrepay: false,
@@ -543,8 +543,9 @@ Page({
   },
 
   onServiceModeChange(e) {
+    if (this._createdOrderId) { wx.showToast({ title: '请在已生成的原订单中处理', icon: 'none' }); return; }
     this.setData({ serviceMode: e.detail.value });
-    if (e.detail.value === 'off_site') wx.showToast({ title: '不上门服务暂未开放', icon: 'none' });
+    if (e.detail.value === 'off_site' && this.data.userType !== 'user') wx.showToast({ title: '企业不上门服务暂未开放', icon: 'none' });
     this.updateSubmitEnable();
   },
 
@@ -572,7 +573,7 @@ Page({
   },
 
   validateForm() {
-    if (this.data.serviceMode !== 'on_site' || !certOptions.parse(this.data.requiredCertType, this.data.userType === 'enterprise').length) {
+    if (!(this.data.serviceMode === 'on_site' || (this.data.userType === 'user' && this.data.serviceMode === 'off_site')) || !certOptions.parse(this.data.requiredCertType, this.data.userType === 'enterprise').length) {
       wx.showToast({ title: this.data.serviceMode === 'off_site' ? '不上门服务暂未开放' : '请选择所需资质', icon: 'none' });
       return false;
     }
@@ -658,17 +659,16 @@ Page({
     const payload = {
       ...(project ? { addressId: this.data.selectedAddress.id, projRequiredCount: this.data.enterpriseCount, projStartDate: this.data.projStartDate, projEndDate: this.data.projEndDate, projTotalAmount: this.data.projTotalAmount, contactPhone: this.data.contactPhone } : {}),
       service_type_id: this.data.selectedServiceType.id,
-      title: '上门服务 维修维护与安装',
+      title: this.data.serviceMode === 'off_site' ? '不上门服务 技术服务与加工' : '上门服务 维修维护与安装',
       service_mode: this.data.serviceMode,
+      ...(this.data.serviceMode === 'off_site' ? { pricing_mode: 'fixed_deposit' } : {}),
       required_cert_type: this.data.requiredCertType,
       description: this.data.description || '',
-      contact_name: this.data.contactName || '',
-      contact_phone: this.data.contactPhone || '',
+      contact_name: this.data.contactName || '', contact_phone: this.data.contactPhone || '',
       service_address: this.data.isDirected ? '' : this.data.selectedAddressStr,
-      latitude: this.data.isDirected ? null : this.data.latitude,
-      longitude: this.data.isDirected ? null : this.data.longitude,
-      images: imageUrls,
+      latitude: this.data.isDirected ? null : this.data.latitude, longitude: this.data.isDirected ? null : this.data.longitude,
       address_id: this.data.isDirected ? null : (this.data.selectedAddress?.id || null),
+      images: imageUrls,
       ...(this.data.userType === 'user' ? { electricity_type: this.data.electricityType } : {}),
       isDirected: this.data.isDirected,
       electricianId: this.data.isDirected ? (this.data.searchedElectrician?.id || null) : null,
@@ -695,7 +695,7 @@ Page({
             wx.showToast({ title: '订单信息未确认，请查看我的订单', icon: 'none' });
             return;
           }
-          this.setData({ createdIsProject: project, createdPrepayAmount: amount.toFixed(2), showPrepay: this._visible !== false, submitting: false, canSubmit: false });
+          this.setData({ createdOrderId: orderId, createdIsProject: project, createdIsOffsite: payload.service_mode === 'off_site', createdPrepayAmount: amount.toFixed(2), showPrepay: this._visible !== false, submitting: false, canSubmit: false });
         } else {
           if (res.statusCode >= 500 || res.data?.code >= 500) {
             this.setData({ submitting: false, submissionUncertain: true, canSubmit: false });
@@ -717,7 +717,7 @@ Page({
 
   updateSubmitEnable() {
     if (this.data.orderMode === 'project') { this.updateProjectSubmitEnable(); return; }
-    const ok = !!this.data.selectedServiceTypeId && this.data.serviceMode === 'on_site'
+    const ok = !!this.data.selectedServiceTypeId && (this.data.serviceMode === 'on_site' || (this.data.userType === 'user' && this.data.serviceMode === 'off_site'))
       && certOptions.parse(this.data.requiredCertType, this.data.userType === 'enterprise').length > 0
       && !!this.data.description?.trim() && this._addressUsable(this.data.selectedAddress)
       && (this.data.userType !== 'user' || !!this.data.electricityType)
@@ -823,7 +823,7 @@ Page({
   updateProjectSubmitEnable() {
     const ok = this.data.userType === 'enterprise' && this.data.enterpriseCount > 1 && this.data.projectDateConfirmed
       && projectOrder.allowed(this.data.projStartDate, this.data.projEndDate) && projectOrder.money(this.data.projTotalAmount)
-      && this.data.serviceMode === 'on_site' && certOptions.parse(this.data.requiredCertType, this.data.userType === 'enterprise').length > 0
+      && (this.data.serviceMode === 'on_site' || (this.data.userType === 'user' && this.data.serviceMode === 'off_site')) && certOptions.parse(this.data.requiredCertType, this.data.userType === 'enterprise').length > 0
       && !!this.data.description?.trim() && this._addressUsable(this.data.selectedAddress)
       && !this._createdOrderId && !this.data.submissionUncertain;
     this.setData({ canSubmit: !!ok });

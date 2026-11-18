@@ -1,4 +1,5 @@
 const enterpriseSession = require('../../utils/enterpriseSession');
+const orderSubscription = require('../../utils/orderSubscription');
 // pages/index/index.js
 const app = getApp();
 const { SystemAPI, OrderAPI, AuthAPI } = require('../../utils/api');
@@ -13,6 +14,8 @@ function toMasterName(name) {
 
 Page({
   data: {
+    nationalOrders: [], nationalLoading: false, nationalError: '',
+    orderSubscriptionEnabled: false, orderSubscriptionTemplate: '', orderSubscriptionBusy: false,
     userInfo: null,
     currentRole: 'user', // 当前用户角色
     locationText: '北京市朝阳区',
@@ -130,6 +133,7 @@ Page({
   },
 
   onShow() {
+    this._subscriptionVisible = true;
     console.log('首页显示');
     if (this._referrerRedirecting) return;
 
@@ -144,6 +148,10 @@ Page({
     }
     this.initPage();
   },
+
+  onHide() { orderSubscription.hide(this); },
+  onUnload() { orderSubscription.hide(this); },
+  subscribeNewOrders() { orderSubscription.subscribe(this); },
 
   onPullDownRefresh() {
     this.loadData().finally(() => {
@@ -301,8 +309,9 @@ Page({
    */
   async loadData() {
     if (this.data.currentRole === 'electrician') {
-      await this.loadNearbyOrders();
+      await Promise.allSettled([this.loadNearbyOrders(), this.loadNationalOrders(), orderSubscription.load(this)]);
     } else {
+      this.setData({ orderSubscriptionEnabled: false });
       await this.loadRecentOrders();
     }
   },
@@ -310,6 +319,25 @@ Page({
   /**
    * 加载附近订单（电工角色）
    */
+  async loadNationalOrders() {
+    const version = this._nationalVersion = (this._nationalVersion || 0) + 1;
+    const app = getApp(), token = app.globalData.token, id = app.globalData.userInfo?.id;
+    this.setData({ nationalLoading: true, nationalError: '' });
+    try {
+      const result = await OrderAPI.getOrderList({ my_orders: false, order_scope: 'nationwide', page: 1, limit: 3 });
+      if (version !== this._nationalVersion || token !== app.globalData.token || id !== app.globalData.userInfo?.id || app.globalData.userInfo?.current_role !== 'electrician') return;
+      if (!Array.isArray(result.data?.list)) throw new Error('全国订单响应未确认，请重试');
+      this.setData({ nationalOrders: result.data.list.slice(0, 3).map(order => {
+        const presentation = require('../../utils/personalOrder').labels(order);
+        return { ...order, ...presentation, statusText: presentation.offsiteStatusName,
+          createdTime: order.created_at ? formatTime(order.created_at) : '未记录' };
+      }) });
+    } catch (error) {
+      if (version === this._nationalVersion && token === app.globalData.token && id === app.globalData.userInfo?.id) this.setData({ nationalError: error.message || '全国订单读取失败，请点击重试' });
+    } finally { if (version === this._nationalVersion) this.setData({ nationalLoading: false }); }
+  },
+  viewNationalOrders() { wx.navigateTo({ url: '/pages/order/nationwide/nationwide' }); },
+  viewNationalOrder(e) { wx.navigateTo({ url: `/pages/order/detail/detail?id=${e.currentTarget.dataset.id}` }); },
   async loadNearbyOrders() {
     const version = this._nearbyRequestVersion = (this._nearbyRequestVersion || 0) + 1;
     try {

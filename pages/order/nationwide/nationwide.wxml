@@ -1,0 +1,12 @@
+<view class="page">
+  <view class="hint">全国接单不限制接单区域；仍需有效资质，报名时须已缴电工接单押金。</view>
+  <view wx:if="{{error}}" class="empty">{{error}}<button bindtap="retry">重新读取</button></view>
+  <view wx:for="{{orders}}" wx:key="id" class="card" data-id="{{item.id}}" bindtap="view">
+    <view class="title">不上门服务 · {{item.title}}</view>
+    <view class="description">{{item.description}}</view>
+    <view>所需资质：{{item.requiredCertName}}</view>
+  </view>
+  <view wx:if="{{loading}}" class="empty">正在读取全国订单…</view>
+  <view wx:elif="{{!error && orders.length === 0}}" class="empty">暂无符合您当前资质的全国不上门订单</view>
+  <button wx:if="{{hasMore && orders.length > 0}}" bindtap="onReachBottom" loading="{{loading}}" disabled="{{loading}}">加载更多</button>
+</view>

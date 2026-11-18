@@ -35,10 +35,9 @@ test('personal generation needs explicit qualification, not pre-generation agree
   await p.submitOrder(); assert.equal(h.calls.request.filter(r => r.url.endsWith('/orders')).length, 0);
 });
 
-test('offsite selection retains the draft, blocks generation, and can return to onsite', async () => {
+test('M6.1 personal offsite retains the draft and can return to onsite', async () => {
   const { h, p } = await create(); p.onServiceModeChange({ detail: { value: 'off_site' } });
-  assert.equal(p.data.canSubmit, false); assert.equal(p.data.description, '测试内容');
-  await p.submitOrder(); assert.equal(h.calls.request.filter(r => r.url.endsWith('/orders')).length, 0);
+  assert.equal(p.data.canSubmit, true); assert.equal(p.data.description, '测试内容');
   p.onServiceModeChange({ detail: { value: 'on_site' } }); assert.equal(p.data.canSubmit, true);
 });
 

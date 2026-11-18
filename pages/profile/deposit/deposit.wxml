@@ -1,5 +1,7 @@
 <!--pages/profile/deposit/deposit.wxml-->
 <view class="container">
+  <view class="tips-section" wx:if="{{testPaymentEnabled || isTestPayment}}"><text class="tips-text">{{isTestPayment ? '此记录为模拟押金，不代表真实微信扣款或退款。' : '当前启用测试模拟缴纳，不发生真实扣款。'}}</text></view>
+  <view class="tips-section" wx:if="{{statusError}}"><text class="tips-text">{{statusError}}</text><button class="btn refresh-btn" bindtap="loadDepositStatus">重新读取押金状态</button></view>
   <!-- 押金状态卡片 -->
   <view class="deposit-card">
     <view class="deposit-header">
@@ -18,7 +20,7 @@
     <view class="info-title">押金说明</view>
     <view class="info-content">
       <text class="info-item">• 电工需缴纳{{configuredAmount}}元押金才能接单</text>
-      <text class="info-item">• 押金在电工无未结订单、无违约行为时，可申请全额无息退还，审核通过后1~3个工作日原路退回</text>
+      <text class="info-item">{{isTestPayment ? '• 模拟押金可申请模拟退回，由管理员审核，不发生真实资金退款' : '• 押金在电工无未结订单、无违约行为时，可申请全额无息退还，审核通过后1~3个工作日原路退回'}}</text>
       <text class="info-item">• 退回押金后将被移除接单资格</text>
       <text class="info-item">• 注销账户前需先退回押金</text>
     </view>
@@ -32,7 +34,7 @@
       <text class="detail-value">{{depositInfo.paidAt || '-'}}</text>
     </view>
     <view class="detail-row">
-      <text class="detail-label">交易单号</text>
+      <text class="detail-label">{{isTestPayment ? '模拟记录编号' : '交易单号'}}</text>
       <text class="detail-value transaction-id">{{depositInfo.transactionId || '-'}}</text>
     </view>
   </view>
@@ -56,7 +58,8 @@
       class="btn pay-btn"
       bindtap="handlePay"
       loading="{{paying}}"
-    >{{depositInfo.status === 'expired' ? '重新缴纳' : '立即缴纳'}}</button>
+      disabled="{{paying || !statusLoaded}}"
+    >{{!statusLoaded ? '正在读取支付方式…' : testPaymentEnabled ? '模拟缴纳' : depositInfo.status === 'expired' ? '重新缴纳' : '立即缴纳'}}</button>
   </view>
 
   <!-- 退款提示 -->

@@ -1,0 +1,6 @@
+.subscription-card { display: flex; align-items: center; gap: 20rpx; margin: 24rpx; padding: 24rpx; border: 2rpx solid #e5ece8; border-radius: 22rpx; background: #fff; }
+.subscription-copy { flex: 1; min-width: 0; }
+.subscription-title { display: block; color: #243b30; font-size: 28rpx; font-weight: 500; }
+.subscription-note { display: block; margin-top: 8rpx; color: #718078; font-size: 22rpx; line-height: 1.6; }
+.subscription-button { flex-shrink: 0; margin: 0; padding: 0 20rpx; color: #16835c; background: #edf7f1; border-radius: 16rpx; font-size: 24rpx; line-height: 2.8; }
+.subscription-button::after { border: none; }

@@ -40,7 +40,8 @@
     "pages/income/withdraw/withdraw",
     "pages/income/records/records",
     "pages/referrer/apply/apply",
-    "pages/about/about/about"
+    "pages/about/about/about",
+    "pages/order/nationwide/nationwide"
   ],
   "plugins": {
     "WechatSI": {

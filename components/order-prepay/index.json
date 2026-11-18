@@ -1,1 +1,1 @@
-{ "component": true }
+{ "component": true, "usingComponents": { "order-subscription": "/components/order-subscription/index" } }

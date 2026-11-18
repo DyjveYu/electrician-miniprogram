@@ -34,6 +34,7 @@ class API {
         'Content-Type': 'application/json',
         ...header
       };
+      const sessionToken = app.globalData.token, sessionVersion = app._orderSessionVersion || 0;
 
       // 添加认证token
       if (app.globalData.token) {
@@ -59,7 +60,7 @@ class API {
               return;
             }
             // 兼容后端返回的code格式：0表示成功，200也表示成功
-            if (res.data.code === 0 || res.data.code === 200) {
+            if (res.data.success !== false && (res.data.code === 0 || res.data.code === 200)) {
               resolve(res.data);
             } else {
               const error = new Error(res.data.message || '请求失败');
@@ -71,6 +72,10 @@ class API {
               reject(error);
             }
           } else if (res.statusCode === 401 && !preserveSession) {
+            if (sessionToken !== app.globalData.token || sessionVersion !== (app._orderSessionVersion || 0)) {
+              reject(Object.assign(new Error('登录状态已变化，请重新进入'), { stale: true }));
+              return;
+            }
             // token过期或无效
             app.logout();
             reject(new Error('登录已过期，请重新登录'));

@@ -24,6 +24,7 @@ function setup(file = 'pages/order/detail/detail.js') {
       if (name.endsWith('orderTakeFeedback')) return feedback;
       if (name.endsWith('/util')) return { getOrderStatusText: value => value, formatTime: value => value, mapOrderToDisplayStatus: order => ({ code: order.status, text: order.status }), getDisplayStatusText: value => value };
       if (name.endsWith('/api')) return { OrderAPI: { getOrderList: params => new Promise((resolve, reject) => calls.lists.push({ params, resolve, reject })) } };
+      if (name.includes('orderSubscription')) return { load: async () => {}, subscribe() {}, hide() {} };
       throw new Error('Unexpected dependency: ' + name);
     }
   });
@@ -149,8 +150,9 @@ test('home onShow reloads the available list after returning from old detail', a
   const { page, calls } = setup('pages/index/index.js');
   page.getCurrentLocation = () => {}; page.checkPendingReview = () => {};
   page.onShow();
-  assert.equal(calls.lists.length, 1); assert.equal(calls.lists[0].params.my_orders, false);
+  assert.equal(calls.lists.length, 2); assert.equal(calls.lists[0].params.my_orders, false); assert.equal(calls.lists[1].params.order_scope, 'nationwide');
   calls.lists[0].resolve({ code: 200, data: { list: [] } });
+  calls.lists[1].resolve({ code: 200, data: { list: [] } });
   await new Promise(resolve => setImmediate(resolve)); assert.equal(page.data.loading, false);
 });
 test('late pre-change nearby-list response cannot overwrite a newer refresh', async () => {
@@ -168,12 +170,13 @@ test('stale failed request cannot clear current loading or display an outdated f
   calls.lists[1].resolve({ code: 200, data: { list: [] } }); await second;
   assert.equal(page.data.loading, false);
 });
-test('home refresh failure is visible and pull-to-refresh only requests a list', async () => {
+test('home refresh failure is visible and pull-to-refresh independently requests nearby and national lists', async () => {
   const { page, calls } = setup('pages/index/index.js'); page.data.currentRole = 'electrician';
   const failed = page.loadNearbyOrders(); calls.lists[0].reject(new Error('query failed')); await failed;
   assert.equal(calls.toasts.at(-1).title, '加载订单失败'); assert.equal(page.data.loading, false);
-  page.onPullDownRefresh(); assert.equal(calls.lists.length, 2); assert.equal(calls.requests.length, 0);
+  page.onPullDownRefresh(); assert.equal(calls.lists.length, 3); assert.equal(calls.requests.length, 0); assert.equal(calls.lists[2].params.order_scope, 'nationwide');
   calls.lists[1].resolve({ code: 200, data: { list: [] } });
+  calls.lists[2].resolve({ code: 200, data: { list: [] } });
   await new Promise(resolve => setImmediate(resolve));
 });
 

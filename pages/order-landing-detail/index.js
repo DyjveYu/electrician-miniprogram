@@ -131,7 +131,7 @@ Page({
             projStartTimeShort: raw.projStartTime ? this.formatShortTime(raw.projStartTime) : '',
             projEndTimeShort: raw.projEndTime ? this.formatShortTime(raw.projEndTime) : '',
             projActualAmount: raw.projTotalAmount ? (Number(raw.projTotalAmount) * 0.85).toFixed(2) : null,
-            orderTypeText: this.getOrderTypeText(raw.order_type || raw.orderType)
+            orderTypeText: this.getOrderTypeText(raw)
           };
 
           const prepayNum = Number(order.amount) || 0;
@@ -650,12 +650,7 @@ Page({
   },
 
   getOrderTypeText(orderType) {
-    const map = {
-      enterprise_project: '企业多日工程',
-      enterprise_quick: '企业快修订单',
-      personal_quick: '个人快修订单'
-    };
-    return map[orderType] || orderType || '';
+    return personalOrder.typeName(orderType);
   },
 
   maskPhone(phone) {

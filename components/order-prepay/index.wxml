@@ -1,7 +1,9 @@
 <view wx:if="{{visible}}" class="overlay" catchtouchmove="noop">
   <view class="sheet" catchtap="noop">
     <block wx:if="{{!reading}}">
-      <view class="heading">{{project ? '工程总费用预付款' : '订单预约服务上门费预付款'}}</view>
+      <view class="heading">{{offsite ? '订单预约服务不上门费预付款' : (project ? '工程总费用预付款' : '订单预约服务上门费预付款')}}</view>
+      <view wx:if="{{offsite}}" class="hint">订单押金200元；工费另付，工费支付成功后押金全额原路退回。</view>
+      <view wx:if="{{offsite}}" class="hint"><radio checked="{{true}}" color="#16835c" />押金200元 <text bindtap="onePriceUnavailable">　一口价（暂未开放）</text></view>
       <view wx:if="{{project}}" class="hint">本次支付工程总费用（含15%平台使用费）</view>
       <view class="amount">¥{{amount}}</view>
       <view class="agreement-link" bindtap="read">阅读《订单预约服务预付款协议》</view>
@@ -9,6 +11,7 @@
         <label class="agreement-choice"><checkbox value="agree" checked="{{agreed}}" color="#16835c" />我已阅读并同意《订单预约服务预付款协议》</label>
       </checkbox-group>
       <view wx:if="{{!opened}}" class="hint">请先打开阅读协议，再主动勾选同意</view>
+      <order-subscription wx:if="{{!project && orderId > 0}}" order-id="{{orderId}}" />
       <button class="primary" bindtap="confirm" disabled="{{!opened || !agreed || confirming}}">{{confirming ? '正在前往支付' : '去支付'}}</button>
       <button class="secondary" bindtap="close" disabled="{{confirming}}">暂不支付</button>
     </block>

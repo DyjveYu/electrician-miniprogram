@@ -67,7 +67,7 @@ Page({
           const typeByStatus = order.status === 'pending_repair_payment' ? 'repair' : 'prepay';
           const payType = typeByStatus;
           const personalPrepay = personalOrder.isExplicit(order) && payType === 'prepay';
-          this.setData({ order, payType, personalPrepay, projectPrepay: personalPrepay && order.order_type === 'enterprise_project', orderLoaded: true, loadError: '', payAmount: Number(payType === 'repair' ? order.final_amount : order.prepay_amount), prepayDisplayAmount: Number(order.prepay_amount).toFixed(2) });
+          this.setData({ order, payType, personalPrepay, safePayment: personalPrepay || order.service_mode === 'off_site', offsitePayment: order.service_mode === 'off_site', projectPrepay: personalPrepay && order.order_type === 'enterprise_project', orderLoaded: true, loadError: '', payAmount: Number(payType === 'repair' ? order.final_amount : order.prepay_amount), prepayDisplayAmount: Number(order.prepay_amount).toFixed(2) });
           if (personalOrder.isExplicit(order) && this._requestedType === 'prepay' && order.status !== 'pending_payment') {
             this.goToOrder(); return;
           }
@@ -113,6 +113,7 @@ Page({
         order_id: this.data.orderId,
         payment_method: method,
         type: this.data.payType,
+        ...(this.data.offsitePayment && this.data.payType === 'repair' ? { fee_revision: this.data.order.fee_revision } : {}),
         openid,
         ...(this.data.personalPrepay ? { prepay_agreed: this._prepayAgreed === true } : {})
       });
@@ -137,7 +138,7 @@ Page({
           const confirmed = await PaymentAPI.confirmTestPayment(payload.payment_no);
           if (!current()) return;
           if (![0, 200].includes(confirmed?.code)) throw new Error(confirmed?.message || '测试支付确认失败');
-          if (this.data.personalPrepay) { this.pollPaymentStatus(); return; }
+          if (this.data.safePayment) { this.pollPaymentStatus(); return; }
           this.paymentSuccess();
         }
       } else {
@@ -147,7 +148,7 @@ Page({
     } catch (err) {
       if (!current()) return;
       this.setData({ paying: false });
-      if (this.data.personalPrepay) this.setData({ unknownResult: !err.code || err.code >= 500 });
+      if (this.data.safePayment) this.setData({ unknownResult: !err.code || err.code >= 500, ...(err.data?.payment_no ? { paymentNo: err.data.payment_no } : {}) });
       wx.showToast({ title: err.message || '支付异常', icon: 'none' });
     }
   },
@@ -170,14 +171,14 @@ Page({
       fail: (error) => {
         if (!this.paymentCurrent()) return;
         this.setData({ paying: false });
-        if (this.data.personalPrepay && !String(error?.errMsg || '').includes('cancel')) {
+        if (this.data.safePayment && !String(error?.errMsg || '').includes('cancel')) {
           this.setData({ unknownResult: true });
           wx.showToast({ title: '支付结果未确认，请查询原订单', icon: 'none' });
           return;
         }
         console.error('[支付页] 微信支付失败');
         wx.showToast({ title: '支付失败，请重新发起支付', icon: 'none' });
-        if (this.data.personalPrepay) { this.goToOrder(); return; }
+        if (this.data.safePayment) { this.goToOrder(); return; }
         // 失败后按要求跳转到“我的订单”Tab
         wx.switchTab({ url: '/pages/order/list/list' });
       }
@@ -244,7 +245,7 @@ Page({
       },
       fail: again
     });
-    if (this.data.personalPrepay && this.data.paymentNo) {
+    if (this.data.safePayment && this.data.paymentNo) {
       PaymentAPI.queryPayment(this.data.paymentNo).then(result => {
         if (!this.paymentCurrent()) return;
         const payment = result.data?.payment || result.data;
@@ -337,6 +338,7 @@ Page({
   // 支付成功
   paymentSuccess() {
     if (!this.paymentCurrent()) return;
+    if (this.data.offsitePayment) { this.goToOrder(); return; }
     wx.redirectTo({
       url: `/pages/payment/result/result?orderId=${this.data.orderId}&status=success`
     });
