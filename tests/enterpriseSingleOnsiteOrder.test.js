@@ -43,11 +43,15 @@ test('enterprise onsite generation sends independent qualification and no electr
   p.closePersonalPrepay(); assert.equal(h.calls.redirect.at(-1).url, '/pages/order/detail/detail?id=10');
 });
 
-test('enterprise offsite is visible but blocked and preserves its draft when switching back', async () => {
-  const { h, p } = await create(); p.onServiceModeChange({ detail: { value: 'off_site' } }); await p.submitOrder();
-  assert.equal(p.data.canSubmit, false); assert.equal(p.data.description, '企业服务内容');
-  assert.equal(h.calls.request.some(r => r.method === 'POST' && r.url.endsWith('/orders')), false);
-  p.onServiceModeChange({ detail: { value: 'on_site' } }); assert.equal(p.data.canSubmit, true);
+test('enterprise single offsite submits its own address and qualifications', async () => {
+  const { h, p } = await create();
+  p.onServiceModeChange({ detail: { value: 'off_site' } });
+  assert.equal(p.data.canSubmit,true);
+  await p.submitOrder();
+  const paymentDraft = h.calls.request.find(r => r.method === 'POST' && r.url.endsWith('/orders')).data;
+  assert.equal(paymentDraft.pricing_mode,'fixed_deposit');
+  assert.equal(paymentDraft.service_mode,'off_site');
+  assert.ok(paymentDraft.address_id && paymentDraft.required_cert_type);
 });
 
 test('enterprise creation server errors are unknown results and do not allow a second order', async () => {

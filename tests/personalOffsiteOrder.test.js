@@ -43,16 +43,16 @@ function widget(role='user',extra={}){
     setData(value){Object.assign(this.data,value);},triggerEvent(name){events.push(name);}};
   return{h,p,events};
 }
-test('personal offsite creates original fixed deposit order and modal with server 200, enterprise still blocked',async()=>{
+test('personal offsite creates original fixed deposit order and modal with server 200',async()=>{
   const{h,p}=await createForm();assert.equal(p.data.canSubmit,true);await p.submitOrder();
   const i=h.calls.request.findIndex(r=>r.url.endsWith('/orders'));const body=h.calls.request[i].data;
   assert.equal(body.service_mode,'off_site');assert.equal(body.pricing_mode,'fixed_deposit');assert.equal(body.required_cert_type,'construction');
   h.respond(i,{id:10,prepay_amount:200});assert.equal(p.data.createdPrepayAmount,'200.00');assert.equal(p.data.createdIsOffsite,true);assert.equal(p.data.showPrepay,true);
   p.onServiceModeChange({detail:{value:'on_site'}});assert.equal(p.data.serviceMode,'off_site');
-  const other=await createForm();other.p.setData({userType:'enterprise'});other.p.updateSubmitEnable();assert.equal(other.p.data.canSubmit,false);
 });
-test('fee confirmation includes exact revision before navigating to independent repair payment',async()=>{
-  const{h,p}=widget();const work=p.payFee();h.calls.modal.at(-1).success({confirm:true});await flush();
+for (const [role, type] of [['user', 'personal_quick'], ['enterprise', 'enterprise_quick']])
+test(role + ' confirms the exact fee revision before independent repair payment',async()=>{
+  const{h,p}=widget(role,{order_type:type});const work=p.payFee();h.calls.modal.at(-1).success({confirm:true});await flush();
   const request=h.calls.request.at(-1);assert.ok(request.url.endsWith('/orders/10/offsite/confirm-fee'));assert.equal(request.data.fee_revision,1);
   assert.equal(h.calls.navigate.length,0);h.respond(h.calls.request.length-1,{});await work;
   assert.equal(h.calls.navigate.at(-1).url,'/pages/payment/payment/payment?orderId=10&type=repair');

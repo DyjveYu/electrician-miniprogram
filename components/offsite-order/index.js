@@ -58,13 +58,13 @@ Component({
       if (await this.confirm('查询并关闭原支付，仅在确认未付款后允许重新选择金额。')) await flow.request('POST', `/orders/${this.data.order.id}/offsite/close-fee`);
     }); },
     refreshFunds() { return this.run(async current => {
-      if (this.data.role === 'user') await flow.request('POST', `/orders/${this.data.order.id}/offsite/check-payments`);
+      if (['user', 'enterprise'].includes(this.data.role)) await flow.request('POST', `/orders/${this.data.order.id}/offsite/check-payments`);
       if (current()) await flow.request('POST', `/orders/${this.data.order.id}/offsite/refund`);
     }); },
     cancel() { return this.run(async () => {
       if (await this.confirm('取消未接单订单？已实付款项将办理全额原路退款，到账结果另行确认。')) await flow.request('PUT', `/orders/${this.data.order.id}/cancel`, { cancel_reason: '用户取消不上门订单' });
     }); },
-    review() { return this.run(() => flow.request('PUT', `/orders/${this.data.order.id}/review`, { rating: this.data.rating, comment: this.data.comment, ...(this.data.order.isFixedPrice && { expected_review_status: this.data.order.status }) })); },
+    review() { return this.run(() => flow.request('PUT', `/orders/${this.data.order.id}/review`, { rating: this.data.rating, comment: this.data.comment, ...((this.data.order.isFixedPrice || this.data.role === 'enterprise') && { expected_review_status: this.data.order.status }) })); },
     chooseImages() {
       if (this.data.busy || this.data.images.length >= 9) return;
       wx.chooseImage({ count: 9 - this.data.images.length, success: result => this.run(async current => {

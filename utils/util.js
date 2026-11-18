@@ -210,7 +210,7 @@ const getOrderStatusText = (status) => {
     'pending_repair_payment': '待支付维修费',
     'pending_review': '待评价',
     'closed': '交易关闭',
-    fixed_price_wait: '五星结算等待期', fixed_price_delivered: '待下单人确认完成', fixed_price_hold: '争议处理中',
+    offsite_wait: '五星结算等待期', offsite_hold: '争议处理中', fixed_price_wait: '五星结算等待期', fixed_price_delivered: '待下单人确认完成', fixed_price_hold: '争议处理中',
     'pending_deposit_refund': '待押金退回后结算',
     'pending_second_review': '可追评',
     'completed_unsettle': '非五星订单',
@@ -234,6 +234,7 @@ const mapOrderToDisplayStatus = (order) => {
   if (order.service_mode === 'off_site' || order.pricing_mode != null) {
     const stages = {
       fixed_price_delivered: ['fixed_price_delivered', '待下单人确认完成'],
+      offsite_wait: ['offsite_wait', '五星结算等待期'], offsite_hold: ['offsite_hold', '争议处理中'],
       fixed_price_wait: ['fixed_price_wait', '五星结算等待期'],
       fixed_price_hold: ['fixed_price_hold', '争议处理中'],
       pending_payment: ['prepay_pending', order.pricing_mode === 'fixed_price' ? '待支付一口价工费' : '待支付订单押金'], pending: ['waiting_accept', '待接单'],

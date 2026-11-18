@@ -26,7 +26,7 @@
       <button class="offsite-button secondary {{busy ? 'is-disabled' : ''}}" data-phone="{{order.contactPhone}}" bindtap="call" disabled="{{busy}}">联系下单人</button>
     </view>
 
-    <view class="section card" wx:if="{{role === 'user' && order.electrician.id}}">
+    <view class="section card" wx:if="{{(role === 'user' || role === 'enterprise') && order.electrician.id}}">
       <view class="section-title">电工信息</view>
       <view class="offsite-electrician">
         <text class="offsite-electrician-name">{{order.electrician.name || '接单电工'}}</text>
@@ -47,7 +47,7 @@
         <view wx:if="{{order.offsite_finance.feePaymentReview}}" class="offsite-notice warning">原支付已收¥{{order.offsite_finance.feeActualPaidAmount}}，当前版本或状态需平台核对，请勿再次支付。</view>
         <view wx:if="{{order.offsite_finance.depositReviewRequired}}" class="offsite-notice warning">订单押金已收，订单状态需平台核对，请勿再次支付。</view>
         <view wx:if="{{order.status === 'pending_deposit_refund'}}" class="offsite-notice">五星评价已记录，待押金真实退回并满足五星后24小时等待条件后可结算。</view>
-        <button wx:if="{{role === 'user' || order.electrician_id}}" class="offsite-button secondary {{busy ? 'is-disabled' : ''}}" bindtap="refreshFunds" loading="{{busy}}" disabled="{{busy}}">核对原支付／退款进度</button>
+        <button wx:if="{{(role === 'user' || role === 'enterprise') || order.electrician_id}}" class="offsite-button secondary {{busy ? 'is-disabled' : ''}}" bindtap="refreshFunds" loading="{{busy}}" disabled="{{busy}}">核对原支付／退款进度</button>
       </view>
 
       <view class="section card" wx:if="{{order.workContent || order.workImages.length}}">
@@ -68,12 +68,12 @@
         <button class="offsite-button primary {{busy ? 'is-disabled' : ''}}" bindtap="quote" loading="{{busy}}" disabled="{{busy}}">{{order.isFixedPrice ? "提交完成说明" : "服务已完成，提交工费"}}</button>
       </view>
 
-      <view class="section card" wx:if="{{(role === 'electrician' && order.status === 'accepted') || (role === 'user' && (order.status === 'fixed_price_delivered' || order.status === 'pending_payment' || order.status === 'pending' || order.status === 'pending_repair_payment'))}}">
+      <view class="section card" wx:if="{{(role === 'electrician' && order.status === 'accepted') || ((role === 'user' || role === 'enterprise') && (order.status === 'fixed_price_delivered' || order.status === 'pending_payment' || order.status === 'pending' || order.status === 'pending_repair_payment'))}}">
         <view class="section-title">订单操作</view>
         <block wx:if="{{role === 'electrician'}}">
           <button wx:if="{{order.status === 'accepted'}}" class="offsite-button primary {{busy ? 'is-disabled' : ''}}" bindtap="start" loading="{{busy}}" disabled="{{busy}}">开始不上门服务</button>
         </block>
-        <block wx:if="{{role === 'user'}}">
+        <block wx:if="{{(role === 'user' || role === 'enterprise')}}">
           <button wx:if="{{order.status === 'fixed_price_delivered'}}" class="offsite-button primary" bindtap="delivery" disabled="{{busy}}">确认完成，进入评价</button>
           <button wx:if="{{order.status === 'pending_payment' && order.offsite_finance.upfrontPending}}" class="offsite-button secondary" bindtap="closeFee" disabled="{{busy}}">核对并关闭原支付</button>
           <button wx:if="{{order.status === 'pending_payment' && !order.offsite_finance.depositPaid && !order.offsite_finance.feePaymentReview}}" class="offsite-button primary {{busy ? 'is-disabled' : ''}}" bindtap="payDeposit" disabled="{{busy}}">确认协议并付款</button>
@@ -83,7 +83,7 @@
         </block>
       </view>
 
-      <view class="section card" wx:if="{{role === 'user' && (order.status === 'pending_review' || order.status === 'pending_second_review')}}">
+      <view class="section card" wx:if="{{(role === 'user' || role === 'enterprise') && (order.status === 'pending_review' || order.status === 'pending_second_review')}}">
         <view class="section-title">{{order.status === 'pending_second_review' ? '再次评价' : '评价服务'}}</view>
         <text class="offsite-form-label">服务评分</text>
         <picker range="{{ratingOptions}}" value="{{rating - 1}}" bindchange="inputRating" disabled="{{busy}}"><view class="offsite-picker">{{rating}}星 <text class="offsite-picker-hint">点击选择</text></view></picker>

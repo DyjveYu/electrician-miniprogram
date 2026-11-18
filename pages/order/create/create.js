@@ -8,6 +8,11 @@ const plugin = requirePlugin('WechatSI')
 const manager = plugin.getRecordRecognitionManager()
 const SERVICE_TYPES = require('../../../config/service-types')
 
+function supportsServiceMode({ serviceMode, userType, orderMode, enterpriseCount }) {
+  if (serviceMode === 'on_site') return true;
+  return serviceMode === 'off_site' && (userType === 'user' || (userType === 'enterprise' && orderMode !== 'project' && enterpriseCount === 1));
+}
+
 function calculateCurrentPrepayAmount(feeList = []) {
   if (!Array.isArray(feeList) || feeList.length === 0) return 20;
   const hour = new Date().getHours();
@@ -545,7 +550,7 @@ Page({
   onServiceModeChange(e) {
     if (this._createdOrderId) { wx.showToast({ title: '请在已生成的原订单中处理', icon: 'none' }); return; }
     this.setData({ serviceMode: e.detail.value });
-    if (e.detail.value === 'off_site' && this.data.userType !== 'user') wx.showToast({ title: '企业不上门服务暂未开放', icon: 'none' });
+    if (e.detail.value === 'off_site' && this.data.orderMode === 'project') wx.showToast({ title: '企业多人不上门服务暂未开放', icon: 'none' });
     this.updateSubmitEnable();
   },
 
@@ -573,8 +578,8 @@ Page({
   },
 
   validateForm() {
-    if (!(this.data.serviceMode === 'on_site' || (this.data.userType === 'user' && this.data.serviceMode === 'off_site')) || !certOptions.parse(this.data.requiredCertType, this.data.userType === 'enterprise').length) {
-      wx.showToast({ title: this.data.serviceMode === 'off_site' ? '不上门服务暂未开放' : '请选择所需资质', icon: 'none' });
+    if (!supportsServiceMode(this.data) || !certOptions.parse(this.data.requiredCertType, this.data.userType === 'enterprise').length) {
+      wx.showToast({ title: supportsServiceMode(this.data) ? '请选择所需资质' : '企业多人不上门服务暂未开放', icon: 'none' });
       return false;
     }
     if (!this._current() || this.data.submissionUncertain) {
@@ -717,7 +722,7 @@ Page({
 
   updateSubmitEnable() {
     if (this.data.orderMode === 'project') { this.updateProjectSubmitEnable(); return; }
-    const ok = !!this.data.selectedServiceTypeId && (this.data.serviceMode === 'on_site' || (this.data.userType === 'user' && this.data.serviceMode === 'off_site'))
+    const ok = !!this.data.selectedServiceTypeId && supportsServiceMode(this.data)
       && certOptions.parse(this.data.requiredCertType, this.data.userType === 'enterprise').length > 0
       && !!this.data.description?.trim() && this._addressUsable(this.data.selectedAddress)
       && (this.data.userType !== 'user' || !!this.data.electricityType)
@@ -823,7 +828,7 @@ Page({
   updateProjectSubmitEnable() {
     const ok = this.data.userType === 'enterprise' && this.data.enterpriseCount > 1 && this.data.projectDateConfirmed
       && projectOrder.allowed(this.data.projStartDate, this.data.projEndDate) && projectOrder.money(this.data.projTotalAmount)
-      && (this.data.serviceMode === 'on_site' || (this.data.userType === 'user' && this.data.serviceMode === 'off_site')) && certOptions.parse(this.data.requiredCertType, this.data.userType === 'enterprise').length > 0
+      && this.data.serviceMode === 'on_site' && certOptions.parse(this.data.requiredCertType, this.data.userType === 'enterprise').length > 0
       && !!this.data.description?.trim() && this._addressUsable(this.data.selectedAddress)
       && !this._createdOrderId && !this.data.submissionUncertain;
     this.setData({ canSubmit: !!ok });
