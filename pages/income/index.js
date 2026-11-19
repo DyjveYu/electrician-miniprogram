@@ -2,7 +2,7 @@
  * 收入首页
  * 展示推荐达人/合作伙伴的累计佣金、已提现、可用余额
  */
-Page({
+require('../../utils/visitCapture').register(Page, {
   data: {
     balance: {
       is_referrer: false,

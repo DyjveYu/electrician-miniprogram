@@ -1,6 +1,6 @@
 const enterpriseSession = require('../../../utils/enterpriseSession');
 // pages/payment/result/result.js
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     status: 'success', // success, fail
     orderId: '',

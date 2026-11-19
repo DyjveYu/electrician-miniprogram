@@ -3,7 +3,7 @@ const app = getApp();
 const { AuthAPI, API } = require('../../../utils/api');
 const { validatePhone } = require('../../../utils/util');
 
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     name: '',
     phone: '',

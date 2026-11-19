@@ -23,7 +23,7 @@ function uploadPhoto(side, filePath, session, draftId) {
   });
 }
 
-Page({
+require('../../../../utils/visitCapture').register(Page, {
   data: {
     displayFront: '',
     displayBack: '',

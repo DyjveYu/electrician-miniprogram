@@ -1,5 +1,5 @@
 // 分享／扫码仅保留推荐参数入口，个人建单复用手机号登录和统一表单。
-Page({
+require('../../utils/visitCapture').register(Page, {
   data: {},
   onLoad(options = {}) {
     const app = getApp();

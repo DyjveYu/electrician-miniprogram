@@ -1,5 +1,5 @@
 // pages/referrer/referrer.js
-Page({
+require('../../utils/visitCapture').register(Page, {
   data: {
     referrerInfo: null,
     loading: true

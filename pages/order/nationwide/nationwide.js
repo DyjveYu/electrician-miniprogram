@@ -1,6 +1,6 @@
 const flow = require('../../../utils/offsiteOrder');
 const personal = require('../../../utils/personalOrder');
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: { orders: [], page: 0, hasMore: true, loading: false, error: '', draftSearch: '', search: '' },
   onLoad() { this._visible = true; this.load(true); },
   onShow() { if (this._hidden) { this._visible = true; this._hidden = false; this.load(true); } },

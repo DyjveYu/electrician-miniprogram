@@ -1,7 +1,7 @@
 // pages/profile/certification/electrician-cert/electrician-cert.js
 const app = getApp();
 
-Page({
+require('../../../../utils/visitCapture').register(Page, {
     data: {
         certificatePath: '',      // 存储的图片路径（相对路径或本地路径）
         displayPath: '',          // 用于显示的完整URL

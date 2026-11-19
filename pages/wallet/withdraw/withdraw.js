@@ -3,7 +3,7 @@
  * 正确处理用户取消收款的情况
  */
 
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     wallet: {
       available_balance: 0,

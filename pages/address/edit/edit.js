@@ -1,7 +1,7 @@
 const enterpriseSession = require('../../../utils/enterpriseSession');
 const orderEntry = require('../../../utils/orderEntry');
 // pages/address/edit/edit.js
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     addressId: '',
     formData: {

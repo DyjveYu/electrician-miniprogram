@@ -4,7 +4,7 @@ const { regionError, isTakeSuccess } = require('../../../utils/orderTakeFeedback
 // pages/order/list/list.js
 const app = getApp();
 const { getDisplayStatusText, mapOrderToDisplayStatus } = require('../../../utils/util');
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     // 单一“我的订单”Tab
     currentTab: 0,

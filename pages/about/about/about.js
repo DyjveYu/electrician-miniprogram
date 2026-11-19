@@ -1,4 +1,4 @@
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     steps: [
       { num: 1, label: '线上下单预约' },

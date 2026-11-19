@@ -1,6 +1,6 @@
 const enterpriseSession = require('../../../utils/enterpriseSession');
 // pages/profile/edit/edit.js
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     userInfo: {
       nickname: '',

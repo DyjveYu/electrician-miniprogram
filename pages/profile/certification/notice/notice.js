@@ -1,5 +1,5 @@
 // pages/profile/certification/notice/notice.js
-Page({
+require('../../../../utils/visitCapture').register(Page, {
   data: {
     noticeTitle: '认证须知',
     noticeContent: `请确认以下合作条款（勾选即表示您已阅读并同意）

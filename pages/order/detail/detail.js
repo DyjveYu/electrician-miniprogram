@@ -5,7 +5,7 @@ const { regionError, isTakeSuccess } = require('../../../utils/orderTakeFeedback
 const app = getApp();
 const MAX_FINAL_AMOUNT = 99999999.99; // 数据库 decimal(10,2) 最大支持 8 位整数 + 2 小数
 const { getOrderStatusText } = require('../../../utils/util');
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     orderId: '',
     order: null,

@@ -1,5 +1,5 @@
 // pages/electrician/detail/detail.js
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     electricianId: '',
     electrician: null,

@@ -1,7 +1,7 @@
 const enterpriseSession = require('../../../utils/enterpriseSession');
 // pages/address/list/list.js
 const app = getApp();
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     addresses: [],
     loading: false,

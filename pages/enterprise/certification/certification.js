@@ -11,7 +11,7 @@ const log = {
   error(...args) { rtLog && rtLog.error.apply(rtLog, args); }
 };
 
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     mode: 'apply', // apply: 申请认证, view: 查看认证
     formData: {

@@ -4,7 +4,7 @@ const personalOrder = require('../../../utils/personalOrder');
 // pages/payment/payment/payment.js
 const { PaymentAPI } = require('../../../utils/api');
 
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     showPrepay: false,
     personalPrepay: false,

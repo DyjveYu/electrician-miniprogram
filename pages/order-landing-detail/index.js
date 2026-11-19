@@ -7,7 +7,7 @@ const app = getApp();
 const MAX_FINAL_AMOUNT = 99999999.99;
 const { getOrderStatusText } = require('../../utils/util');
 
-Page({
+require('../../utils/visitCapture').register(Page, {
   data: {
     orderId: '',
     order: null,

@@ -1,6 +1,6 @@
 // pages/profile/deposit/deposit.js
 const sessionKey = () => { const app = getApp(); return `${app.globalData.userInfo?.id || ''}:${app.globalData.token || ''}:${app._orderSessionVersion || 0}`; };
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     depositInfo: {
       status: null,

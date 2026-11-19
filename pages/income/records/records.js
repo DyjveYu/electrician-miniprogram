@@ -2,7 +2,7 @@
  * 提现记录列表页
  * 展示推荐达人/合作伙伴的提现记录
  */
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     records: [],
     page: 1,

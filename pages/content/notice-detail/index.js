@@ -1,6 +1,6 @@
 const { ContentAPI } = require('../../../utils/api');
 const { formatArticleDate } = require('../../../utils/contentAccess');
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: { notice: null, loading: false, error: '' },
   onLoad(options) { this.noticeId = options.id || ''; },
   onShow() {

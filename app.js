@@ -1,3 +1,4 @@
+const visitCapture = require('./utils/visitCapture');
 const orderEntry = require('./utils/orderEntry');
 const enterpriseSession = require('./utils/enterpriseSession');
 // app.js
@@ -233,6 +234,7 @@ App({
    * 用户登录
    */
   login(userInfo, token) {
+    visitCapture.syncSession(userInfo);
     orderEntry.clear();
     this._orderSessionVersion = (this._orderSessionVersion || 0) + 1;
     // 会话凭据及完整用户资料不输出日志。
@@ -254,6 +256,7 @@ App({
    * 用户登出
    */
   logout(options = {}) {
+    visitCapture.resetSession();
     orderEntry.clear();
     this._orderSessionVersion = (this._orderSessionVersion || 0) + 1;
     const pages = getCurrentPages();

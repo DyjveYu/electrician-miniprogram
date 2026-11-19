@@ -4,7 +4,7 @@
  *
  * 借鉴电工提现页面的轮询状态机制和取消流程
  */
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     balance: {
       available_balance: 0,

@@ -1,5 +1,5 @@
 // pages/service-types/service-types.js
-Page({
+require('../../utils/visitCapture').register(Page, {
   data: {
     serviceTypes: [
       {

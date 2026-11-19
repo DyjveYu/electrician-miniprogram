@@ -12,7 +12,7 @@ function toMasterName(name) {
   return (first || '') + '工';
 }
 
-Page({
+require('../../utils/visitCapture').register(Page, {
   data: {
     nationalOrders: [], nationalLoading: false, nationalError: '',
     orderSubscriptionEnabled: false, orderSubscriptionTemplate: '', orderSubscriptionBusy: false,

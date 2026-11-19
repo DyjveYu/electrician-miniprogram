@@ -1,5 +1,5 @@
 // pages/partner/partner.js
-Page({
+require('../../utils/visitCapture').register(Page, {
   data: {
     loading: true,
     months: [],

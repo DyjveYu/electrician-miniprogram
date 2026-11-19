@@ -1,5 +1,5 @@
 const { ContentAPI } = require('../../../utils/api');
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: { url: '', error: '', loading: true },
   onLoad(options) { this.slot = options.slot; this.loadTarget(); },
   async loadTarget() {

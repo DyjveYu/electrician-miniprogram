@@ -1,6 +1,6 @@
 const enterpriseSession = require('../../../utils/enterpriseSession');
 // pages/electrician/list/list.js
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     electricians: [],
     loading: false,

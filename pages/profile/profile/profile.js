@@ -1,6 +1,6 @@
 const enterpriseSession = require('../../../utils/enterpriseSession');
 // pages/profile/profile/profile.js
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     userInfo: null,
     currentRole: 'user',

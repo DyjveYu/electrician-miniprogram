@@ -2,7 +2,7 @@ const enterpriseSession = require('../../../utils/enterpriseSession');
 // pages/enterprise/electrician-review/electrician-review.js
 const app = getApp();
 
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     orderId: '',
     orderNo: '',

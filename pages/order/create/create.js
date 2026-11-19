@@ -26,7 +26,7 @@ function calculateCurrentPrepayAmount(feeList = []) {
   return 20;
 }
 
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     enterpriseCount: 1, enterpriseCountRange: Array.from({ length: 100 }, (_, i) => i + 1),
     showProjectDates: false, projectDateConfirmed: false, projectDateSummary: '', projectDateError: '',

@@ -9,7 +9,7 @@ function currentMonth() {
   return new Date(Date.now() + 8 * 3600000).toISOString().slice(0, 7);
 }
 
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     editing: false,
     mode: 'apply', // apply: 申请认证, view: 查看认证

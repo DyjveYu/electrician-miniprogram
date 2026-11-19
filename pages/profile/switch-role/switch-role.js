@@ -1,5 +1,5 @@
 // 身份转换由手机号登录入口和服务端校验，不在客户端改角色。
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     currentRole: 'user', userInfo: null,
     roles: [

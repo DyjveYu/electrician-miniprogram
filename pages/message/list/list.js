@@ -2,7 +2,7 @@
 const app = getApp();
 const { MessageAPI } = require('../../../utils/api');
 
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     currentTab: 'order', // 当前选中的tab
     messages: [],

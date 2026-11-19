@@ -1,7 +1,7 @@
 // pages/message/detail/detail.js
 const { MessageAPI } = require('../../../utils/api');
 
-Page({
+require('../../../utils/visitCapture').register(Page, {
   data: {
     messageId: '',
     messageSource: '',
