@@ -6,6 +6,7 @@ const path = require('node:path');
 const { configure, validate } = require('../scripts/configure-runtime');
 const resolve = require('../config/resolve');
 const production = require('../config/production');
+const trial = require('../config/trial');
 const local = { enabled: true, version: 'v1.2.0', baseUrl: 'http://127.0.0.1:3000/api', imageBaseUrl: 'http://127.0.0.1:3000', paymentMethod: 'test' };
 const wxEnv = envVersion => ({ getAccountInfoSync: () => ({ miniProgram: { envVersion } }) });
 
@@ -14,10 +15,24 @@ test('develop显式启用本地覆盖，正式默认对象不被修改', () => {
   assert.deepEqual(resolve(wxEnv('develop'), local), Object.fromEntries(Object.keys(production).map(key => [key, local[key]])));
   assert.equal(JSON.stringify(production), before);
 });
-test('trial/release/环境未知或检测失败始终使用正式微信支付配置', () => {
-  for (const version of ['trial', 'release', '', 'unknown']) assert.deepEqual(resolve(wxEnv(version), local), production);
+test('release/环境未知或检测失败始终使用正式配置，不受个人配置影响', () => {
+  for (const version of ['release', '', 'unknown']) assert.deepEqual(resolve(wxEnv(version), local), production);
   assert.deepEqual(resolve({}, local), production);
   assert.equal(resolve(wxEnv('release'), local).paymentMethod, 'wechat');
+});
+test('trial连接测试服务器，仅覆盖地址，支付和版本沿用正式默认', () => {
+  const before = JSON.stringify(production);
+  for (const personal of [local, { ...local, enabled: false }, undefined]) {
+    assert.deepEqual(resolve(wxEnv('trial'), personal), trial);
+  }
+  assert.equal(trial.baseUrl, 'https://api.mijutime.com/api');
+  assert.equal(trial.imageBaseUrl, 'https://api.mijutime.com');
+  assert.equal(trial.paymentMethod, production.paymentMethod);
+  assert.equal(trial.version, production.version);
+  assert.equal(JSON.stringify(production), before);
+  const value = resolve(wxEnv('trial'), local);
+  value.baseUrl = 'https://changed.invalid/api';
+  assert.equal(resolve(wxEnv('trial'), local).baseUrl, trial.baseUrl);
 });
 test('本地关闭或仅部分覆盖时保持其他正式默认字段', () => {
   assert.deepEqual(resolve(wxEnv('develop'), { ...local, enabled: false }), production);

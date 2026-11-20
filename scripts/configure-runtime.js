@@ -1,4 +1,7 @@
-// Node标准库工具。只写config/local.json和runtime.generated.js，不修改app.js。
+// 修改日期：2026-11-12。Node 工具，只生成配置，不连接服务器或上传小程序。
+// 无参数：读取个人 local.json；--init：首次初始化；--production：关闭个人覆盖。
+// --production 是打包准备参数，不把体验版强制改成生产地址。
+// 实际运行时：develop 读本地生成值，trial 读 trial.js，release 读 production.js。
 const fs = require('node:fs');
 const path = require('node:path');
 const defaultRoot = path.resolve(__dirname, '..');
@@ -47,7 +50,7 @@ if (require.main === module) {
     const args = process.argv.slice(2);
     if (args.some(arg => !['--production', '--init'].includes(arg))) throw new Error('支持参数：--production、--init；无参数读取已有local.json');
     const result = configure({ production: args.includes('--production'), init: args.includes('--init') });
-    console.log(result.enabled ? '已生成开发联调配置；仅develop运行时启用。' : '已生成正式默认配置；未启用本地覆盖。');
+    console.log(result.enabled ? '已生成个人联调覆盖；仅 develop 使用，trial/release 仍按微信环境选择。' : '已关闭个人联调覆盖；trial 使用 trial.js，release 使用 production.js。');
   } catch (error) { console.error('配置生成失败：' + error.message); process.exitCode = 1; }
 }
 module.exports = { configure, validate };

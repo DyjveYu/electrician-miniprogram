@@ -92,7 +92,7 @@ test('invalid phone never leaves a request that can hide a loading that was not 
   const app = { globalData: {}, showLoading: () => shows++, hideLoading: () => hides++ };
   vm.runInNewContext(fs.readFileSync(path.resolve(__dirname, '../pages/login/login.js'), 'utf8'), {
     getApp: () => app, Page: value => { definition = value; }, console: { log() {} },
-    require: name => name.endsWith('/util') ? { validatePhone: () => false } : name.endsWith('/api') ? { AuthAPI: { sendCode: async () => requests++ } } : {}
+    require: name => name.endsWith('/visitCapture') ? { register: (register, definition) => register(definition) } : name.endsWith('/util') ? { validatePhone: () => false } : name.endsWith('/api') ? { AuthAPI: { sendCode: async () => requests++ } } : {}
   });
   const page = { ...definition, data: { ...definition.data, phone: 'invalid', canSendCode: true }, setData(value) { Object.assign(this.data, value); } };
   await page.sendCode(); page.onHide();

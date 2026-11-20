@@ -57,6 +57,7 @@ test('home renders the combined server list without applying its own base-only f
       if (name.endsWith('/util')) return { getOrderStatusText: value => value, formatTime: value => value };
       if (name.endsWith('enterpriseSession')) return {};
       if (name.endsWith('orderSubscription')) return { load: async () => {}, subscribe() {}, hide() {} };
+      if (name.endsWith('/visitCapture')) return { register: (register, definition) => register(definition) };
       throw new Error('Unexpected dependency: ' + name);
     }
   });

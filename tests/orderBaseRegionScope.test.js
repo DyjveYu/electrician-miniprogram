@@ -25,6 +25,7 @@ function setup(file = 'pages/order/detail/detail.js') {
       if (name.endsWith('/util')) return { getOrderStatusText: value => value, formatTime: value => value, mapOrderToDisplayStatus: order => ({ code: order.status, text: order.status }), getDisplayStatusText: value => value };
       if (name.endsWith('/api')) return { OrderAPI: { getOrderList: params => new Promise((resolve, reject) => calls.lists.push({ params, resolve, reject })) } };
       if (name.includes('orderSubscription')) return { load: async () => {}, subscribe() {}, hide() {} };
+      if (name.endsWith('/visitCapture')) return { register: (register, definition) => register(definition) };
       throw new Error('Unexpected dependency: ' + name);
     }
   });
