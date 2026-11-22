@@ -132,7 +132,7 @@
   padding: 10rpx;
 }
 
-/* 温馨提示 */
+/* 表单提示与信息保护指引 */
 .tips {
   background-color: #eff7f1;
   padding: 20rpx;
@@ -155,6 +155,10 @@
 .tips-content text {
   display: block;
   margin-bottom: 6rpx;
+}
+
+.protection-guidance text + text {
+  margin-top: 12rpx;
 }
 
 /* 提交按钮 */
@@ -212,6 +216,25 @@
 .continuation-panel { padding: 24rpx; margin-top: 24rpx; background: var(--clean-soft); border: 2rpx solid var(--clean-line); border-radius: 22rpx; color: var(--clean-muted); word-break: break-all; }
 .continuation-panel button { width: 100%; margin-top: 16rpx; white-space: normal; background: var(--clean-green); color: #fff; }
 .continuation-panel button:last-child { background: var(--clean-mint); color: var(--clean-green); border-color: var(--clean-green); }
+
+.certification-actions {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.certification-status {
+  margin-bottom: 16rpx;
+  color: var(--clean-muted);
+  font-size: 26rpx;
+}
+
+.cancel-certification-btn {
+  width: 100%;
+  min-height: 96rpx;
+  border: 2rpx solid var(--clean-line);
+  border-radius: 22rpx;
+  background: var(--clean-mint);
+  color: var(--clean-green);
+}
 
 .change-license-btn { margin: 16rpx 0 24rpx; width: 100%; background: var(--clean-mint); color: var(--clean-green); border: 2rpx solid var(--clean-line); border-radius: 22rpx; }
 

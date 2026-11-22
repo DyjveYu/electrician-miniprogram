@@ -28,6 +28,8 @@ function calculateCurrentPrepayAmount(feeList = []) {
 
 require('../../../utils/visitCapture').register(Page, {
   data: {
+    fromEnterpriseCertification: false, showCreateBack: false, showCreateHome: false,
+    navigationTop: null, navigationHeight: null,
     enterpriseCount: 1, enterpriseCountRange: Array.from({ length: 100 }, (_, i) => i + 1),
     showProjectDates: false, projectDateConfirmed: false, projectDateSummary: '', projectDateError: '',
     draftStartDate: '', draftEndDate: '', draftStartLabel: '', draftEndLabel: '', minProjectDate: '',
@@ -97,6 +99,7 @@ require('../../../utils/visitCapture').register(Page, {
     this._account = orderEntry.key(app);
     this._addressGeneration = 0;
     this._selectionVersion = 0;
+    this.setCreateNavigation(options, app);
     if (!app.globalData.token || !app.globalData.userInfo?.phone) {
       this._needsPhoneLogin = true;
       wx.showToast({ title: '请先登录', icon: 'none', duration: 1500 });
@@ -150,6 +153,32 @@ require('../../../utils/visitCapture').register(Page, {
     this._unloaded = true;
     this._addressGeneration++;
     clearInterval(this._waveTimer);
+  },
+
+  setCreateNavigation(options, app) {
+    const fromEnterpriseCertification = options.entry === 'enterprise-certification' &&
+      app.globalData.userInfo?.current_role === 'enterprise' &&
+      app.globalData.enterpriseCertification?.certStatus === 'approved';
+    const hasPreviousPage = getCurrentPages().length > 1;
+    this.setData({
+      fromEnterpriseCertification,
+      showCreateBack: fromEnterpriseCertification || hasPreviousPage,
+      showCreateHome: !fromEnterpriseCertification && !hasPreviousPage
+    });
+    try {
+      const capsule = wx.getMenuButtonBoundingClientRect?.();
+      if (capsule?.top > 0 && capsule.height > 0) {
+        this.setData({ navigationTop: capsule.top, navigationHeight: capsule.height });
+      }
+    } catch (_) {
+      // 部分运行环境无法提供胶囊尺寸，使用样式中的安全区兜底。
+    }
+  },
+
+  goBack() {
+    const home = () => wx.switchTab({ url: '/pages/index/index' });
+    if (this.data.fromEnterpriseCertification || getCurrentPages().length <= 1) return home();
+    wx.navigateBack({ fail: home });
   },
 
   // 空方法，防止弹层背景点击穿透

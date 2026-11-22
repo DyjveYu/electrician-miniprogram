@@ -1,4 +1,5 @@
 const orderEntry = require('../../utils/orderEntry');
+const enterpriseSession = require('../../utils/enterpriseSession');
 // pages/login/login.js
 const app = getApp();
 const { AuthAPI } = require('../../utils/api');
@@ -374,11 +375,24 @@ require('../../utils/visitCapture').register(Page, {
         return;
       }
       this._conversionConsent = null;
+      const loginVersion = app._orderSessionVersion || 0;
       const res = await AuthAPI.login(phone, code, role, openid, role === 'electrician');
-      if (this._unloaded) return;
+      if (this._unloaded || loginVersion !== (app._orderSessionVersion || 0)) return;
+      const payload = res.data;
+      if (payload?.sessionType === enterpriseSession.CERTIFICATION_SESSION) {
+        if (role !== 'enterprise' || !app.enterEnterpriseCertification(payload, phone, this._orderRequested)) {
+          throw new Error('无法验证企业认证会话，请重新登录');
+        }
+        return;
+      }
+      if (!payload?.user || typeof payload.token !== 'string' || !payload.token) throw new Error('登录响应无效');
+      if ((role === 'enterprise' || payload.user.current_role === 'enterprise') &&
+          (payload.user.current_role !== 'enterprise' || !enterpriseSession.hasBusinessAccess(payload.enterpriseCertification))) {
+        throw new Error('当前服务暂不支持企业认证，请稍后再试');
+      }
 
       // 保存登录信息
-      app.login(res.data.user, res.data.token);
+      app.login(payload.user, payload.token);
 
       const orderIntent = this._orderRequested && role !== 'electrician' ? orderEntry.begin(app) : null;
       this._routingOrder = !!orderIntent;

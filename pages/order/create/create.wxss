@@ -1,4 +1,48 @@
 @import "../../../styles/clean-page.wxss";
+.create-navigation {
+  position: sticky;
+  top: 0;
+  z-index: 110;
+  padding-top: 20px;
+  padding-top: max(20px, env(safe-area-inset-top));
+  padding-bottom: 8rpx;
+  background: #fff;
+}
+.create-navigation-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 76rpx;
+}
+.create-navigation-action {
+  position: absolute;
+  left: 12rpx;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 80rpx;
+  min-height: 0;
+  padding: 0 14rpx;
+  background: transparent;
+  color: var(--clean-text);
+  font-size: 28rpx;
+}
+.create-navigation-icon { width: 36rpx; height: 36rpx; }
+.create-navigation-back { transform: rotate(180deg); }
+.create-navigation-title {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0 180rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+  font-size: 32rpx;
+  font-weight: 600;
+}
 .page-container { box-sizing: border-box; padding: 12rpx 44rpx 0; padding-bottom: calc(220rpx + env(safe-area-inset-bottom)); min-height: 100vh; background: #fff; }
 .form-section { padding: 28rpx 0 32rpx; border-bottom: 2rpx solid var(--clean-line); }
 .section-title { font-size: 30rpx; font-weight: 600; margin-bottom: 24rpx; }

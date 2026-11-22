@@ -9,6 +9,9 @@ class API {
    * 发起HTTP请求
    */
   static request(options) {
+    if (app._enterpriseCertificationSession || app._enterpriseCacheCheck) {
+      return Promise.reject(new Error('请先完成企业认证'));
+    }
     return new Promise((resolve, reject) => {
       const {
         url,
@@ -163,6 +166,9 @@ class API {
    * 上传文件
    */
   static uploadFile(filePath, options = {}) {
+    if (app._enterpriseCertificationSession || app._enterpriseCacheCheck) {
+      return Promise.reject(new Error('请先完成企业认证'));
+    }
     return new Promise((resolve, reject) => {
       const {
         url = '/system/upload',
@@ -246,7 +252,9 @@ class AuthAPI {
     if (openid) {
       data.openid = openid;
     }
-    return API.post('/auth/login', data, { showError: false, preserveSession: true });
+    return API.post('/auth/login', data, {
+      showError: false, preserveSession: true, header: enterpriseSession.CAPABILITY_HEADER
+    });
   }
 
   /**

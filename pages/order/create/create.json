@@ -1,5 +1,6 @@
 {
   "navigationBarTitleText": "创建订单",
+  "navigationStyle": "custom",
   "enablePullDownRefresh": false,
   "backgroundColor": "#ffffff",
   "backgroundColorTop": "#ffffff",

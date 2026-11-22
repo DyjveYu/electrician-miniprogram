@@ -129,6 +129,10 @@ App({
     });
 
     if (token && userInfo) {
+      if (userInfo.current_role === 'enterprise') {
+        if (!this._enterpriseCacheCheck) this._enterpriseCacheCheck = this.checkStoredEnterprise(userInfo, token);
+        return;
+      }
       this.globalData.token = token;
       this.globalData.userInfo = userInfo;
       this.globalData.isLogin = true;
@@ -147,6 +151,81 @@ App({
     }
   },
 
+  async checkStoredEnterprise(user, token) {
+    const version = this._orderSessionVersion || 0;
+    const current = () => version === (this._orderSessionVersion || 0);
+    const request = path => new Promise((resolve, reject) => {
+      wx.request({
+        url: this.globalData.baseUrl + path,
+        method: 'GET',
+        header: { Authorization: `Bearer ${token}`, ...enterpriseSession.CAPABILITY_HEADER },
+        success: res => {
+          if (enterpriseSession.successfulResponse(res)) resolve(res.data.data);
+          else reject(new Error(res.data?.message || '无法验证企业登录状态'));
+        },
+        fail: () => reject(new Error('网络异常，请重新登录'))
+      });
+    });
+
+    try {
+      const verified = await request('/auth/verify-token');
+      if (!current()) return false;
+      if (!enterpriseSession.sameEnterprise(user, verified?.user)) throw new Error('请重新登录');
+      if (verified.sessionType === enterpriseSession.CERTIFICATION_SESSION) {
+        if (!this.enterEnterpriseCertification(verified, user.phone)) throw new Error('请重新登录');
+        return false;
+      }
+      if (verified.valid !== true) throw new Error('请重新登录');
+
+      // 兼容未部署新契约的服务端，普通 token 也须确认企业资料状态后才能恢复。
+      const profile = await request('/miniprogram/enterprise/certification');
+      if (!current()) return false;
+      if (!enterpriseSession.hasBusinessAccess(profile)) throw new Error('请重新登录并完成企业认证');
+      this.login({ ...user, ...verified.user }, token);
+      this.globalData.enterpriseCertification = profile;
+      return true;
+    } catch (error) {
+      if (current()) {
+        this.logout({ forceLogin: true });
+        this.showToast(error.message);
+      }
+      return false;
+    }
+  },
+
+  enterEnterpriseCertification(payload, phone, fromOrder = false) {
+    const session = enterpriseSession.readCertificationSession(payload, phone);
+    if (!session) return false;
+    this.clearLocalSession();
+    this.globalData.contentLoginEntry = null;
+    session.fromOrder = fromOrder;
+    this._enterpriseCertificationSession = session;
+    const pages = getCurrentPages();
+    const current = pages[pages.length - 1];
+    // 下单入口留在页面栈，系统返回会离开认证页并触发会话清理。
+    const open = fromOrder && current?.route === 'pages/login/login' ? 'navigateTo' : 'reLaunch';
+    wx[open]({
+      url: '/' + enterpriseSession.CERTIFICATION_PAGE,
+      fail: () => {
+        if (this._enterpriseCertificationSession !== session) return;
+        this.logout({ forceLogin: true });
+        this.showToast('无法进入企业认证，请重新登录');
+      }
+    });
+    return true;
+  },
+
+  completeEnterpriseCertification(session, approval) {
+    if (!session || this._enterpriseCertificationSession !== session || session.expiresAt <= Date.now() ||
+        approval?.certStatus !== 'approved' || approval.sessionType !== 'authenticated' ||
+        typeof approval.token !== 'string' || !approval.token || approval.token === session.token ||
+        !enterpriseSession.sameEnterprise(session.user, approval.user)) return false;
+    const { sessionType, token, user, ...profile } = approval;
+    this.login(user, token);
+    this.globalData.enterpriseCertification = profile;
+    return true;
+  },
+
   /**
    * 验证token有效性
    */
@@ -161,11 +240,21 @@ App({
       url: `${this.globalData.baseUrl}/auth/verify-token`,
       method: 'GET',
       header: {
-        'Authorization': `Bearer ${this.globalData.token}`
+        'Authorization': `Bearer ${this.globalData.token}`,
+        ...enterpriseSession.CAPABILITY_HEADER
       },
       success: (res) => {
         // 旧会话的异步验证不能退出后来已登录的新会话。
-        if (verifyingToken !== this.globalData.token) return;
+        if (verifyingToken !== this.globalData.token || verification.version !== (this._orderSessionVersion || 0)) return;
+        const payload = res.data?.data;
+        if (enterprise && enterpriseSession.successfulResponse(res) &&
+            payload?.sessionType === enterpriseSession.CERTIFICATION_SESSION) {
+          const user = this.globalData.userInfo;
+          if (!enterpriseSession.sameEnterprise(user, payload.user) || !this.enterEnterpriseCertification(payload, user.phone)) {
+            this.logout({ forceLogin: true });
+          }
+          return;
+        }
         console.log('[App] Token验证HTTP状态:', res.statusCode);
         // 只有明确的 401 或者 success=false 且 code=401 时才登出
         if (res.statusCode === 401 || (res.data && res.data.code === 401)) {
@@ -234,6 +323,8 @@ App({
    * 用户登录
    */
   login(userInfo, token) {
+    this._enterpriseCertificationSession = null;
+    this._enterpriseCacheCheck = null;
     visitCapture.syncSession(userInfo);
     orderEntry.clear();
     this._orderSessionVersion = (this._orderSessionVersion || 0) + 1;
@@ -252,20 +343,13 @@ App({
 
   },
 
-  /**
-   * 用户登出
-   */
-  logout(options = {}) {
+  clearLocalSession() {
     visitCapture.resetSession();
     orderEntry.clear();
     this._orderSessionVersion = (this._orderSessionVersion || 0) + 1;
-    const pages = getCurrentPages();
-    const current = pages[pages.length - 1];
-    const contentEntry = options.entry === 'electrician-home' ||
-      this.globalData.contentLoginEntry === 'electrician-home' ||
-      (current && /^pages\/content\/(electrician-home|article-detail)\//.test(current.route));
-    if (contentEntry) this.globalData.contentLoginEntry = 'electrician-home';
-    if (options.forceLogin) this.globalData.contentLoginEntry = null;
+    this._enterpriseCertificationSession = null;
+    this._enterpriseCacheCheck = null;
+    this._enterpriseVerification = null;
     this.globalData.userInfo = null;
     this.globalData.token = null;
     this.globalData.isLogin = false;
@@ -275,6 +359,21 @@ App({
     // 清除本地存储
     wx.removeStorageSync('userInfo');
     wx.removeStorageSync('token');
+  },
+
+  /**
+   * 用户登出
+   */
+  logout(options = {}) {
+    const pages = getCurrentPages();
+    const current = pages[pages.length - 1];
+    const contentEntry = options.entry === 'electrician-home' ||
+      this.globalData.contentLoginEntry === 'electrician-home' ||
+      (current && /^pages\/content\/(electrician-home|article-detail)\//.test(current.route));
+    if (contentEntry) this.globalData.contentLoginEntry = 'electrician-home';
+    if (options.forceLogin) this.globalData.contentLoginEntry = null;
+    const leavingCertification = !!this._enterpriseCertificationSession;
+    this.clearLocalSession();
 
     console.log('用户登出');
 
@@ -292,8 +391,18 @@ App({
     if (this._logoutNavigating) return;
     this._logoutNavigating = true;
     // 跳转到登录页
+    const url = contentEntry && !options.forceLogin ? '/pages/login/login?entry=electrician-home' : '/pages/login/login';
+    const version = this._orderSessionVersion;
     wx.reLaunch({
-      url: contentEntry && !options.forceLogin ? '/pages/login/login?entry=electrician-home' : '/pages/login/login',
+      url,
+      fail: () => {
+        // 系统返回尚未完成时，下一轮再进入登录页。新会话已建立则放弃旧导航。
+        if (leavingCertification) setTimeout(() => {
+          if (version === this._orderSessionVersion && !this.globalData.token && !this._logoutNavigating) {
+            wx.reLaunch({ url });
+          }
+        }, 0);
+      },
       complete: () => { this._logoutNavigating = false; }
     });
   },

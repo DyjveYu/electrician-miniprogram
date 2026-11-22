@@ -5,7 +5,9 @@
     <image class="pending-icon ui-icon" src="/images/content-ui/check-circle.svg" mode="aspectFit" aria-hidden="true" />
     <view class="pending-title">认证已通过</view>
   </view>
-  <view class="application-tip" wx:if="{{mode === 'apply'}}">请填写真实企业信息，提交成功即通过认证</view>
+  <view class="application-tip" wx:if="{{mode === 'apply' && (!restrictedCertification || certificationReady)}}">
+    {{restrictedCertification && certStatus === 'pending' ? '已载入此前填写的资料，请核对后重新提交认证' : '请填写真实企业信息，提交成功即通过认证'}}
+  </view>
 
   <view class="returned-notice" wx:if="{{certStatus === 'returned'}}">
     <view class="returned-title">企业资料已打回</view>
@@ -14,7 +16,7 @@
   </view>
 
   <!-- 认证表单 -->
-  <view class="form-container" wx:if="{{mode === 'apply' || mode === 'view'}}">
+  <view class="form-container" wx:if="{{(!restrictedCertification || certificationReady) && (mode === 'apply' || mode === 'view')}}">
     <!-- 企业名称 -->
     <view class="form-group">
       <view class="form-label">企业名称 <text class="required">*</text></view>
@@ -70,10 +72,17 @@
       </view>
     </view>
 
-    <button class="change-license-btn" bindtap="chooseLicenseImage" wx:if="{{licenseImagePath && (certStatus === 'approved' || certStatus === 'returned')}}" disabled="{{submitting}}">更换营业执照图片</button>
+    <button class="change-license-btn" bindtap="chooseLicenseImage" wx:if="{{licenseImagePath && (restrictedCertification || certStatus === 'approved' || certStatus === 'returned')}}" disabled="{{submitting}}">更换营业执照图片</button>
 
-    <!-- 温馨提示 -->
-    <view class="tips">
+    <view class="tips" wx:if="{{restrictedCertification}}">
+      <view class="tips-title">企业信息保护指引</view>
+      <view class="tips-content protection-guidance">
+        <text>感谢您使用着安</text>
+        <text>我们非常重视个人信息和隐私保护，依据法律法规要求，您对所填信息真实性负责。</text>
+        <text>我们会基于您的授权来为您提供更好的服务，这些授权包括定位(为您精确推荐电工)、设备信息(为实现信息推送，保障账户和交易安全，获取必要的设备识别符)、存储权限(更改头像、发送订单动态、保存图片到本地等)，您有权拒绝或取消这些授权。</text>
+      </view>
+    </view>
+    <view class="tips" wx:else>
       <view class="tips-title">温馨提示</view>
       <view class="tips-content">
         <text>1. 请确保填写的信息真实有效</text>
@@ -84,17 +93,22 @@
     </view>
 
     <!-- 提交按钮 -->
-    <button class="submit-btn {{submitDisabled ? 'disabled' : ''}}" bindtap="submitCertification" disabled="{{submitDisabled || submitting}}" wx:if="{{mode === 'apply' || certStatus === 'approved' || certStatus === 'returned'}}">{{submitting ? '保存中...' : (certStatus === 'returned' ? '重新提交认证' : (mode === 'apply' ? '提交认证' : '保存修改'))}}</button>
+    <button class="submit-btn {{submitDisabled ? 'disabled' : ''}}" bindtap="submitCertification" disabled="{{submitDisabled || submitting || (restrictedCertification && checkingContinuation)}}" wx:if="{{mode === 'apply' || certStatus === 'approved' || certStatus === 'returned'}}">{{submitting ? '保存中...' : ((certStatus === 'returned' || (restrictedCertification && certStatus === 'pending')) ? '重新提交认证' : (mode === 'apply' ? '提交认证' : '保存修改'))}}</button>
   </view>
 
   <!-- 认证中状态 -->
-  <view class="pending-container" wx:if="{{mode === 'view' && certStatus === 'pending'}}">
+  <view class="pending-container" wx:if="{{!restrictedCertification && mode === 'view' && certStatus === 'pending'}}">
     <image class="pending-icon ui-icon" src="/images/content-ui/clock.svg" mode="aspectFit" aria-hidden="true" />
     <view class="pending-title">认证审核中</view>
-    <view class="pending-desc">您的企业认证申请已提交，请提交资料或重新查询认证结果</view>
+    <view class="pending-desc">您的企业认证申请已提交，请等待认证结果</view>
   </view>
 
-  <view class="continuation-panel" wx:if="{{continuingOrder}}">
+  <view class="certification-actions" wx:if="{{restrictedCertification}}">
+    <view class="certification-status" wx:if="{{checkingContinuation && !certificationReady}}">正在加载企业认证资料…</view>
+    <view class="certification-status" wx:elif="{{continuationMessage}}">{{continuationMessage}}</view>
+    <button class="cancel-certification-btn" bindtap="cancelCertification">取消认证</button>
+  </view>
+  <view class="continuation-panel" wx:elif="{{continuingOrder}}">
     <text>{{continuationMessage || '请完善资料，通过后继续下单'}}</text>
     <button bindtap="retryContinuation" loading="{{checkingContinuation}}" disabled="{{checkingContinuation || submitting}}">重新查询</button>
     <button bindtap="cancelContinuation">取消继续下单</button>

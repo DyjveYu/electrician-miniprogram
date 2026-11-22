@@ -164,6 +164,7 @@ require('../../utils/visitCapture').register(Page, {
    */
   checkLogin() {
     const app = getApp();
+    if (app._enterpriseCacheCheck || app._enterpriseCertificationSession) return false;
     console.log('checkLogin: globalData.isLogin=', app.globalData.isLogin ? 'true' : 'false');
     console.log('checkLogin: globalData.token=', app.globalData.token ? '存在' : '不存在');
     let isLogin = app.globalData.isLogin;

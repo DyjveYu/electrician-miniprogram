@@ -28,6 +28,8 @@ require('../../../utils/visitCapture').register(Page, {
     customItem: '全部',
     licenseImagePath: '',
     licenseImageUrl: '',
+    restrictedCertification: false,
+    certificationReady: false,
     continuingOrder: false,
     continuationMessage: '',
     checkingContinuation: false,
@@ -35,23 +37,24 @@ require('../../../utils/visitCapture').register(Page, {
   },
 
   onLoad(options = {}) {
+    this._restricted = app._enterpriseCertificationSession || null;
     this._account = orderEntry.key(app);
-    this._entryId = options.orderEntry;
+    this._entryId = this._restricted ? null : options.orderEntry;
     this._visible = false;
     this._unloaded = false;
     this._queryGeneration = 0;
     this._pollAttempt = 0;
-    this.setData({ continuingOrder: !!this._entryId && orderEntry.valid(app, this._entryId) });
-    if (options.mode) {
+    this.setData({
+      restrictedCertification: !!this._restricted,
+      continuingOrder: !!this._entryId && orderEntry.valid(app, this._entryId)
+    });
+    if (!this._restricted && options.mode) {
       this.setData({ mode: options.mode });
     }
 
     // 手机号自动从登录信息带出，不可修改
-    if (app.globalData.userInfo && app.globalData.userInfo.phone) {
-      this.setData({
-        'formData.contactPhone': app.globalData.userInfo.phone
-      });
-    }
+    const phone = this._restricted?.user.phone || app.globalData.userInfo?.phone;
+    if (phone) this.setData({ 'formData.contactPhone': phone });
 
     // 提前获取网络类型，供后续上传失败时一并上报
     wx.getNetworkType({
@@ -60,21 +63,35 @@ require('../../../utils/visitCapture').register(Page, {
       }
     });
 
-    // 查看模式加载认证信息
-    if (this.data.mode === 'view' && !this.data.continuingOrder) {
-      this.loadCertificationInfo();
-    }
   },
 
   onShow() {
-    if (!this._current()) { wx.reLaunch({ url: '/pages/index/index' }); return; }
+    if (!this._current()) {
+      wx.reLaunch({ url: app.globalData.isLogin ? '/pages/index/index' : '/pages/login/login' });
+      return;
+    }
     this._visible = true;
+    if (this._restricted) {
+      if (wx.hideHomeButton) wx.hideHomeButton();
+      if (this._restricted.expiresAt <= Date.now()) {
+        this.cancelCertification();
+        wx.showToast({ title: '认证会话已过期，请重新登录', icon: 'none' });
+        return;
+      }
+      if (this._pendingApproval) {
+        if (!this.finishRestrictedCertification(this._pendingApproval) && this._current()) {
+          this.setData({ continuationMessage: '认证结果尚未确认，请重试提交' });
+        }
+        return;
+      }
+      if (this.data.certificationReady || this.data.submitting) return;
+    }
     this._pollAttempt = 0;
     this.loadCertificationInfo();
   },
 
   onHide() {
-    if (this.data.checkingContinuation) wx.hideLoading();
+    if (this.data.checkingContinuation || (this._restricted && this.data.submitting)) wx.hideLoading();
     this._visible = false;
     this._queryGeneration++;
     clearTimeout(this._pollTimer);
@@ -83,13 +100,42 @@ require('../../../utils/visitCapture').register(Page, {
   onUnload() {
     this.onHide();
     this._unloaded = true;
+    if (this._restricted) {
+      this.cancelCertification();
+      return;
+    }
     if (orderEntry.valid(app, this._entryId) && this._entryId) orderEntry.clear();
   },
 
-  _current() { return !this._unloaded && this._account === orderEntry.key(app); },
+  _current() {
+    if (this._unloaded) return false;
+    if (this._restricted) return app._enterpriseCertificationSession === this._restricted;
+    return !!this._account && this._account === orderEntry.key(app) &&
+      app.globalData.userInfo?.current_role === 'enterprise';
+  },
+
+  certificationAuthorization() {
+    return `Bearer ${this._restricted?.token || app.globalData.token}`;
+  },
+
+  cancelCertification() {
+    if (!this._restricted || app._enterpriseCertificationSession !== this._restricted) return;
+    this._pendingApproval = null;
+    this._uploadedLicense = null;
+    this._queryGeneration++;
+    clearTimeout(this._pollTimer);
+    if (this.data.checkingContinuation || this.data.submitting) wx.hideLoading();
+    app.logout({ forceLogin: true });
+    for (const task of [this._queryTask, this._uploadTask, this._submitTask]) task?.abort?.();
+  },
+
+  goBack() {
+    if (this._restricted) return this.cancelCertification();
+    wx.navigateBack();
+  },
 
   retryContinuation() {
-    if (!this._current() || !this._visible || this.data.checkingContinuation) return;
+    if (this._restricted || !this._current() || !this._visible || this.data.checkingContinuation) return;
     this._pollAttempt = 0;
     this.loadCertificationInfo();
   },
@@ -111,19 +157,27 @@ require('../../../utils/visitCapture').register(Page, {
     this.setData({ checkingContinuation: true });
     wx.showLoading({ title: '加载中' });
 
-    enterpriseSession.request({
+    const queryFailed = () => this.setData({
+      continuationMessage: this._restricted ? '暂时无法读取企业资料，请取消后重新登录' : '查询失败，请重新查询'
+    });
+    this._queryTask = enterpriseSession.request({
       url: `${app.globalData.baseUrl}/miniprogram/enterprise/certification`,
       method: 'GET',
       header: {
-        'Authorization': `Bearer ${app.globalData.token}`
+        'Authorization': this.certificationAuthorization()
       },
       success: (res) => {
         if (!current()) return;
-        const ok = res?.data?.success === true || res?.data?.code === 0 || res?.data?.code === 200;
-        if (ok) {
-          const data = res?.data?.data || {};
+        if (enterpriseSession.successfulResponse(res)) {
+          const data = res.data.data;
+          if (this._restricted && data !== null && data?.certStatus !== 'pending') {
+            const message = data?.certStatus === 'approved' ?
+              '企业认证已完成，请取消后重新登录' : '暂时无法确认企业认证状态，请取消后重新登录';
+            this.setData({ continuationMessage: message });
+            return;
+          }
           if (this.data.continuingOrder && orderEntry.valid(app, this._entryId)) {
-            if (data.certStatus === 'approved' && orderEntry.consume(app, this._entryId)) {
+            if (data?.certStatus === 'approved' && orderEntry.consume(app, this._entryId)) {
               app.globalData.enterpriseCertification = data;
               this._entryId = null;
               wx.reLaunch({ url: '/pages/order/create/create' });
@@ -134,7 +188,9 @@ require('../../../utils/visitCapture').register(Page, {
           // 如果有认证记录，填充表单并切换到查看模式
           if (data && data.certStatus) {
             this.setData({
-              mode: 'view',
+              mode: this._restricted ? 'apply' : 'view',
+              certificationReady: !!this._restricted,
+              ...(this._restricted && { continuationMessage: '' }),
               certStatus: data.certStatus,
               returnReason: data.returnReason || '',
               formData: {
@@ -142,7 +198,7 @@ require('../../../utils/visitCapture').register(Page, {
                 creditCode: data.creditCode || '',
                 addressDetail: data.address || '',
                 contactName: data.contactName || '',
-                contactPhone: data.contactPhone || this.data.formData.contactPhone
+                contactPhone: this._restricted?.user.phone || data.contactPhone || this.data.formData.contactPhone
               },
               region: [
                 data.province || '',
@@ -156,10 +212,13 @@ require('../../../utils/visitCapture').register(Page, {
             });
           } else {
             // 无认证记录，保持申请模式
-            this.setData({ mode: 'apply', certStatus: '', returnReason: '' });
+            this.setData({
+              mode: 'apply', certStatus: '', returnReason: '',
+              ...(this._restricted && { certificationReady: true, continuationMessage: '' })
+            });
           }
         } else {
-          this.setData({ continuationMessage: '查询失败，请重新查询' });
+          queryFailed();
           log.warn('load_certification_biz_fail', {
             code: res?.data?.code,
             message: res?.data?.message
@@ -168,7 +227,7 @@ require('../../../utils/visitCapture').register(Page, {
       },
       fail: (err) => {
         if (!current()) return;
-        this.setData({ continuationMessage: '查询失败，请重新查询' });
+        queryFailed();
         log.error('load_certification_fail', { errMsg: err.errMsg });
         wx.showToast({ title: '加载失败', icon: 'none' });
       },
@@ -180,6 +239,7 @@ require('../../../utils/visitCapture').register(Page, {
 
   // 表单输入处理
   onInputChange(e) {
+    if (this._restricted && (!this._current() || this.data.submitting)) return;
     const { field } = e.currentTarget.dataset;
     const { value } = e.detail;
 
@@ -192,6 +252,7 @@ require('../../../utils/visitCapture').register(Page, {
 
   // 省市区选择器变更
   bindRegionChange(e) {
+    if (this._restricted && (!this._current() || this.data.submitting)) return;
     this.setData({
       region: e.detail.value
     });
@@ -201,6 +262,7 @@ require('../../../utils/visitCapture').register(Page, {
 
   // 选择营业执照图片
   chooseLicenseImage() {
+    if (this._restricted && (!this._current() || !this.data.certificationReady || this.data.submitting)) return;
     if (this.data.mode === 'view' && !['approved', 'returned'].includes(this.data.certStatus)) {
       wx.showToast({ title: '认证中不可修改', icon: 'none' });
       return;
@@ -212,7 +274,9 @@ require('../../../utils/visitCapture').register(Page, {
       sizeType: ['compressed'],
       sourceType: ['album', 'camera'],
       success(res) {
+        if (!that._current()) return;
         const tempFilePath = res.tempFilePaths[0];
+        that._uploadedLicense = null;
         that.setData({
           licenseImagePath: tempFilePath,
           licenseImageUrl: that.resolveLicenseImageUrl(tempFilePath)
@@ -220,6 +284,7 @@ require('../../../utils/visitCapture').register(Page, {
         that.checkFormValid();
       },
       fail(err) {
+        if (!that._current()) return;
         // 用户主动取消不算异常，不需要打扰用户/上报
         if (err.errMsg && err.errMsg.indexOf('cancel') !== -1) {
           return;
@@ -239,6 +304,7 @@ require('../../../utils/visitCapture').register(Page, {
   },
 
   previewLicenseImage() {
+    if (this._restricted && (!this._current() || this.data.submitting)) return;
     const url = this.resolveLicenseImageUrl(this.data.licenseImagePath);
     if (!url) return;
 
@@ -283,6 +349,10 @@ require('../../../utils/visitCapture').register(Page, {
         resolve(filePath);
         return;
       }
+      if (this._restricted && this._uploadedLicense?.source === filePath) {
+        resolve(this._uploadedLicense.path);
+        return;
+      }
 
       // 先获取文件大小，便于失败时一并上报诊断信息
       wx.getFileSystemManager().getFileInfo({
@@ -294,15 +364,19 @@ require('../../../utils/visitCapture').register(Page, {
   },
 
   _doUploadLicenseImage(filePath, fileSize, resolve, reject) {
+    if (!this._current()) {
+      reject(new Error('登录状态已变化，请重新进入'));
+      return;
+    }
     const systemInfo = wx.getSystemInfoSync ? wx.getSystemInfoSync() : {};
 
-    enterpriseSession.uploadFile({
+    this._uploadTask = enterpriseSession.uploadFile({
       url: `${app.globalData.baseUrl}/upload/certification`,
       filePath: filePath,
       name: 'certification',
       timeout: 30000, // 显式设置超时，避免默认值在弱网下过短
       header: {
-        'Authorization': `Bearer ${app.globalData.token}`
+        'Authorization': this.certificationAuthorization()
       },
       success: (res) => {
         // 无论状态码是多少，都先尝试解析响应体——
@@ -323,7 +397,7 @@ require('../../../utils/visitCapture').register(Page, {
             fileSize,
             platform: systemInfo.platform,
             SDKVersion: systemInfo.SDKVersion,
-            rawData: parsedData ? undefined : (res.data || '').toString().slice(0, 200)
+            rawData: this._restricted || parsedData ? undefined : (res.data || '').toString().slice(0, 200)
           });
           reject(new Error(backendMessage || `营业执照上传失败(HTTP ${res.statusCode})`));
           return;
@@ -331,7 +405,7 @@ require('../../../utils/visitCapture').register(Page, {
 
         try {
           const data = parsedData || JSON.parse(res.data);
-          if (data.code === 200 && data.data && data.data.url) {
+          if (data.success !== false && data.code === 200 && data.data && data.data.url) {
             let url = data.data.url;
             let relativePath;
 
@@ -354,6 +428,14 @@ require('../../../utils/visitCapture').register(Page, {
               relativePath = '/' + url;
             }
 
+            if (this._restricted) {
+              const token = data.data.certificationUploadToken;
+              if (typeof token !== 'string' || !token) {
+                reject(new Error('营业执照上传结果无效，请重试'));
+                return;
+              }
+              this._uploadedLicense = { source: filePath, path: relativePath, token };
+            }
             resolve(relativePath);
           } else {
             log.error('cert_upload_biz_error', {
@@ -366,7 +448,7 @@ require('../../../utils/visitCapture').register(Page, {
         } catch (e) {
           log.error('cert_upload_parse_error', {
             fileSize,
-            rawData: (res.data || '').toString().slice(0, 200)
+            rawData: this._restricted ? undefined : (res.data || '').toString().slice(0, 200)
           });
           reject(new Error('解析响应失败'));
         }
@@ -386,7 +468,8 @@ require('../../../utils/visitCapture').register(Page, {
 
   // 提交认证申请
   async submitCertification() {
-    if (!this._current() || this.data.submitDisabled || this.data.submitting) {
+    if (!this._current() || this.data.submitDisabled || this.data.submitting ||
+        (this._restricted && !this.data.certificationReady)) {
       wx.showToast({ title: '请完善信息后再提交', icon: 'none' });
       return;
     }
@@ -413,19 +496,20 @@ require('../../../utils/visitCapture').register(Page, {
     clearTimeout(this._pollTimer);
     this.setData({ checkingContinuation: false });
     this.setData({ submitting: true });
-    wx.showLoading({ title: '上传营业执照...', mask: true });
+    wx.showLoading({ title: '上传营业执照...', mask: !this._restricted });
 
     try {
       // 上传营业执照图片
-      let licenseImagePath = this.data.licenseImagePath;
-      if (licenseImagePath && typeof licenseImagePath === 'string' && licenseImagePath.trim()) {
-        licenseImagePath = await this.uploadLicenseImage(licenseImagePath);
+      const imageSource = this.data.licenseImagePath;
+      let licenseImagePath;
+      if (typeof imageSource === 'string' && imageSource.trim()) {
+        licenseImagePath = await this.uploadLicenseImage(imageSource);
       } else {
         throw new Error('请上传营业执照副本');
       }
 
-      if (!this._current() || !this._visible) return;
-      wx.showLoading({ title: '提交认证...', mask: true });
+      if (!this._current() || (!this._restricted && !this._visible)) return;
+      if (this._visible) wx.showLoading({ title: '提交认证...', mask: !this._restricted });
 
       const requestData = {
         companyName: this.data.formData.companyName.trim(),
@@ -437,26 +521,29 @@ require('../../../utils/visitCapture').register(Page, {
         contactName: this.data.formData.contactName.trim(),
         licenseImage: licenseImagePath
       };
+      if (this._restricted && this._uploadedLicense?.source === imageSource &&
+          this._uploadedLicense.path === licenseImagePath) {
+        requestData.certificationUploadToken = this._uploadedLicense.token;
+      }
 
       const submission = await new Promise((resolve, reject) => {
-        enterpriseSession.request({
+        this._submitTask = enterpriseSession.request({
           url: `${app.globalData.baseUrl}/miniprogram/enterprise/certification`,
           method: 'POST',
           header: {
-            'Authorization': `Bearer ${app.globalData.token}`,
+            'Authorization': this.certificationAuthorization(),
             'Content-Type': 'application/json'
           },
           data: requestData,
           success: (res) => {
-            const ok = res?.data?.success === true || res?.data?.code === 0 || res?.data?.code === 200;
-            if (ok) {
+            if (enterpriseSession.successfulResponse(res)) {
               resolve(res.data);
             } else {
               log.error('cert_submit_biz_error', {
                 code: res?.data?.code,
                 message: res?.data?.message
               });
-              reject(new Error(res.data.message || '提交失败'));
+              reject(new Error(res.data?.message || '提交失败'));
             }
           },
           fail: (err) => {
@@ -467,8 +554,22 @@ require('../../../utils/visitCapture').register(Page, {
         });
       });
 
-      if (!this._current() || !this._visible) return;
+      if (!this._current()) return;
       const profile = submission?.data;
+      if (this._restricted) {
+        if (profile?.certStatus !== 'approved' || profile.sessionType !== 'authenticated' ||
+            !profile.token || !enterpriseSession.sameEnterprise(this._restricted.user, profile.user)) {
+          throw new Error('认证结果尚未确认，请重试提交');
+        }
+        if (!this._visible) {
+          this._pendingApproval = profile;
+          return;
+        }
+        if (!this.finishRestrictedCertification(profile)) throw new Error('认证结果尚未确认，请重试提交');
+        return;
+      }
+
+      if (!this._visible) return;
       if (profile?.certStatus !== 'approved') throw new Error('认证结果尚未确认，请重新查询');
       app.globalData.enterpriseCertification = profile;
       wx.hideLoading();
@@ -498,7 +599,9 @@ require('../../../utils/visitCapture').register(Page, {
       }, 1500);
 
     } catch (error) {
-      if (!this._current() || !this._visible) return;
+      if (!this._current()) return;
+      if (this._restricted) this.setData({ continuationMessage: error.message || '请检查网络后重试' });
+      if (!this._visible) return;
       log.error('cert_submit_catch', { message: error.message });
       wx.hideLoading();
       wx.showModal({ confirmColor: '#16835c',
@@ -508,7 +611,7 @@ require('../../../utils/visitCapture').register(Page, {
         confirmText: '重试',
         cancelText: '取消',
         success: (res) => {
-          if (res.confirm) {
+          if (res.confirm && this._current() && this._visible) {
             this.submitCertification();
           }
         }
@@ -516,5 +619,22 @@ require('../../../utils/visitCapture').register(Page, {
     } finally {
       if (this._current()) this.setData({ submitting: false });
     }
+  },
+
+  finishRestrictedCertification(profile) {
+    this._pendingApproval = null;
+    if (!app.completeEnterpriseCertification(this._restricted, profile)) return false;
+    wx.hideLoading();
+    wx.showToast({ title: '认证成功', icon: 'success' });
+    const account = orderEntry.key(app);
+    const home = () => {
+      if (orderEntry.key(app) === account) wx.switchTab({ url: '/pages/index/index' });
+    };
+    if (this._restricted.fromOrder) {
+      wx.reLaunch({ url: '/pages/order/create/create?entry=enterprise-certification', fail: home });
+    } else {
+      home();
+    }
+    return true;
   }
 });

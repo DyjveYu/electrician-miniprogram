@@ -1,4 +1,14 @@
 <wxs module="workNumber" src="../../../utils/workNo.wxs" />
+<view class="create-navigation" style="{{navigationTop > 0 ? 'padding-top:' + navigationTop + 'px;' : ''}}">
+  <view class="create-navigation-row" style="{{navigationHeight > 0 ? 'height:' + navigationHeight + 'px;' : ''}}">
+    <button wx:if="{{fromEnterpriseCertification || showCreateBack || showCreateHome}}" class="create-navigation-action" bindtap="goBack" aria-label="{{showCreateHome && !fromEnterpriseCertification ? '首页' : '返回'}}">
+      <text wx:if="{{fromEnterpriseCertification}}" decode="{{true}}">&lt; 返回</text>
+      <image wx:elif="{{showCreateHome}}" class="create-navigation-icon" src="/images/tab/home.png" mode="aspectFit" aria-hidden="true" />
+      <image wx:else class="create-navigation-icon create-navigation-back" src="/images/content-ui/arrow-right.svg" mode="aspectFit" aria-hidden="true" />
+    </button>
+    <text class="create-navigation-title">{{userType === 'enterprise' ? '创建企业订单' : '创建订单'}}</text>
+  </view>
+</view>
 <view class="page-container {{userType === 'enterprise' ? 'enterprise-create' : ''}}">
   <view class="address-error" wx:if="{{submissionUncertain}}"><text>提交结果未确认，请先查看我的订单，避免重复下单</text><button bindtap="viewOrders">查看我的订单</button></view>
   <!-- 单日快修 / 个人用户表单 -->

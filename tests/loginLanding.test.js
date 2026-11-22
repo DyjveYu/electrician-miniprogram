@@ -124,7 +124,11 @@ test('R6: 原登录提交仍传递所选个人／企业／电工角色并保存�
     let received;
     AuthAPI.login = async (...args) => {
       received = args;
-      return { data: { user: { phone: '13800000000', current_role: role }, token: 'new-test-token' } };
+      return { data: {
+        user: { phone: '13800000000', current_role: role },
+        token: 'new-test-token',
+        ...(role === 'enterprise' && { enterpriseCertification: { certStatus: 'approved' } })
+      } };
     };
     page.openLoginForm(event(role === 'electrician' ? role : 'user'));
     page.selectRole(event(role));
