@@ -192,4 +192,4 @@
 
 </view>
 
-<order-prepay pricing-mode="{{createdPricingMode}}" project-price="{{createdProjectPrice}}" visible="{{showPrepay}}" project="{{createdIsProject}}" order-id="{{createdOrderId}}" offsite="{{createdIsOffsite}}" amount="{{createdPrepayAmount}}" bind:confirm="confirmPersonalPrepay" bind:close="closePersonalPrepay" />
+<order-prepay enterprise-onsite="{{createdEnterpriseOnsite}}" pricing-mode="{{createdPricingMode}}" project-price="{{createdProjectPrice}}" visible="{{showPrepay}}" project="{{createdIsProject}}" order-id="{{createdOrderId}}" offsite="{{createdIsOffsite}}" amount="{{createdPrepayAmount}}" bind:confirm="confirmPersonalPrepay" bind:close="closePersonalPrepay" />

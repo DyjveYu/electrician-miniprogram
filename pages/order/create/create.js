@@ -593,7 +593,10 @@ require('../../../utils/visitCapture').register(Page, {
   confirmPersonalPrepay(e) {
     if (!this._current() || !this._visible || !this._createdOrderId || this._leavingForPay) return;
     this._leavingForPay = true;
-    personalOrder.grant(getApp(), this._createdOrderId, e?.detail?.mode ? e.detail : undefined);
+    const choice = this.data.createdEnterpriseOnsite
+      ? { enterpriseOnsite: true, amount: this.data.createdPrepayAmount }
+      : (e?.detail?.mode ? e.detail : undefined);
+    personalOrder.grant(getApp(), this._createdOrderId, choice);
     wx.redirectTo({ url: `/pages/payment/payment/payment?orderId=${this._createdOrderId}`, fail: () => {
       personalOrder.clear(); this._leavingForPay = false; this.setData({ showPrepay: false }, () => this.setData({ showPrepay: true }));
     } });
@@ -688,7 +691,8 @@ require('../../../utils/visitCapture').register(Page, {
     }
 
     if (!this._current() || this._visible === false) { this.setData({ submitting: false }); return; }
-    const project = this.data.userType === 'enterprise' && this.data.orderMode === 'project';
+    const enterprise = this.data.userType === 'enterprise';
+    const project = enterprise && this.data.orderMode === 'project';
     const payload = {
       ...(project ? { addressId: this.data.selectedAddress.id, projRequiredCount: this.data.enterpriseCount, projStartDate: this.data.projStartDate, projEndDate: this.data.projEndDate, ...(this.data.serviceMode === 'off_site' ? { project_price_selection:true, request_key: this._projectRequestKey ||= 'project_' + Date.now().toString(36) + Math.random().toString(36).slice(2) } : {projTotalAmount:this.data.projTotalAmount}), contactPhone: this.data.contactPhone } : {}),
       service_type_id: this.data.selectedServiceType.id,
@@ -728,7 +732,7 @@ require('../../../utils/visitCapture').register(Page, {
             wx.showToast({ title: '订单信息未确认，请查看我的订单', icon: 'none' });
             return;
           }
-          this.setData({ createdOrderId: orderId, createdIsProject: project, createdIsOffsite: payload.service_mode === 'off_site', createdPrepayAmount: amount.toFixed(2), createdProjectPrice: res.data.data?.project_billing || null, createdPricingMode:res.data.data?.pricing_mode || 'fixed_deposit', showPrepay: this._visible !== false, submitting: false, canSubmit: false });
+          this.setData({ createdOrderId: orderId, createdIsProject: project, createdEnterpriseOnsite: enterprise && !project && payload.service_mode === 'on_site', createdIsOffsite: payload.service_mode === 'off_site', createdPrepayAmount: amount.toFixed(2), createdProjectPrice: res.data.data?.project_billing || null, createdPricingMode:res.data.data?.pricing_mode || 'fixed_deposit', showPrepay: this._visible !== false, submitting: false, canSubmit: false });
         } else {
           if (res.statusCode >= 500 || res.data?.code >= 500) {
             this.setData({ submitting: false, submissionUncertain: true, canSubmit: false });

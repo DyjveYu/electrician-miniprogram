@@ -133,7 +133,7 @@
       <view class="address-info">
         <view class="contact-row">
           <text class="contact-name">{{order.contactName}}</text>
-          <text class="contact-phone" bindtap="makePhoneCall" data-phone="{{order.contactPhone}}">{{order.contactPhoneMasked}}</text>
+          <text class="contact-phone" bindtap="makePhoneCall" data-phone="{{order.contactPhone}}">{{order.ownerContactPhone || order.contactPhoneMasked}}</text>
         </view>
         <view class="address-detail">{{order.address}}</view>
       </view>
@@ -159,7 +159,7 @@
     <view class="section card" wx:if="{{(order.status === 'accepted' || order.status === 'pending_repair_payment') && !(currentRole === 'electrician' && order.projRequiredCount)}}">
       <view class="section-title">维修明细</view>
       <view class="info-row" wx:if="{{order.amount}}">
-        <text class="label">预付款：</text>
+        <text class="label">{{order.prepayLabel || '预付款'}}：</text>
         <text class="value amount">{{order.amount || '30.00'}}元</text>
       </view>
       <block wx:if="{{order.canSubmitCompletedUpdate}}">
@@ -205,7 +205,7 @@
       </block>
       <block wx:else>
         <view class="info-row" wx:if="{{order.amount && order.status !== 'cancelled' && order.status !== 'closed'}}">
-          <text class="label">预付款：</text>
+          <text class="label">{{order.prepayLabel || '预付款'}}：</text>
           <text class="value">{{order.amount}}元</text>
         </view>
         <view class="info-row" wx:if="{{order.repairAmount}}">

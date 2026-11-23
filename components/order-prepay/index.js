@@ -9,6 +9,7 @@ Component({
     orderId: { type: Number, value: 0 },
     project: { type: Boolean, value: false },
     projectPrice: { type: Object, value: null },
+    enterpriseOnsite: { type: Boolean, value: false },
     offsite: { type: Boolean, value: false }
   },
   data: { mode: 'fixed_deposit', price: '', paragraphs, opened: false, agreed: false, reading: false, confirming: false },
@@ -16,12 +17,17 @@ Component({
     noop() {},
     chooseMode(e) { if (!this.data.confirming) this.setData({ mode: e.detail.value, agreed: false }); },
     inputPrice(e) { this.setData({ price: e.detail.value, agreed: false }); },
-    read() { this.setData({ reading: true, opened: true }); },
+    read() { this.setData({ reading: true, opened: !this.data.enterpriseOnsite || this.data.opened }); },
     closeReader() { this.setData({ reading: false }); },
+    acceptReader() {
+      if (this.data.enterpriseOnsite && this.data.reading && !this.data.confirming) {
+        this.setData({ reading: false, agreed: true });
+      }
+    },
     changeAgreement(e) { this.setData({ agreed: e.detail.value.includes('agree') }); },
     close() { if (!this.data.confirming) this.triggerEvent('close'); },
     async confirm() {
-      if (!this.data.opened || !this.data.agreed || this.data.confirming) return;
+      if ((!this.data.opened && !this.data.enterpriseOnsite) || !this.data.agreed || this.data.confirming || this.data.reading) return;
       this.setData({ confirming: true });
       const project = this.data.project, contract = this.data.projectPrice;
       const selectable = project && contract?.priceRevision != null;

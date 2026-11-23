@@ -1,3 +1,4 @@
+const orderEntry = require('../../../utils/orderEntry');
 const personalOrder = require('../../../utils/personalOrder');
 const enterpriseSession = require('../../../utils/enterpriseSession');
 const { regionError, isTakeSuccess } = require('../../../utils/orderTakeFeedback');
@@ -64,6 +65,21 @@ require('../../../utils/visitCapture').register(Page, {
     }
   },
 
+  onHide() {
+    this._detailRequest = null;
+    this._fetchingDetail = false;
+    this._firstShowSkipped = true;
+    this.clearOwnerContact();
+  },
+
+  clearOwnerContact() {
+    if (this.data.order?.ownerContactPhone) {
+      this.setData({ order: { ...this.data.order, ownerContactPhone: '', contact_phone: '', contactPhone: '' } });
+    }
+  },
+
+  onUnload() { this.onHide(); this._detailUnloaded = true; },
+
   onPullDownRefresh() {
     this.loadOrderDetail();
   },
@@ -71,9 +87,15 @@ require('../../../utils/visitCapture').register(Page, {
   // 加载订单详情
   loadOrderDetail() {
     // 避免并发重复请求触发后端限流
-    if (this._fetchingDetail) return;
+    if (this._fetchingDetail || this._detailUnloaded) return;
+    this.clearOwnerContact();
     this._fetchingDetail = true;
     const app = getApp();
+
+    const request = { id: this.data.orderId, account: orderEntry.key(app), token: app.globalData.token };
+    this._detailRequest = request;
+    const current = () => this._detailRequest === request && request.id === this.data.orderId &&
+      request.account === orderEntry.key(app) && request.token === app.globalData.token;
 
     enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${this.data.orderId}`,
@@ -82,6 +104,7 @@ require('../../../utils/visitCapture').register(Page, {
         'Authorization': `Bearer ${app.globalData.token}`
       },
       success: (res) => {
+        if (!current()) return;
         wx.stopPullDownRefresh();
         this.setData({ loading: false });
         this._fetchingDetail = false;
@@ -91,6 +114,10 @@ require('../../../utils/visitCapture').register(Page, {
         if (ok) {
           // 兼容后端返回结构：{ data: { order: {...} } }
           const raw = res?.data?.data?.order || res?.data?.data || {};
+          if (raw.is_order_owner === true && String(raw.id) !== String(request.id)) {
+            this.setData({ order: null });
+            return;
+          }
           const normalizedStatus = raw.status === 'confirmed' ? 'in_progress' : raw.status;
           const prepayAmount = raw.prepay_amount ||
             (raw.serviceType && raw.serviceType.prepay_amount) ||
@@ -164,7 +191,7 @@ require('../../../utils/visitCapture').register(Page, {
             // 多日工程：实际到账金额（扣除15%平台费）
             projActualAmount: raw.projTotalAmount ? (Number(raw.projTotalAmount) * 0.85).toFixed(2) : null,
             // 工单类型中文映射
-            orderTypeText: this.getOrderTypeText(raw)
+            orderTypeText: personalOrder.labels(raw).orderTypeText
           };
 
           // 计算“维修安装费”合计（仅在进行中/待评价/已完成展示）
@@ -217,6 +244,7 @@ require('../../../utils/visitCapture').register(Page, {
         }
       },
       fail: () => {
+        if (!current()) return;
         wx.stopPullDownRefresh();
         this.setData({ loading: false });
         this._fetchingDetail = false;

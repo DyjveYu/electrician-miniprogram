@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const { harness } = require('./helpers/contentHarness');
 const flush = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
 const address = { id: 2, province: '省', city: '市', district: '其他区', detail_address: '测试路1号', contact_name: '企业联系人', contact_phone: '13900000111' };
-const order = extra => ({ id: 10, order_type: 'enterprise_quick', service_mode: 'on_site', required_cert_type: 'construction', electricity_type: null, status: 'pending_payment', prepay_amount: '28.50', ...extra });
+const order = extra => ({ id: 10, is_order_owner: true, order_type: 'enterprise_quick', service_mode: 'on_site', required_cert_type: 'construction', electricity_type: null, status: 'pending_payment', prepay_amount: '28.50', ...extra });
 async function create() {
   const h = harness(); h.login('enterprise');
   const p = h.page('pages/order/create/create.js'); p.onLoad({ referrerId: '9' }); p.onShow();
@@ -13,13 +13,14 @@ async function create() {
   await flush(); p.setData({ description: '企业服务内容', requiredCertType: 'construction' }); p.updateSubmitEnable();
   return { h, p };
 }
-function pay(extra = {}) {
+function pay(extra = {}, choice) {
   const h = harness(); h.login('enterprise'); h.app.globalData.paymentMethod = 'test';
   const api = h.load('utils/api.js').PaymentAPI;
   let posted = [];
   api.createPayment = async body => { posted.push(body); return { code: 200, data: { success: true, payment_no: 'isolated-enterprise', amount: 28.5 } }; };
   api.confirmTestPayment = async () => ({ code: 200 });
   api.queryPayment = async () => ({ code: 200, data: { status: 'success' } });
+  if (choice) h.load('utils/personalOrder.js').grant(h.app, 10, choice);
   const p = h.page('pages/payment/payment/payment.js'); p.onLoad({ orderId: '10' });
   h.respond(0, { order: order(extra) });
   return { h, p, api, posted };
@@ -86,6 +87,69 @@ test('new enterprise detail and direct payment entry both use the common agreeme
   h.respond(1, { order: order({ status: 'pending', has_paid_prepay: true }) }); assert.match(h.calls.redirect.at(-1).url, /status=success/);
   const other = harness(); other.login('enterprise'); const detail = other.page('pages/order/detail/detail.js'); detail.setData({ orderId: 10, order: order() });
   await detail.goToPay(); assert.equal(other.calls.navigate.at(-1).url, '/pages/payment/payment/payment?orderId=10'); assert.equal(other.calls.request.length, 0);
+});
+
+test('M5.5: amount mismatch requires new consent and other accounts cannot enter payment', async () => {
+  const choice = { enterpriseOnsite: true, amount: '28.50' };
+  const valid = pay({}, choice);
+  await flush();
+  assert.equal(valid.posted.length, 1);
+  const repriced = pay({ prepay_amount: '29.50' }, choice);
+  assert.equal(repriced.p.data.showPrepay, true);
+  assert.equal(repriced.posted.length, 0);
+  const other = pay({ is_order_owner: false }, choice);
+  assert.equal(other.posted.length, 0);
+  assert.match(other.h.calls.redirect[0].url, /detail\?id=10/);
+});
+
+test('M5.5: enterprise direct checkbox and reader explicit consent both gate the payment event', async () => {
+  const h = harness();
+  const events = [];
+  const sheet = {
+    ...h.component('components/order-prepay/index.js'),
+    data: { enterpriseOnsite: true, agreed: false, reading: false, opened: false, confirming: false },
+    setData(next) { Object.assign(this.data, next); },
+    triggerEvent(name) { events.push(name); }
+  };
+  await sheet.confirm();
+  sheet.read();
+  sheet.closeReader();
+  assert.equal(sheet.data.agreed, false);
+  sheet.read();
+  sheet.acceptReader();
+  assert.equal(sheet.data.agreed, true);
+  assert.deepEqual(events, []);
+  sheet.changeAgreement({ detail: { value: [] } });
+  await sheet.confirm();
+  assert.deepEqual(events, []);
+  sheet.changeAgreement({ detail: { value: ['agree'] } });
+  await sheet.confirm();
+  await sheet.confirm();
+  assert.deepEqual(events, ['confirm']);
+});
+
+test('M5.5: owner phone uses the order value only, across both detail pages and service modes', () => {
+  for (const file of ['pages/order/detail/detail.js', 'pages/order-landing-detail/index.js']) {
+    const h = harness();
+    h.login('enterprise');
+    h.wx.stopPullDownRefresh = () => {};
+    const page = h.page(file);
+    page.onLoad({ id: '10' });
+    h.respond(0, { order: order({ contact_phone: '13900000111' }) });
+    assert.equal(page.data.order.ownerContactPhone, '13900000111');
+    assert.equal(page.data.order.orderTypeText, '企业上门订单');
+    assert.equal(page.data.order.prepayLabel, '上门费');
+    page.loadOrderDetail();
+    page.onHide();
+    h.respond(1, { order: order({ contact_phone: '13900000111' }) });
+    assert.equal(page.data.order.ownerContactPhone, '');
+  }
+  const model = harness().load('utils/personalOrder.js');
+  const phone = '13900000111';
+  assert.equal(model.labels(order({ service_mode: 'off_site', contact_phone: phone })).ownerContactPhone, phone);
+  assert.equal(model.labels(order({ is_order_owner: false, contact_phone: phone })).ownerContactPhone, '');
+  assert.equal(model.labels(order({ service_mode: null, contact_phone: phone })).ownerContactPhone, '');
+  assert.equal(model.labels(order({ contact_phone: '139****0111' })).ownerContactPhone, '');
 });
 
 test('enterprise legacy and project payments keep their old paths and have no new agreement gate', async () => {

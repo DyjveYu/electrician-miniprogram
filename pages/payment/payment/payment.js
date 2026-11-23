@@ -69,7 +69,14 @@ require('../../../utils/visitCapture').register(Page, {
           if (order.project_billing?.pricingMode === 'fixed_price' && this._requestedType === 'repair') { this.goToOrder(); return; }
           const payType = order.project_billing && this._requestedType === 'repair' ? 'repair' : typeByStatus;
           const personalPrepay = personalOrder.isExplicit(order) && payType === 'prepay';
-          this.setData({ order, payType, personalPrepay, safePayment: personalPrepay || order.service_mode === 'off_site', offsitePayment: order.service_mode === 'off_site', projectPrepay: personalPrepay && order.order_type === 'enterprise_project', orderLoaded: true, loadError: '', payAmount: Number(payType === 'repair' ? order.final_amount : order.prepay_amount), prepayDisplayAmount: Number(order.prepay_amount).toFixed(2) });
+          const enterpriseOnsitePrepay = personalPrepay && personalOrder.isEnterpriseOnsite(order);
+          if (this._choice?.enterpriseOnsite && !enterpriseOnsitePrepay) this._prepayAgreed = false;
+          if (enterpriseOnsitePrepay) {
+            if (order.is_order_owner !== true || String(order.id) !== String(this.data.orderId) || order.status !== 'pending_payment' || order.has_paid_prepay) { this.goToOrder(); return; }
+            this._prepayAgreed = this._choice?.enterpriseOnsite === true && Number(order.prepay_amount) > 0 &&
+              Number(this._choice.amount) === Number(order.prepay_amount);
+          }
+          this.setData({ order, payType, personalPrepay, enterpriseOnsitePrepay, safePayment: personalPrepay || order.service_mode === 'off_site', offsitePayment: order.service_mode === 'off_site', projectPrepay: personalPrepay && order.order_type === 'enterprise_project', orderLoaded: true, loadError: '', payAmount: Number(payType === 'repair' ? order.final_amount : order.prepay_amount), prepayDisplayAmount: Number(order.prepay_amount).toFixed(2) });
           if (personalOrder.isExplicit(order) && this._requestedType === 'prepay' && order.status !== 'pending_payment') {
             this.goToOrder(); return;
           }
@@ -326,7 +333,7 @@ require('../../../utils/visitCapture').register(Page, {
   paymentCurrent() { return !this._unloaded && (!this._account || this._account === orderEntry.key(getApp())); },
 
   confirmPrepay(e) {
-    if (!this.paymentCurrent() || !this._visible) return;
+    if (!this.paymentCurrent() || !this._visible || !this.data.showPrepay) return;
     if (this.data.offsitePayment && (!this.data.projectPrepay || this.data.order?.project_billing?.priceRevision != null)) {
       this._choice = e?.detail;
       if (!this._choice?.mode) return;

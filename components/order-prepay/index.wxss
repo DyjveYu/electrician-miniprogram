@@ -11,3 +11,8 @@ button { margin-top: 24rpx; font-size: 30rpx; border-radius: 18rpx; }
 .secondary { background: #fff; color: #16835c; border: 1rpx solid #16835c; }
 .agreement-body { height: 55vh; margin: 20rpx 0; }
 .paragraph { display: block; margin-bottom: 22rpx; white-space: pre-wrap; word-break: break-all; font-size: 28rpx; line-height: 1.85; }
+
+.enterprise-onsite .heading { color: #222222; }
+.enterprise-onsite .amount, .enterprise-onsite .agreement-choice { color: #000000; }
+.enterprise-onsite .hint, .enterprise-onsite .secondary { color: #6A6A6A; }
+.enterprise-onsite .agreement-link { color: #E21515; }

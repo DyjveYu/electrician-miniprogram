@@ -10,10 +10,19 @@ function typeName(order) {
 function isExplicit(order) {
   return ['personal_quick', 'enterprise_quick', 'enterprise_project'].includes(order?.order_type) && (order.service_mode != null || order.required_cert_type != null || order.pricing_mode != null);
 }
+function isEnterpriseOnsite(order) {
+  return order?.order_type === 'enterprise_quick' && order.service_mode === 'on_site';
+}
 function labels(order) {
+  const onsitePrepay = order.is_order_owner === true && isEnterpriseOnsite(order) && order.status === 'pending_payment' && !order.has_paid_prepay;
+  const phone = order.contact_phone;
+  const ownerContactPhone = order.is_order_owner === true && isExplicit(order) &&
+    ['on_site', 'off_site'].includes(order.service_mode) && typeof phone === 'string' && /^1[3-9]\d{9}$/.test(phone) ? phone : '';
   return {
     ...require('./offsiteOrder').labels(order),
-    orderTypeText: typeName(order),
+    orderTypeText: onsitePrepay ? '企业上门订单' : typeName(order),
+    prepayLabel: onsitePrepay ? '上门费' : '预付款',
+    ownerContactPhone,
     isExplicitSingle: isExplicit(order),
     isNewEnterprise: ['enterprise_quick', 'enterprise_project'].includes(order.order_type) && isExplicit(order),
     isNewProject: order.order_type === 'enterprise_project' && isExplicit(order),
@@ -40,4 +49,4 @@ function consume(app, id) {
   return !!value?.key && value.key === orderEntry.key(app) && value.id === String(id) && (value.choice || true);
 }
 function clear() { pending = null; }
-module.exports = { isExplicit, typeName, labels, grant, consume, clear };
+module.exports = { isExplicit, isEnterpriseOnsite, typeName, labels, grant, consume, clear };

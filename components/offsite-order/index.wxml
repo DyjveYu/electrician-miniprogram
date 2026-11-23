@@ -10,6 +10,7 @@
       <view class="section-title">订单信息</view>
       <view class="info-row"><text class="label">订单号：</text><text class="value">{{order.orderNumber || order.order_no}}</text></view>
       <view class="info-row"><text class="label">工单类型：</text><text class="value">{{order.orderTypeText}}</text></view>
+      <view class="info-row" wx:if="{{order.ownerContactPhone}}"><text class="label">联系人电话：</text><text class="value">{{order.ownerContactPhone}}</text></view>
       <view class="info-row"><text class="label">服务方式：</text><text class="value">不上门服务</text></view>
       <view class="info-row"><text class="label">所需资质：</text><text class="value">{{order.requiredCertName}}</text></view>
       <view class="info-row" wx:if="{{order.electricityTypeName}}"><text class="label">用电类型：</text><text class="value">{{order.electricityTypeName}}</text></view>

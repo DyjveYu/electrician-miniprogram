@@ -1,3 +1,4 @@
+const orderEntry = require('../../utils/orderEntry');
 const enterpriseSession = require('../../utils/enterpriseSession');
 const personalOrder = require('../../utils/personalOrder');
 const { regionError, isTakeSuccess } = require('../../utils/orderTakeFeedback');
@@ -55,6 +56,21 @@ require('../../utils/visitCapture').register(Page, {
     }
   },
 
+  onHide() {
+    this._detailRequest = null;
+    this._fetchingDetail = false;
+    this._firstShowSkipped = true;
+    this.clearOwnerContact();
+  },
+
+  clearOwnerContact() {
+    if (this.data.order?.ownerContactPhone) {
+      this.setData({ order: { ...this.data.order, ownerContactPhone: '', contact_phone: '', contactPhone: '' } });
+    }
+  },
+
+  onUnload() { this.onHide(); this._detailUnloaded = true; },
+
   onPullDownRefresh() {
     this.loadOrderDetail();
   },
@@ -67,14 +83,21 @@ require('../../utils/visitCapture').register(Page, {
 
   // ── 加载订单详情 ──
   loadOrderDetail() {
-    if (this._fetchingDetail) return;
+    if (this._fetchingDetail || this._detailUnloaded) return;
+    this.clearOwnerContact();
     this._fetchingDetail = true;
+
+    const request = { id: this.data.orderId, account: orderEntry.key(app), token: app.globalData.token };
+    this._detailRequest = request;
+    const current = () => this._detailRequest === request && request.id === this.data.orderId &&
+      request.account === orderEntry.key(app) && request.token === app.globalData.token;
 
     enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${this.data.orderId}`,
       method: 'GET',
       header: { 'Authorization': `Bearer ${app.globalData.token}` },
       success: (res) => {
+        if (!current()) return;
         wx.stopPullDownRefresh();
         this.setData({ loading: false });
         this._fetchingDetail = false;
@@ -83,6 +106,10 @@ require('../../utils/visitCapture').register(Page, {
         const ok = code === 0 || code === 200 || res.statusCode === 200 || res?.data?.success === true;
         if (ok) {
           const raw = res?.data?.data?.order || res?.data?.data || {};
+          if (raw.is_order_owner === true && String(raw.id) !== String(request.id)) {
+            this.setData({ order: null });
+            return;
+          }
           const normalizedStatus = raw.status === 'confirmed' ? 'in_progress' : raw.status;
           const prepayAmount = raw.prepay_amount ||
             (raw.serviceType && raw.serviceType.prepay_amount) ||
@@ -131,7 +158,7 @@ require('../../utils/visitCapture').register(Page, {
             projStartTimeShort: raw.projStartTime ? this.formatShortTime(raw.projStartTime) : '',
             projEndTimeShort: raw.projEndTime ? this.formatShortTime(raw.projEndTime) : '',
             projActualAmount: raw.projTotalAmount ? (Number(raw.projTotalAmount) * 0.85).toFixed(2) : null,
-            orderTypeText: this.getOrderTypeText(raw)
+            orderTypeText: personalOrder.labels(raw).orderTypeText
           };
 
           const prepayNum = Number(order.amount) || 0;
@@ -174,6 +201,7 @@ require('../../utils/visitCapture').register(Page, {
         }
       },
       fail: () => {
+        if (!current()) return;
         wx.stopPullDownRefresh();
         this.setData({ loading: false });
         this._fetchingDetail = false;

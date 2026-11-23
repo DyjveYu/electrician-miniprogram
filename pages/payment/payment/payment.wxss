@@ -199,3 +199,7 @@
 
 /* UI1.1：页面布局及状态精调。 */
 .amount-section { background: #eff7f1; border-radius: 26rpx; padding: 48rpx 24rpx; margin-bottom: 28rpx; } .amount-value { color: #16835c; word-break: break-all; } .payment-section, .order-section { margin: 0 0 24rpx; padding: 28rpx 24rpx; } .auto-tip { color: #687a71; line-height: 1.9; } .pay-section { padding: 20rpx 0; } .pay-btn { width: 100%; height: auto; border-radius: 22rpx; line-height: 1.6; padding: 20rpx 24rpx; background: #16835c; color: #fff; }
+
+.enterprise-onsite-payment .section-title { color: #222222; }
+.enterprise-onsite-payment .amount-label, .enterprise-onsite-payment .amount-value { color: #000000; }
+.enterprise-onsite-payment .auto-tip { color: #6A6A6A; }
