@@ -1,4 +1,18 @@
 @import "../../styles/clean-page.wxss";
+.home-viewport { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #fff; }
+.home-fixed { flex: 0 0 auto; box-sizing: border-box; padding: 24rpx 44rpx 0; background: #fff; }
+.home-scroll { flex: 1 1 0; height: 0; min-height: 0; overflow: hidden; }
+.nearby-bounded { height: 26vh; }
+.national-order-row { padding: 22rpx 0; border-bottom: 1rpx solid var(--clean-line); color: var(--clean-text); }
+.national-order-title { font-size: 30rpx; font-weight: 600; line-height: 1.4; }
+.national-order-meta { color: var(--clean-muted); font-size: 24rpx; line-height: 1.5; }
+.national-order-summary { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; font-size: 26rpx; line-height: 1.5; word-break: break-word; }
+.national-end { padding: 20rpx 0; text-align: center; }
+@media (max-height: 550px) {
+  .home-fixed { padding-top: 12rpx; }
+  .home-fixed .service-card { padding-top: 16rpx; padding-bottom: 16rpx; margin-bottom: 12rpx; }
+  .home-fixed .scope-body { line-height: 1.5; }
+}
 .container { box-sizing: border-box; padding: 32rpx 44rpx 0; background: #fff; }
 .user-content, .electrician-content { padding: 0; }
 .service-card { display: flex; align-items: center; gap: 24rpx; padding: 36rpx 28rpx; border-radius: 26rpx; background: var(--clean-mint); color: var(--clean-text); margin-bottom: 32rpx; }

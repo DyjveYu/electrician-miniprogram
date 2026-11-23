@@ -96,13 +96,33 @@ test('independent offsite fee payment is bound to saved version and waits for re
   h.respond(check,{order:order({has_paid_repair:true,status:'pending_review'})});await flush();
   assert.equal(h.calls.redirect.at(-1).url,'/pages/order/detail/detail?id=10');
 });
-test('home displays at most three national records and does not require regional lookup',async()=>{
-  const h=harness();h.login();const p=h.page('pages/index/index.js');const work=p.loadNationalOrders();
+test('home paginates national records, retries a failed page and stops at the last row',async()=>{
+  const h=harness();h.login('electrician');const p=h.page('pages/index/index.js');const work=p.loadNationalOrders();
   assert.equal(h.calls.request.length,1);assert.match(h.calls.request[0].url,/order_scope=nationwide/);
-  h.respond(0,{list:[1,2,3,4].map(id=>order({id,status:'pending',created_at:'2026-11-17T08:30:00+08:00'})),pages:1});await work;assert.equal(p.data.nationalOrders.length,3);
+  const rows=page=>Array.from({length:20},(_,i)=>order({id:(page-1)*20+i+1,status:'pending',created_at:'2026-11-17T08:30:00+08:00'}));
+  h.respond(0,{list:rows(1),pages:5});await work;assert.equal(p.data.nationalOrders.length,20);
   assert.equal(p.data.nationalOrders[0].offsiteFeeName,'300.00');
   assert.equal(p.data.nationalOrders[0].statusText,'待接单');assert.equal(p.data.nationalOrders[0].orderTypeText,'个人不上门订单');
   assert.match(p.data.nationalOrders[0].createdTime,/2026-11-17/);
+  const failed=p.loadMoreNationalOrders();
+  p.loadMoreNationalOrders();
+  assert.equal(h.calls.request.length,2);
+  h.calls.request[1].fail({errMsg:'offline'});
+  await failed;
+  assert.equal(p.data.nationalOrders.length,20);
+  for(let page=2;page<=5;page++){
+    const next=page===2?p.retryNationalOrders():p.loadMoreNationalOrders();
+    const i=h.calls.request.length-1;
+    assert.match(h.calls.request[i].url,new RegExp(`[?&]page=${page}(?:&|$)`));
+    h.respond(i,{list:[order({id:1}),...rows(page)],pages:5});
+    await next;
+  }
+  assert.equal(p.data.nationalOrders.length,100);
+  assert.equal(p.data.nationalHasMore,false);
+  p.loadMoreNationalOrders();
+  assert.equal(h.calls.request.length,6);
+  p.viewNationalOrder({currentTarget:{dataset:{id:100}}});
+  assert.match(h.calls.navigate.at(-1).url,/detail\?id=100$/);
 });
 test('national malformed or failed response is visible error, not empty success',async()=>{
   const h=harness();h.login();const p=h.page('pages/order/nationwide/nationwide.js');p.onLoad();

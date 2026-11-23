@@ -6,7 +6,7 @@
     "safety-knowledge-entry": "/components/safety-knowledge-entry/index"
   },
   "navigationBarTitleText": "找电工 上着安",
-  "enablePullDownRefresh": true,
+  "enablePullDownRefresh": false,
   "backgroundTextStyle": "dark",
   "backgroundColor": "#ffffff",
   "backgroundColorTop": "#ffffff",

@@ -5,96 +5,17 @@ const app = getApp();
 const { SystemAPI, OrderAPI, AuthAPI } = require('../../utils/api');
 const { formatTime, formatDistance, getOrderStatusText } = require('../../utils/util');
 
-function toMasterName(name) {
-  if (!name || typeof name !== 'string') return '工';
-  const trimmed = name.trim();
-  const first = trimmed ? trimmed[0] : '';
-  return (first || '') + '工';
-}
-
 require('../../utils/visitCapture').register(Page, {
   data: {
-    nationalOrders: [], nationalLoading: false, nationalError: '',
+    nationalOrders: [], nationalLoading: false, nationalError: '', nationalHasMore: true, nationalPage: 0,
+    homeRefreshing: false,
     orderSubscriptionEnabled: false, orderSubscriptionTemplate: '', orderSubscriptionBusy: false,
     userInfo: null,
     currentRole: 'user', // 当前用户角色
     locationText: '北京市朝阳区',
     latitude: null,
     longitude: null,
-    // 用户角色的最近订单
-    recentOrders: [
-      {
-        id: 1,
-        title: '客厅灯具安装',
-        status: 'completed',
-        statusText: '已完成',
-        electrician_name: '张工',
-        created_at: '2024-01-15 14:30',
-        createdTime: '2024-01-15 14:30',
-        rating: 5,
-        final_price: 120
-      },
-      {
-        id: 2,
-        title: '厨房插座维修',
-        status: 'completed',
-        statusText: '已完成',
-        electrician_name: '李工',
-        created_at: '2024-01-12 09:15',
-        createdTime: '2024-01-12 09:15',
-        rating: 4.8,
-        final_price: 80
-      },
-      {
-        id: 3,
-        title: '卫生间照明修理',
-        status: 'completed',
-        statusText: '已完成',
-        electrician_name: '王工',
-        created_at: '2024-01-10 16:20',
-        createdTime: '2024-01-10 16:20',
-        rating: 4.9,
-        final_price: 95
-      }
-    ],
-    // 电工角色的附近订单
     nearbyOrders: [],
-    // 电工角色的已完成订单（与用户首页共享 mock 数据）
-    completedOrders: [
-      {
-        id: 1,
-        title: '客厅灯具安装',
-        status: 'completed',
-        statusText: '已完成',
-        electrician_name: '张工',
-        created_at: '2024-01-15 14:30',
-        createdTime: '2024-01-15 14:30',
-        rating: 5,
-        final_price: 120
-      },
-      {
-        id: 2,
-        title: '厨房插座维修',
-        status: 'completed',
-        statusText: '已完成',
-        electrician_name: '李工',
-        created_at: '2024-01-12 09:15',
-        createdTime: '2024-01-12 09:15',
-        rating: 4.8,
-        final_price: 80
-      },
-      {
-        id: 3,
-        title: '卫生间照明修理',
-        status: 'completed',
-        statusText: '已完成',
-        electrician_name: '王工',
-        created_at: '2024-01-10 16:20',
-        createdTime: '2024-01-10 16:20',
-        rating: 4.9,
-        final_price: 95
-      }
-    ],
     loading: false
   },
 
@@ -134,6 +55,7 @@ require('../../utils/visitCapture').register(Page, {
 
   onShow() {
     this._subscriptionVisible = true;
+    this._homeHidden = false;
     console.log('首页显示');
     if (this._referrerRedirecting) return;
 
@@ -149,14 +71,23 @@ require('../../utils/visitCapture').register(Page, {
     this.initPage();
   },
 
-  onHide() { orderSubscription.hide(this); },
-  onUnload() { orderSubscription.hide(this); },
+  onHide() {
+    orderSubscription.hide(this);
+    this._homeHidden = true;
+    this._nationalVersion = (this._nationalVersion || 0) + 1;
+    this.setData({ nationalLoading: false, homeRefreshing: false });
+  },
+  onUnload() { this.onHide(); },
   subscribeNewOrders() { orderSubscription.subscribe(this); },
 
-  onPullDownRefresh() {
-    this.loadData().finally(() => {
+  async onPullDownRefresh() {
+    if (this.data.homeRefreshing) return;
+    this.setData({ homeRefreshing: true });
+    try { await this.loadData(); }
+    finally {
+      this.setData({ homeRefreshing: false });
       wx.stopPullDownRefresh();
-    });
+    }
   },
 
   /**
@@ -313,29 +244,56 @@ require('../../utils/visitCapture').register(Page, {
       await Promise.allSettled([this.loadNearbyOrders(), this.loadNationalOrders(), orderSubscription.load(this)]);
     } else {
       this.setData({ orderSubscriptionEnabled: false });
-      await this.loadRecentOrders();
+      this.setData({ nationalOrders: [], nationalPage: 0, nationalHasMore: true });
     }
   },
 
   /**
    * 加载附近订单（电工角色）
    */
-  async loadNationalOrders() {
+  loadMoreNationalOrders() {
+    if (!this.data.nationalError && this.data.nationalPage > 0 && this.data.nationalHasMore) {
+      return this.loadNationalOrders(false);
+    }
+  },
+  retryNationalOrders() { return this.loadNationalOrders(this.data.nationalPage === 0); },
+  async loadNationalOrders(reset = true) {
+    const app = getApp();
+    const user = app.globalData.userInfo;
+    if (this._homeHidden || user?.current_role !== 'electrician' || (!reset && this.data.nationalLoading)) return;
+    const token = app.globalData.token;
+    const session = app._orderSessionVersion;
     const version = this._nationalVersion = (this._nationalVersion || 0) + 1;
-    const app = getApp(), token = app.globalData.token, id = app.globalData.userInfo?.id;
-    this.setData({ nationalLoading: true, nationalError: '' });
+    const current = () => !this._homeHidden && version === this._nationalVersion &&
+      token === app.globalData.token && session === app._orderSessionVersion &&
+      user.id === app.globalData.userInfo?.id && app.globalData.userInfo?.current_role === 'electrician';
+    const page = reset ? 1 : this.data.nationalPage + 1;
+    this.setData({
+      nationalLoading: true, nationalError: '',
+      ...(reset && { nationalPage: 0, nationalOrders: [], nationalHasMore: true })
+    });
     try {
-      const result = await OrderAPI.getOrderList({ my_orders: false, order_scope: 'nationwide', page: 1, limit: 3 });
-      if (version !== this._nationalVersion || token !== app.globalData.token || id !== app.globalData.userInfo?.id || app.globalData.userInfo?.current_role !== 'electrician') return;
-      if (!Array.isArray(result.data?.list)) throw new Error('全国订单响应未确认，请重试');
-      this.setData({ nationalOrders: result.data.list.slice(0, 3).map(order => {
+      const result = await OrderAPI.getOrderList({ my_orders: false, order_scope: 'nationwide', page, limit: 20 });
+      if (!current()) return;
+      const pages = Number(result.data?.pages);
+      if (!Array.isArray(result.data?.list) || !Number.isInteger(pages) || pages < 0) {
+        throw new Error('全国订单响应未确认');
+      }
+      const orders = new Map(this.data.nationalOrders.map(order => [String(order.id), order]));
+      for (const order of result.data.list) {
+        if (!order.id || orders.has(String(order.id))) continue;
         const presentation = require('../../utils/personalOrder').labels(order);
-        return { ...order, ...presentation, statusText: presentation.offsiteStatusName,
-          createdTime: order.created_at ? formatTime(order.created_at) : '未记录' };
-      }) });
+        orders.set(String(order.id), {
+          ...order, ...presentation, statusText: presentation.offsiteStatusName,
+          createdTime: order.created_at ? formatTime(order.created_at) : '未记录'
+        });
+      }
+      this.setData({ nationalOrders: [...orders.values()], nationalPage: page, nationalHasMore: page < pages });
     } catch (error) {
-      if (version === this._nationalVersion && token === app.globalData.token && id === app.globalData.userInfo?.id) this.setData({ nationalError: error.message || '全国订单读取失败，请点击重试' });
-    } finally { if (version === this._nationalVersion) this.setData({ nationalLoading: false }); }
+      if (current()) this.setData({ nationalError: error.message || '全国订单读取失败' });
+    } finally {
+      if (current()) this.setData({ nationalLoading: false });
+    }
   },
   viewNationalOrders() { wx.navigateTo({ url: '/pages/order/nationwide/nationwide' }); },
   viewNationalOrder(e) { wx.navigateTo({ url: `/pages/order/detail/detail?id=${e.currentTarget.dataset.id}` }); },
@@ -428,79 +386,6 @@ require('../../utils/visitCapture').register(Page, {
     } finally {
       if (version === this._nearbyRequestVersion) this.setData({ loading: false });
       console.log('[DEBUG] 加载附近订单完成');
-    }
-  },
-
-  /**
-   * 加载最近订单（用户角色）
-   */
-  async loadRecentOrders() {
-    try {
-      console.log('[DEBUG] 开始加载最近订单...');
-      this.setData({ loading: true });
-
-      const params = {
-        page: 1,
-        limit: 5,
-        my_orders: true,
-        status: 'completed'
-      };
-
-      console.log('[DEBUG] 请求参数:', params);
-
-      const response = await OrderAPI.getOrderList(params);
-      console.log('[DEBUG] API响应:', response);
-
-      if (response.code === 200) {
-        // 统一数据结构处理：优先使用list字段，兼容orders字段
-        let orders = response.data.list || response.data.orders || [];
-        console.log('[DEBUG] 解析到的订单数据:', orders);
-        console.log('[DEBUG] 订单数量:', orders.length);
-
-        // 仅保留已完成订单，并按时间倒序
-        orders = orders.filter(o => o.status === 'completed')
-          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-        if (orders.length === 0) {
-          console.log('[DEBUG] 没有找到最近订单，使用模拟数据');
-          // 保持使用模拟数据
-          return;
-        }
-
-        const formattedOrders = orders.map(order => {
-          console.log('[DEBUG] 处理订单:', order.id, order.title);
-          const nickname =
-            (order.electrician && order.electrician.nickname) ||
-            order.electrician_name ||
-            order.electricianNickname ||
-            '';
-          return {
-            ...order,
-            statusText: getOrderStatusText(order.status),
-            createdTime: formatTime(order.created_at),
-            electrician_name: toMasterName(nickname)
-          };
-        });
-
-        console.log('[DEBUG] 格式化后的订单:', formattedOrders);
-
-        this.setData({
-          recentOrders: formattedOrders
-        });
-
-        console.log('[DEBUG] 最近订单数据已设置到页面');
-      } else {
-        console.error('[DEBUG] API返回错误:', response.message);
-        console.log('[DEBUG] 保持使用模拟数据');
-        // 保持使用模拟数据
-      }
-    } catch (error) {
-      console.error('[DEBUG] 加载最近订单失败:', error);
-      console.log('[DEBUG] 保持使用模拟数据');
-      // 保持使用模拟数据
-    } finally {
-      this.setData({ loading: false });
-      console.log('[DEBUG] 加载最近订单完成');
     }
   },
 
