@@ -21,6 +21,7 @@ require('../../utils/visitCapture').register(Page, {
     testCode: '',
     selectedRole: 'user', // 默认选择"我要找电工"
     showLoginForm: false,
+    headerTop: 64,
 
     // V1.1.3 细化需求: 欢迎弹窗（点击登录按钮后弹出，进入页面时不弹）
     showWelcomeModal: false,
@@ -33,6 +34,11 @@ require('../../utils/visitCapture').register(Page, {
 
   onLoad(options = {}) {
     this._unloaded = false;
+    this.measureHeader();
+    if (wx.onMenuButtonBoundingClientRectWeightChange && wx.offMenuButtonBoundingClientRectWeightChange) {
+      this._onCapsuleChange = rect => this.measureHeader(rect);
+      wx.onMenuButtonBoundingClientRectWeightChange(this._onCapsuleChange);
+    }
     this._orderRequested = options.entry === 'personal-order';
     this._orderReferrerId = this._orderRequested && /^\d+$/.test(String(options.referrerId || '')) ? Number(options.referrerId) : null;
     if (this._orderRequested) this.setData({ selectedRole: 'user', showLoginForm: true });
@@ -49,6 +55,7 @@ require('../../utils/visitCapture').register(Page, {
   },
 
   onShow() {
+    this.measureHeader();
     console.log('[登录页] 页面显示');
 
     // 延迟检查登录状态,确保app.js初始化完成
@@ -67,6 +74,21 @@ require('../../utils/visitCapture').register(Page, {
         });
       }
     }, 100);
+  },
+
+  onResize() { this.measureHeader(); },
+
+  measureHeader(changedRect) {
+    if (this._unloaded) return;
+    let windowInfo;
+    let capsule;
+    try { windowInfo = wx.getWindowInfo?.() || wx.getSystemInfoSync?.(); } catch (_) {}
+    try { capsule = changedRect?.bottom ? changedRect : wx.getMenuButtonBoundingClientRect?.(); } catch (_) {}
+    const positive = value => Number.isFinite(value) && value > 0 ? value : 0;
+    const top = Math.max(positive(windowInfo?.statusBarHeight), positive(windowInfo?.safeArea?.top));
+    const bottom = positive(capsule?.height) && positive(capsule?.width) ? positive(capsule?.bottom) : 0;
+    const headerTop = Math.max(top, bottom > top ? bottom : (top || 24) + 40);
+    if (headerTop !== this.data.headerTop) this.setData({ headerTop });
   },
 
   enterElectricianHomeLogin() {
@@ -109,6 +131,10 @@ require('../../utils/visitCapture').register(Page, {
 
   onUnload() {
     this._unloaded = true;
+    if (this._onCapsuleChange) {
+      wx.offMenuButtonBoundingClientRectWeightChange(this._onCapsuleChange);
+      this._onCapsuleChange = null;
+    }
     this.invalidateSmsRequest();
     this._conversionConsent = null;
     if (this._countdownTimer) clearInterval(this._countdownTimer);

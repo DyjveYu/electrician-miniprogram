@@ -105,12 +105,15 @@ test('V5: 首次发布时间按北京时间展示，UTC前一天不影响清晨�
   assert.equal(formatArticleDate('2026-10-25T07:30:00+08:00'), '2026-10-25 07:30');
   assert.equal(formatArticleDate(null), ''); assert.equal(formatArticleDate('invalid'), '');
 });
-test('V7/V8: 三首页和认证页共用入口，原广告与启动页保留，正文为纯文本节点', () => {
-  for (const name of ['login/login', 'index/index', 'profile/certification/certification']) {
+test('V7/V8: 登录页与首页共用入口，认证页按 M3.1 移除入口，正文为纯文本节点', () => {
+  for (const name of ['login/login', 'index/index']) {
     const config = JSON.parse(fs.readFileSync(path.join(root, `pages/${name}.json`), 'utf8'));
     assert.equal(config.usingComponents['electrician-home-entry'], '/components/electrician-home-entry/index');
     assert.match(fs.readFileSync(path.join(root, `pages/${name}.wxml`), 'utf8'), /<electrician-home-entry/);
   }
+  const certification = path.join(root, 'pages/profile/certification/certification');
+  assert.equal(JSON.parse(fs.readFileSync(certification + '.json', 'utf8')).usingComponents?.['electrician-home-entry'], undefined);
+  assert.doesNotMatch(fs.readFileSync(certification + '.wxml', 'utf8'), /<electrician-home-entry/);
   const wxml = fs.readFileSync(path.join(root, 'pages/content/article-detail/index.wxml'), 'utf8');
   assert.match(wxml, /<text[^>]*item.type === 'text'/); assert.doesNotMatch(wxml, /rich-text|web-view/);
   assert.equal(JSON.parse(fs.readFileSync(path.join(root, 'app.json'), 'utf8')).pages[0], 'pages/index/index');

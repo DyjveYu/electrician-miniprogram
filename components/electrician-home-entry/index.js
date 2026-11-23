@@ -1,2 +1,2 @@
 const { openHome } = require('../../utils/contentAccess');
-Component({ methods: { openHome } });
+Component({ properties: { compact: Boolean }, methods: { openHome } });

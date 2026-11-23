@@ -6,3 +6,7 @@
 .entry-arrow { flex-shrink: 0; color: #687a71; font-size: 34rpx; font-weight: 400; }
 .content-entry-shell { border-top: 18rpx solid #f5f7f5; }
 .content-entry { border-bottom: 2rpx solid #e9efeb; }
+
+.compact.content-entry-shell { border-width: 0; }
+.compact .content-entry { min-height: 84rpx; padding: 8rpx 0; }
+.compact .entry-icon { width: 60rpx; height: 60rpx; border-radius: 18rpx; }

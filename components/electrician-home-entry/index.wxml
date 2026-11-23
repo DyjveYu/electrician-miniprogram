@@ -1,4 +1,4 @@
-<view class="content-entry-shell">
+<view class="content-entry-shell {{compact ? 'compact' : ''}}">
   <view class="content-entry" bindtap="openHome" role="button" aria-label="着安电工之家">
     <view class="entry-icon"><image src="/images/content-ui/helmet.svg" mode="aspectFit" aria-hidden="true" /></view>
     <text class="entry-copy">着安电工之家</text>

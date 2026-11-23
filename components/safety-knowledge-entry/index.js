@@ -1,4 +1,4 @@
-Component({
+Component({ properties: { compact: Boolean },
   pageLifetimes: { show() { this._opening = false; } },
   methods: {
     openKnowledge() {

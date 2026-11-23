@@ -1,46 +1,50 @@
 <!--pages/login/login.wxml-->
 <view class="page-container">
 
-  <!-- V1.1.3: 欢迎弹窗 -->
-  <view class="welcome-modal" wx:if="{{showWelcomeModal}}">
-    <view class="welcome-mask"></view>
-    <view class="welcome-dialog">
-      <view class="welcome-title">欢迎使用着安</view>
-      <view class="welcome-content">
-        感谢您使用本应用，您使用本应用前应当阅读并同意
-        <text class="link" bindtap="showPrivacyPolicy">《隐私政策》</text>和<text class="link" bindtap="showUserAgreement">《用户协议》</text>
-        。当您点击同意并开始使用产品服务时，即表示你已理解并同意该条款内容。
+  <view class="fixed-header" style="padding-top: calc({{headerTop}}px + 16rpx);">
+    <view class="header">
+      <view class="brand-logo-wrap">
+        <image class="brand-logo" src="/images/icons/logo.png" mode="widthFix"></image>
       </view>
-      <view wx:if="{{selectedRole === 'electrician'}}" class="conversion-warning">转电工前请先处理完原订单、推荐佣金和提现；若该手机号已有个人／企业身份，本次注册会使其失效。</view>
-      <view class="welcome-buttons">
-        <button class="welcome-btn cancel" bindtap="onCancel">取消</button>
-        <button class="welcome-btn agree" bindtap="onAgree">同意</button>
-      </view>
+      <view class="brand-slogan">找电工 上着安</view>
     </view>
-  </view>
 
-  <!-- 头部区域 -->
-  <view class="header">
-    <view class="brand-logo-wrap">
-      <image class="brand-logo" src="/images/icons/logo.png" mode="widthFix"></image>
+    <!-- 图1：首页只展示两个入口，输入表单在点击后打开 -->
+    <view class="login-entries">
+      <button class="entry-button entry-button-primary" bindtap="openLoginForm" data-role="user">我要找电工</button>
+      <button class="entry-button" bindtap="openLoginForm" data-role="electrician">我要去接单</button>
     </view>
-    <view class="brand-slogan">找电工 上着安</view>
+
+    <electrician-home-entry compact="{{true}}" />
+    <safety-knowledge-entry compact="{{true}}" />
   </view>
 
-  <!-- 图1：首页只展示两个入口，输入表单在点击后打开 -->
-  <view class="login-entries">
-    <button class="entry-button entry-button-primary" bindtap="openLoginForm" data-role="user">我要找电工</button>
-    <button class="entry-button" bindtap="openLoginForm" data-role="electrician">我要去接单</button>
-  </view>
+  <scroll-view class="public-content" scroll-y="{{!showLoginForm && !showWelcomeModal && !showModal}}">
+    <notice-board />
+    <home-ads />
 
-  <electrician-home-entry />
-  <safety-knowledge-entry />
-  <notice-board />
-  <home-ads />
+    <view class="footer">
+      <text class="footer-brand">着安电工服务平台</text>
+      <text class="version-text">{{version}}</text>
+    </view>
+  </scroll-view>
+</view>
 
-  <view class="footer">
-    <text class="footer-brand">着安电工服务平台</text>
-    <text class="version-text">{{version}}</text>
+<!-- V1.1.3: 欢迎弹窗 -->
+<view class="welcome-modal" wx:if="{{showWelcomeModal}}">
+  <view class="welcome-mask" catchtouchmove="preventTouchMove"></view>
+  <view class="welcome-dialog">
+    <view class="welcome-title">欢迎使用着安</view>
+    <view class="welcome-content">
+      感谢您使用本应用，您使用本应用前应当阅读并同意
+      <text class="link" bindtap="showPrivacyPolicy">《隐私政策》</text>和<text class="link" bindtap="showUserAgreement">《用户协议》</text>
+      。当您点击同意并开始使用产品服务时，即表示你已理解并同意该条款内容。
+    </view>
+    <view wx:if="{{selectedRole === 'electrician'}}" class="conversion-warning">转电工前请先处理完原订单、推荐佣金和提现；若该手机号已有个人／企业身份，本次注册会使其失效。</view>
+    <view class="welcome-buttons">
+      <button class="welcome-btn cancel" bindtap="onCancel">取消</button>
+      <button class="welcome-btn agree" bindtap="onAgree">同意</button>
+    </view>
   </view>
 </view>
 

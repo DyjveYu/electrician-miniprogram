@@ -9,6 +9,26 @@ function setup() {
   return { h, page };
 }
 
+test('UI1.2: 胶囊变化和窗口重测更新留白，卸载解绑且忽略迟到回调', () => {
+  const h = harness();
+  let listener;
+  h.wx.getWindowInfo = () => ({ statusBarHeight: 24, safeArea: { top: 28 } });
+  h.wx.getMenuButtonBoundingClientRect = () => ({ bottom: 0, width: 0, height: 0 });
+  h.wx.onMenuButtonBoundingClientRectWeightChange = callback => { listener = callback; };
+  h.wx.offMenuButtonBoundingClientRectWeightChange = callback => assert.equal(callback, listener);
+  const page = h.page('pages/login/login.js');
+  page.onLoad({});
+  assert.equal(page.data.headerTop, 68);
+  listener({ bottom: 82, width: 180, height: 32 });
+  assert.equal(page.data.headerTop, 82);
+  h.wx.getMenuButtonBoundingClientRect = () => ({ bottom: 60, width: 85, height: 32 });
+  page.onResize();
+  assert.equal(page.data.headerTop, 60);
+  page.onUnload();
+  listener({ bottom: 96, width: 180, height: 32 });
+  assert.equal(page.data.headerTop, 60);
+});
+
 test('R6: 首页默认不挂载表单，两个入口打开正确角色，每次订单入口默认个人', () => {
   const { page } = setup();
   assert.equal(page.data.showLoginForm, false);

@@ -139,6 +139,10 @@ test('V4/V5/V8: ContentAPI分页不附JWT；三首页共用组件且安全知识
     const config = JSON.parse(fs.readFileSync(path.join(root, `pages/${page}.json`), 'utf8'));
     assert.equal(config.usingComponents['notice-board'], '/components/notice-board/index');
     const source = fs.readFileSync(path.join(root, `pages/${page}.wxml`), 'utf8');
-    assert.match(source, /<safety-knowledge-entry\s*\/>\s*<notice-board\s*\/>/);
+    if (page === 'login/login') {
+      assert.match(source, /<safety-knowledge-entry compact="\{\{true\}\}"\s*\/>\s*<\/view>\s*<scroll-view class="public-content"[^>]*>\s*<notice-board\s*\/>/);
+    } else {
+      assert.match(source, /<safety-knowledge-entry\s*\/>\s*<notice-board\s*\/>/);
+    }
   }
 });
