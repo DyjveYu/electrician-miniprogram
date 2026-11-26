@@ -45,28 +45,33 @@ require('../../utils/visitCapture').register(Page, {
     console.log('首页加载 options=', options);
 
     const referrerId = this._getReferrerId(options);
-    if (this._tryReferrerRedirect(referrerId)) return;
-
-    if (!this.checkLogin()) {
-      return;
-    }
-    this.initPage();
+    this._tryReferrerRedirect(referrerId);
   },
 
   onShow() {
     this._subscriptionVisible = true;
     this._homeHidden = false;
-    console.log('首页显示');
     if (this._referrerRedirecting) return;
 
     const storedReferrerId = wx.getStorageSync('referrer_id');
     if (this._tryReferrerRedirect(storedReferrerId)) return;
 
-    if (!this.checkLogin()) {
+    if (!this.checkLogin() || app.checkFrozenAndRedirect()) {
+      this.stopOrderPolling();
       return;
     }
-    if (app.checkFrozenAndRedirect()) {
-      return;
+
+    const currentRole = app.globalData.currentRole || 'user';
+    if (currentRole === 'electrician' && !this._orderPollCurrent?.()) {
+      this.stopOrderPolling();
+      if (!this._orderListOwner?.()) {
+        this.clearOrderLists();
+      }
+      this._orderListOwner = this.captureOrderIdentity();
+      this.startOrderPolling();
+    } else if (currentRole !== 'electrician') {
+      this.stopOrderPolling();
+      this._orderListOwner = null;
     }
     this.initPage();
   },
@@ -74,19 +79,73 @@ require('../../utils/visitCapture').register(Page, {
   onHide() {
     orderSubscription.hide(this);
     this._homeHidden = true;
-    this._nationalVersion = (this._nationalVersion || 0) + 1;
-    this.setData({ nationalLoading: false, homeRefreshing: false });
+    this.stopOrderPolling();
+    this._pullRefresh = null;
+    this.setData({ homeRefreshing: false });
   },
   onUnload() { this.onHide(); },
+
+  clearOrderLists() {
+    this.setData({
+      nearbyOrders: [], nationalOrders: [], nationalPage: 0, nationalHasMore: true, nationalError: ''
+    });
+  },
+
+  captureOrderIdentity() {
+    const { token, userInfo } = app.globalData;
+    const userId = userInfo?.id;
+    const session = app._orderSessionVersion;
+    return () => Boolean(token && app.globalData.isLogin && token === app.globalData.token &&
+      session === app._orderSessionVersion && userId != null &&
+      userId === app.globalData.userInfo?.id &&
+      app.globalData.userInfo?.current_role === 'electrician' &&
+      app.globalData.currentRole === 'electrician' &&
+      !app._enterpriseCacheCheck && !app._enterpriseCertificationSession);
+  },
+
+  captureOrderView() {
+    const identity = this.captureOrderIdentity();
+    const version = this._orderViewVersion;
+    return () => !this._homeHidden && version === this._orderViewVersion && identity();
+  },
+
+  stopOrderPolling() {
+    if (this._orderPollTimer != null) clearInterval(this._orderPollTimer);
+    this._orderPollTimer = null;
+    this._orderPollCurrent = null;
+    this._orderViewVersion = (this._orderViewVersion || 0) + 1;
+    this.setData({ loading: false, nationalLoading: false });
+  },
+
+  startOrderPolling() {
+    const current = this.captureOrderView();
+    if (!current()) return;
+    this._orderPollCurrent = current;
+    this._orderPollTimer = setInterval(() => {
+      if (this._orderPollCurrent !== current) return;
+      if (!current()) {
+        this.stopOrderPolling();
+        this._orderListOwner = null;
+        this.clearOrderLists();
+        return;
+      }
+      this.refreshAvailableOrders('poll');
+    }, 10000);
+  },
+
   subscribeNewOrders() { orderSubscription.subscribe(this); },
 
   async onPullDownRefresh() {
     if (this.data.homeRefreshing) return;
+    const refresh = this._pullRefresh = {};
     this.setData({ homeRefreshing: true });
-    try { await this.loadData(); }
+    try { await this.loadData('manual'); }
     finally {
-      this.setData({ homeRefreshing: false });
-      wx.stopPullDownRefresh();
+      if (this._pullRefresh === refresh) {
+        this._pullRefresh = null;
+        this.setData({ homeRefreshing: false });
+        wx.stopPullDownRefresh();
+      }
     }
   },
 
@@ -239,153 +298,151 @@ require('../../utils/visitCapture').register(Page, {
   /**
    * 加载数据
    */
-  async loadData() {
+  async loadData(source = 'entry') {
     if (this.data.currentRole === 'electrician') {
-      await Promise.allSettled([this.loadNearbyOrders(), this.loadNationalOrders(), orderSubscription.load(this)]);
+      await Promise.allSettled([this.refreshAvailableOrders(source), orderSubscription.load(this)]);
     } else {
       this.setData({ orderSubscriptionEnabled: false });
-      this.setData({ nationalOrders: [], nationalPage: 0, nationalHasMore: true });
+      this.clearOrderLists();
     }
   },
 
-  /**
-   * 加载附近订单（电工角色）
-   */
-  loadMoreNationalOrders() {
+  async refreshAvailableOrders(source) {
+    const current = this.captureOrderView();
+    if (!current()) return;
+    // Wait for older work to finish when a page resumes or the user requests a refresh.
+    while (this._orderWork) {
+      if (source === 'poll') return;
+      const work = this._orderWork;
+      const results = await work.promise;
+      if (!current()) return;
+      if (work.refresh && work.current()) {
+        if (source === 'manual') this.showOrderRefreshError(results);
+        return;
+      }
+    }
+
+    const silent = source === 'poll';
+    const work = { current, refresh: true };
+    work.promise = Promise.all([
+      this.loadNearbyOrders({ silent, reportError: false }),
+      this.loadNationalOrders(true, { silent, preservePages: source !== 'manual' })
+    ]).finally(() => { this._orderWork = null; });
+    this._orderWork = work;
+    const results = await work.promise;
+    if (source === 'manual' && current()) this.showOrderRefreshError(results);
+  },
+
+  showOrderRefreshError(results) {
+    const error = results.find(Boolean);
+    if (error) wx.showToast({ title: error, icon: 'none' });
+  },
+
+  async loadMoreNationalOrders() {
+    const current = this.captureOrderView();
+    const work = this._orderWork;
+    if (work?.refresh) await work.promise;
+    if (!current()) return;
     if (!this.data.nationalError && this.data.nationalPage > 0 && this.data.nationalHasMore) {
-      return this.loadNationalOrders(false);
+      return this.runNationalPaging(false);
     }
   },
-  retryNationalOrders() { return this.loadNationalOrders(this.data.nationalPage === 0); },
-  async loadNationalOrders(reset = true) {
-    const app = getApp();
-    const user = app.globalData.userInfo;
-    if (this._homeHidden || user?.current_role !== 'electrician' || (!reset && this.data.nationalLoading)) return;
-    const token = app.globalData.token;
-    const session = app._orderSessionVersion;
-    const version = this._nationalVersion = (this._nationalVersion || 0) + 1;
-    const current = () => !this._homeHidden && version === this._nationalVersion &&
-      token === app.globalData.token && session === app._orderSessionVersion &&
-      user.id === app.globalData.userInfo?.id && app.globalData.userInfo?.current_role === 'electrician';
-    const page = reset ? 1 : this.data.nationalPage + 1;
-    this.setData({
-      nationalLoading: true, nationalError: '',
-      ...(reset && { nationalPage: 0, nationalOrders: [], nationalHasMore: true })
-    });
+  retryNationalOrders() { return this.runNationalPaging(this._nationalRetryReset); },
+
+  runNationalPaging(reset) {
+    if (this._orderWork) return;
+    const work = {};
+    work.promise = this.loadNationalOrders(reset).finally(() => { this._orderWork = null; });
+    this._orderWork = work;
+    return work.promise;
+  },
+
+  async loadNationalOrders(reset = true, { silent = false, preservePages = false } = {}) {
+    const current = this.captureOrderView();
+    if (!current()) return;
+    const firstPage = reset ? 1 : this.data.nationalPage + 1;
+    const lastPage = preservePages ? Math.max(1, this.data.nationalPage) : firstPage;
+    if (!silent) this.setData({ nationalLoading: true, nationalError: '' });
     try {
-      const result = await OrderAPI.getOrderList({ my_orders: false, order_scope: 'nationwide', page, limit: 20 });
-      if (!current()) return;
-      const pages = Number(result.data?.pages);
-      if (!Array.isArray(result.data?.list) || !Number.isInteger(pages) || pages < 0) {
-        throw new Error('全国订单响应未确认');
+      const orders = new Map(reset ? [] : this.data.nationalOrders.map(order => [String(order.id), order]));
+      let loadedPage = firstPage;
+      let pages;
+      for (let page = firstPage; page <= lastPage; page++) {
+        const result = await OrderAPI.getOrderList(
+          { my_orders: false, order_scope: 'nationwide', page, limit: 20 }, { showError: false }
+        );
+        if (!current()) return;
+        pages = Number(result.data?.pages);
+        if (!Array.isArray(result.data?.list) || !Number.isInteger(pages) || pages < 0) {
+          throw new Error('全国订单响应未确认');
+        }
+        for (const order of result.data.list) {
+          if (!order.id || orders.has(String(order.id))) continue;
+          const presentation = require('../../utils/personalOrder').labels(order);
+          orders.set(String(order.id), {
+            ...order, ...presentation, statusText: presentation.offsiteStatusName,
+            createdTime: order.created_at ? formatTime(order.created_at) : '未记录'
+          });
+        }
+        loadedPage = page;
+        if (page >= pages) break;
       }
-      const orders = new Map(this.data.nationalOrders.map(order => [String(order.id), order]));
-      for (const order of result.data.list) {
-        if (!order.id || orders.has(String(order.id))) continue;
-        const presentation = require('../../utils/personalOrder').labels(order);
-        orders.set(String(order.id), {
-          ...order, ...presentation, statusText: presentation.offsiteStatusName,
-          createdTime: order.created_at ? formatTime(order.created_at) : '未记录'
-        });
-      }
-      this.setData({ nationalOrders: [...orders.values()], nationalPage: page, nationalHasMore: page < pages });
+      this.setData({ nationalOrders: [...orders.values()], nationalPage: loadedPage,
+        nationalHasMore: loadedPage < pages, nationalError: '' });
     } catch (error) {
-      if (current()) this.setData({ nationalError: error.message || '全国订单读取失败' });
+      if (!current()) return;
+      const message = error.message || '全国订单读取失败';
+      if (!silent) {
+        this._nationalRetryReset = reset;
+        this.setData({ nationalError: message });
+      }
+      return message;
     } finally {
-      if (current()) this.setData({ nationalLoading: false });
+      if (!silent && current()) this.setData({ nationalLoading: false });
     }
   },
   viewNationalOrders() { wx.navigateTo({ url: '/pages/order/nationwide/nationwide' }); },
   viewNationalOrder(e) { wx.navigateTo({ url: `/pages/order/detail/detail?id=${e.currentTarget.dataset.id}` }); },
-  async loadNearbyOrders() {
+  async loadNearbyOrders({ silent = false, reportError = true } = {}) {
+    const viewCurrent = this.captureOrderView();
+    if (!viewCurrent()) return;
     const version = this._nearbyRequestVersion = (this._nearbyRequestVersion || 0) + 1;
+    const current = () => viewCurrent() && version === this._nearbyRequestVersion;
+    if (!silent) this.setData({ loading: true });
     try {
-      console.log('[DEBUG] 开始加载附近订单...');
-      this.setData({ loading: true });
-
-      const params = {
-        page: 1,
-        limit: 20,
-        my_orders: false // 获取可接的订单（后端默认返回 pending + recruiting）
-      };
-
-      console.log('[DEBUG] 请求参数:', params);
-
-      // 暂时移除地理位置参数，避免后端查询错误
-      // TODO: 后续实现完整的地理位置筛选功能
-
-      const response = await OrderAPI.getOrderList(params);
-      if (version !== this._nearbyRequestVersion) return;
-      console.log('[DEBUG] API响应:', response);
-
-      if (response.code === 200) {
-        // 根据后端返回的数据结构，订单数据在response.data.list中
-        const orders = response.data.list || response.data.orders || [];
-        console.log('[DEBUG] 解析到的订单数据:', orders);
-        console.log('[DEBUG] 订单数量:', orders.length);
-
-        if (orders.length === 0) {
-          console.log('[DEBUG] 没有找到可接的订单');
-          this.setData({
-            nearbyOrders: []
-          });
-          wx.showToast({
-            title: '暂无可接订单',
-            icon: 'none'
-          });
-          return;
-        }
-
-        const truncate = (str, maxLen = 12) => {
-          if (!str) return '';
-          return str.length > maxLen ? str.substring(0, maxLen) + '...' : str;
-        };
-
-        const orderTypeMap = {
-          enterprise_project: '企业多日工程',
-          enterprise_quick: '企业快修订单',
-          personal_quick: '个人快修订单'
-        };
-
-        const formattedOrders = orders.map(order => {
-          console.log('[DEBUG] 处理订单:', order.id, order.title);
-          const normalizedStatus = order.status === 'confirmed' ? 'in_progress' : order.status;
-          return {
-            ...order,
-            title: truncate(order.title),
-            description: truncate(order.description),
-            orderTypeText: orderTypeMap[order.order_type] || order.order_type || '电工服务',
-            status: normalizedStatus,
-            statusText: getOrderStatusText(normalizedStatus),
-            createdTime: formatTime(order.created_at),
-            distance: this.calculateDistance(order.latitude, order.longitude)
-          };
-        });
-
-        console.log('[DEBUG] 格式化后的订单:', formattedOrders);
-
-        this.setData({
-          nearbyOrders: formattedOrders
-        });
-
-        console.log('[DEBUG] 订单数据已设置到页面');
-      } else {
-        console.error('[DEBUG] API返回错误:', response.message);
-        wx.showToast({
-          title: response.message || '加载订单失败',
-          icon: 'none'
-        });
+      const response = await OrderAPI.getOrderList({ page: 1, limit: 20, my_orders: false }, { showError: false });
+      if (!current()) return;
+      const orders = response.data?.list || response.data?.orders;
+      if (response.success === false || ![0, 200].includes(response.code) || !Array.isArray(orders)) {
+        throw new Error(response.message || '加载订单失败');
       }
-    } catch (error) {
-      if (version !== this._nearbyRequestVersion) return;
-      console.error('[DEBUG] 加载附近订单失败:', error);
-      wx.showToast({
-        title: '加载订单失败',
-        icon: 'none'
+      const truncate = (value) => value?.length > 12 ? value.substring(0, 12) + '...' : value || '';
+      const orderTypeMap = {
+        enterprise_project: '企业多日工程',
+        enterprise_quick: '企业快修订单',
+        personal_quick: '个人快修订单'
+      };
+      const nearbyOrders = orders.map(order => {
+        const status = order.status === 'confirmed' ? 'in_progress' : order.status;
+        return {
+          ...order,
+          title: truncate(order.title),
+          description: truncate(order.description),
+          orderTypeText: orderTypeMap[order.order_type] || order.order_type || '电工服务',
+          status,
+          statusText: getOrderStatusText(status),
+          createdTime: formatTime(order.created_at),
+          distance: this.calculateDistance(order.latitude, order.longitude)
+        };
       });
+      this.setData({ nearbyOrders });
+    } catch (error) {
+      if (!current()) return;
+      const message = error.message || '加载订单失败';
+      if (!silent && reportError) wx.showToast({ title: '加载订单失败', icon: 'none' });
+      return message;
     } finally {
-      if (version === this._nearbyRequestVersion) this.setData({ loading: false });
-      console.log('[DEBUG] 加载附近订单完成');
+      if (!silent && current()) this.setData({ loading: false });
     }
   },
 
@@ -419,7 +476,7 @@ require('../../utils/visitCapture').register(Page, {
           longitude: res.longitude
         });
         // 重新加载数据
-        this.loadData();
+        this.loadData('manual');
       }
     });
   },
@@ -560,6 +617,6 @@ require('../../utils/visitCapture').register(Page, {
    * 刷新订单列表
    */
   refreshOrders() {
-    this.loadData();
+    return this.loadData('manual');
   }
 });

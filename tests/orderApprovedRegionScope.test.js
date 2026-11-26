@@ -50,7 +50,7 @@ test('home renders the combined server list without applying its own base-only f
     { id: 3, order_type: 'enterprise_project', status: 'recruiting', address: { ...addition, city: '深圳市', district: '南山区' } }
   ];
   vm.runInNewContext(fs.readFileSync(path.resolve(__dirname, '../pages/index/index.js'), 'utf8'), {
-    Page: value => { definition = value; }, getApp: () => ({ globalData: { currentRole: 'electrician' } }),
+    Page: value => { definition = value; }, getApp: () => ({ globalData: { currentRole: 'electrician', isLogin: true, token: 'isolated', userInfo: { id: 7, current_role: 'electrician' } } }),
     console: { log() {}, warn() {}, error() {} }, wx: { showToast() {} },
     require: name => {
       if (name.endsWith('/api')) return { OrderAPI: { getOrderList: async value => { params = value; return { code: 200, data: { list: orders, total: 3 } }; } } };

@@ -97,7 +97,7 @@ test('independent offsite fee payment is bound to saved version and waits for re
   assert.equal(h.calls.redirect.at(-1).url,'/pages/order/detail/detail?id=10');
 });
 test('home paginates national records, retries a failed page and stops at the last row',async()=>{
-  const h=harness();h.login('electrician');const p=h.page('pages/index/index.js');const work=p.loadNationalOrders();
+  const h=harness();h.login('electrician');h.app.globalData.currentRole='electrician';const p=h.page('pages/index/index.js');const work=p.loadNationalOrders();
   assert.equal(h.calls.request.length,1);assert.match(h.calls.request[0].url,/order_scope=nationwide/);
   const rows=page=>Array.from({length:20},(_,i)=>order({id:(page-1)*20+i+1,status:'pending',created_at:'2026-11-17T08:30:00+08:00'}));
   h.respond(0,{list:rows(1),pages:5});await work;assert.equal(p.data.nationalOrders.length,20);

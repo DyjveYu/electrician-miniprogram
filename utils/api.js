@@ -305,8 +305,8 @@ class OrderAPI {
   /**
    * 获取工单列表
    */
-  static getOrderList(params = {}) {
-    return API.get('/orders', params);
+  static getOrderList(params = {}, options = {}) {
+    return API.get('/orders', params, options);
   }
 
   /**

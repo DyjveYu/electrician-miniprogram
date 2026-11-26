@@ -8,6 +8,8 @@ const feedback = require('../utils/orderTakeFeedback');
 function setup(file = 'pages/order/detail/detail.js') {
   const calls = { requests: [], modals: [], toasts: [], tabs: [], timers: [], lists: [], hideLoading: 0 };
   const app = { globalData: { currentRole: 'electrician', isLogin: true, token: 'isolated', baseUrl: 'http://isolated/api', userInfo: { id: 7, status: 'active', current_role: 'electrician' } }, checkFrozenAndRedirect: () => false };
+  const intervals = new Map();
+  let intervalId = 0;
   let definition;
   const wx = {
     showModal: options => calls.modals.push(options), showToast: options => calls.toasts.push(options),
@@ -18,13 +20,15 @@ function setup(file = 'pages/order/detail/detail.js') {
     Page: value => { definition = value; }, getApp: () => app, wx,
     console: { log() {}, warn() {}, error() {} },
     setTimeout: fn => calls.timers.push(fn), clearTimeout() {},
+    setInterval: (fn, delay) => { intervals.set(++intervalId, { fn, delay }); return intervalId; },
+    clearInterval: id => intervals.delete(id),
     require: name => {
       if (name.endsWith('personalOrder')) return require('../utils/personalOrder');
       if (name.endsWith('enterpriseSession')) return { request: options => calls.requests.push(options) };
       if (name.endsWith('orderTakeFeedback')) return feedback;
       if (name.endsWith('/util')) return { getOrderStatusText: value => value, formatTime: value => value, mapOrderToDisplayStatus: order => ({ code: order.status, text: order.status }), getDisplayStatusText: value => value };
       if (name.endsWith('/api')) return { OrderAPI: { getOrderList: params => new Promise((resolve, reject) => calls.lists.push({ params, resolve, reject })) } };
-      if (name.includes('orderSubscription')) return { load: async () => {}, subscribe() {}, hide() {} };
+      if (name.includes('orderSubscription')) return { load: async () => { calls.subscriptions = (calls.subscriptions || 0) + 1; }, subscribe() {}, hide() {} };
       if (name.endsWith('/visitCapture')) return { register: (register, definition) => register(definition) };
       throw new Error('Unexpected dependency: ' + name);
     }
@@ -36,7 +40,7 @@ function setup(file = 'pages/order/detail/detail.js') {
     calls.modals.findLast(modal => modal.title === '确认接单').success({ confirm: true });
     return calls.requests.at(-1);
   }
-  return { page, calls, app, submit };
+  return { page, calls, app, submit, intervals };
 }
 const failure = (reason = 'ORDER_OUTSIDE_BASE_REGION', statusCode = 403) => ({ statusCode, data: { code: statusCode, data: { reason }, message: '服务端失败' } });
 
@@ -194,10 +198,148 @@ test('actual API wrapper delivers a region failure to detail without a successfu
 });
 test('actual OrderAPI results cannot restore the pre-change home list after a new refresh', async () => {
   const { harness } = require('./helpers/contentHarness');
-  const h = harness(); h.login();
+  const h = harness(); h.login(); h.app.globalData.currentRole = 'electrician';
   const page = h.page('pages/index/index.js');
   const first = page.loadNearbyOrders(), second = page.loadNearbyOrders();
   h.respond(1, { list: [] }); await second;
   h.respond(0, { list: [{ id: 'old' }] }); await first;
   assert.equal(page.data.nearbyOrders.length, 0);
+});
+
+const flushHome = () => new Promise(resolve => setImmediate(resolve));
+const orderList = (ids, pages = 1) => ({
+  code: 200,
+  data: { list: ids.map(id => ({ id, status: 'pending' })), pages }
+});
+
+test('home starts one 10-second poll and refreshes only order lists in place', async () => {
+  const { page, calls, intervals } = setup('pages/index/index.js');
+  page.getCurrentLocation = () => {};
+  page.checkPendingReview = () => {};
+  page.onLoad({});
+  page.onShow();
+  page.onShow();
+  assert.equal(intervals.size, 1);
+  const [{ fn: tick, delay }] = intervals.values();
+  assert.equal(delay, 10000);
+  assert.equal(calls.lists.length, 2);
+  calls.lists[0].resolve(orderList(['removed-nearby']));
+  calls.lists[1].resolve(orderList(['removed-national'], 2));
+  await flushHome();
+
+  const loadMore = page.loadMoreNationalOrders();
+  calls.lists[2].resolve(orderList(['page-two'], 2));
+  await loadMore;
+  const subscriptions = calls.subscriptions;
+  page.initPage = () => assert.fail('poll reinitialized home');
+  page.loadData = () => assert.fail('poll reloaded home');
+  tick();
+  tick();
+  assert.equal(calls.lists.length, 5);
+  assert.equal(page.data.loading, false);
+  assert.equal(page.data.nationalLoading, false);
+  assert.deepEqual(Array.from(page.data.nationalOrders, order => order.id), ['removed-national', 'page-two']);
+  calls.lists[3].resolve(orderList([]));
+  calls.lists[4].resolve(orderList(['new-national'], 2));
+  await flushHome();
+  assert.equal(calls.lists[5].params.page, 2);
+  calls.lists[5].resolve(orderList(['page-two'], 2));
+  await flushHome();
+  assert.equal(page.data.nearbyOrders.length, 0);
+  assert.deepEqual(Array.from(page.data.nationalOrders, order => order.id), ['new-national', 'page-two']);
+  assert.equal(calls.subscriptions, subscriptions);
+  assert.equal(calls.toasts.length, 0);
+  page.onUnload();
+  assert.equal(intervals.size, 0);
+  tick();
+  assert.equal(calls.lists.length, 6);
+});
+
+test('home retains data on a failed poll, reports a joined manual refresh and retries', async () => {
+  const { page, calls, intervals } = setup('pages/index/index.js');
+  page.getCurrentLocation = () => {};
+  page.checkPendingReview = () => {};
+  page.onShow();
+  calls.lists[0].resolve(orderList(['nearby']));
+  calls.lists[1].resolve(orderList(['national']));
+  await flushHome();
+  const [{ fn: tick }] = intervals.values();
+  tick();
+  calls.lists[2].reject(new Error('offline'));
+  calls.lists[3].reject(new Error('offline'));
+  await flushHome();
+  assert.equal(calls.toasts.length, 0);
+  assert.equal(page.data.nearbyOrders[0].id, 'nearby');
+  assert.equal(page.data.nationalOrders[0].id, 'national');
+
+  tick();
+  const manual = page.onPullDownRefresh();
+  assert.equal(calls.lists.length, 6);
+  calls.lists[4].reject(new Error('offline'));
+  calls.lists[5].resolve(orderList([]));
+  await manual;
+  assert.equal(calls.toasts.at(-1).title, 'offline');
+  assert.equal(page.data.homeRefreshing, false);
+  tick();
+  calls.lists[6].resolve(orderList([]));
+  calls.lists[7].resolve(orderList(['restored']));
+  await flushHome();
+  assert.equal(page.data.nearbyOrders.length, 0);
+  assert.equal(page.data.nationalOrders[0].id, 'restored');
+});
+
+test('home waits for invalidated work before refreshing a resumed or switched account', async () => {
+  const { page, calls, app, intervals } = setup('pages/index/index.js');
+  page.getCurrentLocation = () => {};
+  page.checkPendingReview = () => {};
+  page.onShow();
+  const [{ fn: hiddenTick }] = intervals.values();
+  page.onHide();
+  assert.equal(intervals.size, 0);
+  hiddenTick();
+  app.globalData.userInfo = { id: 8, current_role: 'electrician' };
+  app._orderSessionVersion = 1;
+  page.onShow();
+  assert.equal(calls.lists.length, 2);
+  calls.lists[0].resolve(orderList(['previous-account']));
+  calls.lists[1].resolve(orderList(['previous-account']));
+  await flushHome();
+  assert.equal(page.data.nearbyOrders.length, 0);
+  assert.equal(page.data.nationalOrders.length, 0);
+  assert.equal(calls.lists.length, 4);
+  assert.equal(intervals.size, 1);
+
+  app.globalData.currentRole = 'user';
+  const [{ fn: tick }] = intervals.values();
+  tick();
+  assert.equal(intervals.size, 0);
+  calls.lists[2].resolve(orderList(['previous-role']));
+  calls.lists[3].resolve(orderList(['previous-role']));
+  await flushHome();
+  assert.equal(page.data.nearbyOrders.length, 0);
+  assert.equal(page.data.nationalOrders.length, 0);
+  assert.equal(calls.lists.length, 4);
+
+  app.globalData.currentRole = 'electrician';
+  page.onShow();
+  assert.equal(calls.lists.length, 6);
+  app.globalData.isLogin = false;
+  const [{ fn: loggedOutTick }] = intervals.values();
+  loggedOutTick();
+  assert.equal(intervals.size, 0);
+  assert.equal(calls.lists.length, 6);
+});
+
+test('real order API suppresses its error toasts for background refresh', async () => {
+  const { harness } = require('./helpers/contentHarness');
+  const h = harness();
+  h.login();
+  h.app.globalData.currentRole = 'electrician';
+  const page = h.page('pages/index/index.js');
+  const pending = page.refreshAvailableOrders('poll');
+  assert.equal(h.calls.request.length, 2);
+  h.respond(0, {}, 503);
+  h.calls.request[1].fail({ errMsg: 'request:fail offline' });
+  await pending;
+  assert.equal(h.calls.toast.length, 0);
 });
