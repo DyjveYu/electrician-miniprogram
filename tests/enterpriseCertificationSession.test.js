@@ -153,6 +153,30 @@ test('M2.7 冷启动旧企业缓存可转受限；旧后端 pending 或核验断
   }
 });
 
+test('认证资料已加载时离开页面，迟到的请求收尾不会把提交按钮锁在灰色', () => {
+  const h = harness();
+  h.app.enterEnterpriseCertification(restrictedResponse(), enterprise.phone, true);
+  const page = h.page(certificationRoute + '.js');
+  page.onLoad();
+  page.onShow();
+  const request = h.calls.request[0];
+  request.success({ statusCode: 200, data: { code: 200, data: savedProfile } });
+  assert.equal(page.data.certificationReady, true);
+  assert.equal(page.data.checkingContinuation, true);
+  page.onHide();
+  request.complete();
+  page.onShow();
+  assert.equal(page.data.checkingContinuation, false);
+  assert.equal(page.data.submitDisabled, false);
+  assert.equal(h.calls.request.length, 1);
+  page.bindRegionChange({ detail: { value: ['江苏省', '南京市', '全部'] } });
+  assert.equal(page.data.submitHint, '请选择完整的省市区');
+  assert.equal(page.data.submitDisabled, true);
+  page.bindRegionChange({ detail: { value: ['江苏省', '南京市', '玄武区'] } });
+  assert.equal(page.data.submitHint, '');
+  assert.equal(page.data.submitDisabled, false);
+});
+
 test('M2.7 pending 资料可编辑，替换证照后丢失回包可原样重试，批准只打开一次创建页', async () => {
   const h = harness(), uploads = [];
   let choose;

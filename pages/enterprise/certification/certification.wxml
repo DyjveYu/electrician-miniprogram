@@ -93,6 +93,7 @@
     </view>
 
     <!-- 提交按钮 -->
+    <view class="application-tip" wx:if="{{submitHint && !submitting && (mode === 'apply' || certStatus === 'approved' || certStatus === 'returned')}}">{{submitHint}}</view>
     <button class="submit-btn {{submitDisabled ? 'disabled' : ''}}" bindtap="submitCertification" disabled="{{submitDisabled || submitting || (restrictedCertification && checkingContinuation)}}" wx:if="{{mode === 'apply' || certStatus === 'approved' || certStatus === 'returned'}}">{{submitting ? '保存中...' : ((certStatus === 'returned' || (restrictedCertification && certStatus === 'pending')) ? '重新提交认证' : (mode === 'apply' ? '提交认证' : '保存修改'))}}</button>
   </view>
 

@@ -24,6 +24,7 @@ require('../../../utils/visitCapture').register(Page, {
     certStatus: '', // pending: 认证中, approved: 已认证, returned: 已打回
     returnReason: '',
     submitDisabled: true,
+    submitHint: '请填写企业名称',
     region: ['', '', ''],
     customItem: '全部',
     licenseImagePath: '',
@@ -95,6 +96,7 @@ require('../../../utils/visitCapture').register(Page, {
     this._visible = false;
     this._queryGeneration++;
     clearTimeout(this._pollTimer);
+    if (this.data.checkingContinuation) this.setData({ checkingContinuation: false });
   },
 
   onUnload() {
@@ -215,7 +217,7 @@ require('../../../utils/visitCapture').register(Page, {
             this.setData({
               mode: 'apply', certStatus: '', returnReason: '',
               ...(this._restricted && { certificationReady: true, continuationMessage: '' })
-            });
+            }, () => this.checkFormValid());
           }
         } else {
           queryFailed();
@@ -245,9 +247,7 @@ require('../../../utils/visitCapture').register(Page, {
 
     this.setData({
       [`formData.${field}`]: value
-    });
-
-    this.checkFormValid();
+    }, () => this.checkFormValid());
   },
 
   // 省市区选择器变更
@@ -255,9 +255,7 @@ require('../../../utils/visitCapture').register(Page, {
     if (this._restricted && (!this._current() || this.data.submitting)) return;
     this.setData({
       region: e.detail.value
-    });
-
-    this.checkFormValid();
+    }, () => this.checkFormValid());
   },
 
   // 选择营业执照图片
@@ -280,8 +278,7 @@ require('../../../utils/visitCapture').register(Page, {
         that.setData({
           licenseImagePath: tempFilePath,
           licenseImageUrl: that.resolveLicenseImageUrl(tempFilePath)
-        });
-        that.checkFormValid();
+        }, () => that.checkFormValid());
       },
       fail(err) {
         if (!that._current()) return;
@@ -315,25 +312,17 @@ require('../../../utils/visitCapture').register(Page, {
 
   // 检查表单是否有效
   checkFormValid() {
-    const { formData } = this.data;
-
-    const isValid =
-      formData.companyName &&
-      formData.companyName.trim().length > 0 &&
-      formData.creditCode &&
-      formData.creditCode.trim().length === 18 &&
-      this.data.region[0] &&
-      this.data.region[1] &&
-      this.data.region[2] &&
-      formData.addressDetail &&
-      formData.addressDetail.trim().length > 0 &&
-      formData.contactName &&
-      formData.contactName.trim().length > 0 &&
-      this.data.licenseImagePath;
-
-    this.setData({
-      submitDisabled: !isValid
-    });
+    const { formData, region, licenseImagePath } = this.data;
+    const checks = [
+      [formData.companyName?.trim(), '请填写企业名称'],
+      [formData.creditCode?.trim().length === 18, '请输入18位统一社会信用代码'],
+      [region.length === 3 && region.every(part => part && part !== '全部'), '请选择完整的省市区'],
+      [formData.addressDetail?.trim(), '请填写详细地址'],
+      [formData.contactName?.trim(), '请填写联系人姓名'],
+      [licenseImagePath, '请选择营业执照副本']
+    ];
+    const submitHint = checks.find(([valid]) => !valid)?.[1] || '';
+    this.setData({ submitDisabled: !!submitHint, submitHint });
   },
 
   // 上传营业执照图片（返回相对路径）
