@@ -16,7 +16,7 @@
         <view class="detail-link">详情 ›</view>
       </view>
 
-      <dispatch-wait wx:if="{{item.dispatch_wait}}" order="{{item}}" bind:refresh="loadOrders" />
+      <dispatch-wait wx:if="{{item.dispatch_wait}}" order="{{item}}" />
       <!-- 订单信息 -->
       <view class="order-info-list">
         <view class="info-item">

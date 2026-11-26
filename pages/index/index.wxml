@@ -1,4 +1,9 @@
 <view class="home-viewport">
+  <view class="home-navigation {{currentRole === 'electrician' ? 'home-navigation-electrician' : ''}}" style="padding-top: {{navTop}}px;">
+    <view class="home-navigation-body" style="height: {{navHeight}}px; padding: 0 {{navInset}}px;">
+      <text class="home-navigation-title">找电工 上着安</text>
+    </view>
+  </view>
   <view class="home-fixed" wx:if="{{currentRole === 'user' || currentRole === 'enterprise'}}">
     <!-- 主要服务卡片 -->
     <view class="service-card" bindtap="createOrder">
@@ -17,115 +22,65 @@
     </view>
 
   </view>
-  <view class="home-fixed" wx:elif="{{currentRole === 'electrician'}}">
-    <!-- 电工工作台 -->
-    <view class="electrician-dashboard">
-      <view class="dashboard-item" bindtap="viewAllOrders">
-        <image class="dashboard-icon ui-icon" src="/images/content-ui/clipboard.svg" mode="aspectFit" aria-hidden="true" />
-        <text class="dashboard-title">我的订单</text>
-      </view>
-      <view class="dashboard-item" bindtap="refreshOrders">
-        <image class="dashboard-icon ui-icon" src="/images/content-ui/refresh.svg" mode="aspectFit" aria-hidden="true" />
-        <text class="dashboard-title">刷新订单</text>
-      </view>
-    </view>
-
-    <scroll-view class="nearby-viewport {{nearbyOrders.length ? 'nearby-bounded' : ''}}" scroll-y="{{nearbyOrders.length > 0}}">
-    <!-- 附近订单 -->
-    <view class="section">
-      <view class="section-header">
-        <text class="section-title">附近订单</text>
-        <text class="section-subtitle">可接单的订单</text>
-      </view>
-
-      <view wx:if="{{loading}}" class="loading">
-        <text>加载中...</text>
-      </view>
-
-      <view wx:elif="{{nearbyOrders.length > 0}}" class="nearby-order-list">
-        <view wx:for="{{nearbyOrders}}" wx:key="id" class="nearby-order-item">
-          <view class="order-card">
-            <view class="order-header">
-              <text class="order-title">{{item.title}}</text>
-              <text class="order-status status-{{item.status}}">{{item.statusText}}</text>
-            </view>
-
-            <view class="order-details">
-              <view class="detail-row">
-                <text class="detail-label">工单类型：</text>
-                <text class="detail-value">{{item.orderTypeText || '电工服务'}}</text>
-              </view>
-              <view class="detail-row">
-                <text class="detail-label">发布时间：</text>
-                <text class="detail-value">{{item.createdTime}}</text>
-              </view>
-              <view wx:if="{{item.distance}}" class="detail-row">
-                <text class="detail-label">距离：</text>
-                <text class="detail-value">{{item.distance}}</text>
-              </view>
-              <view wx:if="{{item.expected_price}}" class="detail-row">
-                <text class="detail-label">预期价格：</text>
-                <text class="detail-value price">￥{{item.expected_price}}</text>
-              </view>
-            </view>
-
-            <view wx:if="{{item.description}}" class="order-description">
-              <text class="description-text">{{item.description}}</text>
-            </view>
-
-            <view class="order-actions">
-              <button class="detail-btn" bindtap="viewOrderDetail" data-id="{{item.id}}">查看详情</button>
-              <button class="take-order-btn" bindtap="takeOrder" data-id="{{item.id}}">接单</button>
-            </view>
-          </view>
-        </view>
-      </view>
-
-      <view wx:else class="empty-state">
-        <text class="empty-text">暂无附近订单</text>
-        <text class="empty-desc">请稍后刷新或扩大搜索范围</text>
-      </view>
-    </view>
-
-    </scroll-view>
+  <view class="order-tabs" wx:elif="{{currentRole === 'electrician'}}">
+    <button class="order-tab {{orderTab === 'onsite' ? 'order-tab-active' : ''}}" data-tab="onsite" bindtap="selectOrderTab">上门订单</button>
+    <button class="order-tab {{orderTab === 'offsite' ? 'order-tab-active' : ''}}" data-tab="offsite" bindtap="selectOrderTab">不上门订单</button>
   </view>
   <scroll-view class="home-scroll" scroll-y refresher-enabled refresher-triggered="{{homeRefreshing}}"
-    bindrefresherrefresh="onPullDownRefresh" bindscrolltolower="loadMoreNationalOrders">
+    bindrefresherrefresh="onPullDownRefresh" bindscrolltolower="onOrderScrollLower">
     <view class="container" wx:if="{{currentRole === 'user' || currentRole === 'enterprise'}}">
       <view class="section-header">
         <text class="section-title">我的订单</text>
         <text class="section-more" bindtap="viewAllOrders">查看全部</text>
       </view>
     </view>
-    <view class="container" wx:elif="{{currentRole === 'electrician'}}">
-      <view class="section-header">
-        <text class="section-title">全国可接不上门订单</text>
-        <text class="section-more" bindtap="viewNationalOrders">查看更多</text>
+    <view class="electrician-orders" wx:elif="{{currentRole === 'electrician'}}">
+      <view class="electrician-order-card" wx:for="{{orderTab === 'onsite' ? nearbyOrders : nationalOrders}}" wx:key="id">
+        <view class="electrician-order-main">
+          <image class="electrician-order-image" src="{{item.cardImage || defaultOrderImage}}" mode="aspectFill"
+            data-tab="{{orderTab}}" data-index="{{index}}" data-source="{{item.cardImage}}" binderror="onOrderImageError" />
+          <view class="electrician-order-info" data-id="{{item.id}}" bindtap="viewOrderDetail">
+            <text class="electrician-order-description">{{item.cardDescription}}</text>
+            <text wx:if="{{item.cardAddress}}" class="electrician-order-address">{{item.cardAddress}}</text>
+            <view wx:if="{{item.cardDeadline}}" class="electrician-order-deadline">
+              <text class="electrician-order-deadline-label">截止时间：</text>
+              <text class="electrician-order-deadline-value">{{item.cardDeadline}}</text>
+            </view>
+          </view>
+          <view class="electrician-order-action">
+            <view wx:if="{{item.cardFee}}" class="electrician-order-fee">{{item.cardFeeLabel}} <text>¥{{item.cardFee}}</text></view>
+            <button class="electrician-take-order" data-id="{{item.id}}" bindtap="takeOrder">接单</button>
+          </view>
+        </view>
       </view>
-      <view wx:for="{{nationalOrders}}" wx:key="id" class="national-order-row" role="button"
-        bindtap="viewNationalOrder" data-id="{{item.id}}">
-        <view class="national-order-title">{{item.orderTypeText || item.title || '不上门服务'}}</view>
-        <view class="national-order-meta">{{item.createdTime}} · {{item.requiredCertName}}{{item.isNewProject ? ' · 招募' + item.proj_required_count + '人' : ''}}</view>
-        <view wx:if="{{item.description}}" class="national-order-summary">{{item.description}}</view>
+      <block wx:if="{{orderTab === 'onsite'}}">
+        <view wx:if="{{loading}}" class="empty-state">正在读取上门订单…</view>
+        <view wx:elif="{{nearbyError}}" class="empty-state" bindtap="retryNearbyOrders">{{nearbyError}}（点击重试）</view>
+        <view wx:elif="{{!nearbyOrders.length}}" class="empty-state">暂无可接的上门订单</view>
+      </block>
+      <block wx:else>
+        <view wx:if="{{nationalLoading}}" class="empty-state">正在读取全国订单…</view>
+        <view wx:elif="{{nationalError}}" class="empty-state" bindtap="retryNationalOrders">{{nationalError}}（点击重试）</view>
+        <view wx:elif="{{!nationalOrders.length}}" class="empty-state">暂无符合当前资质的全国不上门订单</view>
+        <view wx:elif="{{!nationalHasMore}}" class="national-end">已显示全部可接订单</view>
+        <view wx:if="{{nationalPage && nationalHasMore && !nationalError}}" class="national-pagination-sentinel"></view>
+        <view wx:if="{{nationalOrders.length}}" class="section-more" bindtap="viewNationalOrders">查看更多</view>
+      </block>
+      <view wx:if="{{orderSubscriptionEnabled}}" class="order-subscription">
+        <view class="order-subscription-copy">
+          <text class="order-subscription-title">微信新订单提醒</text>
+          <text class="order-subscription-note">每次订阅可接收一条符合接单条件的新订单通知</text>
+        </view>
+        <button class="order-subscription-button" bindtap="subscribeNewOrders" loading="{{orderSubscriptionBusy}}" disabled="{{orderSubscriptionBusy}}">订阅提醒</button>
       </view>
-      <view wx:if="{{nationalLoading}}" class="empty-state">正在读取全国订单…</view>
-      <view wx:elif="{{nationalError}}" class="empty-state" bindtap="retryNationalOrders">{{nationalError}}（点击重试）</view>
-      <view wx:elif="{{!nationalOrders.length}}" class="empty-state">暂无符合当前资质的全国不上门订单</view>
-      <view wx:elif="{{!nationalHasMore}}" class="national-order-meta national-end">已显示全部可接订单</view>
-    <view wx:if="{{orderSubscriptionEnabled}}" class="order-subscription">
-      <view class="order-subscription-copy">
-        <text class="order-subscription-title">微信新订单提醒</text>
-        <text class="order-subscription-note">每次订阅可接收一条符合接单条件的新订单通知</text>
-      </view>
-      <button class="order-subscription-button" bindtap="subscribeNewOrders" loading="{{orderSubscriptionBusy}}" disabled="{{orderSubscriptionBusy}}">订阅提醒</button>
     </view>
-    </view>
-    <view class="home-public-content">
+    <view class="home-public-content" wx:if="{{currentRole !== 'electrician'}}">
       <electrician-home-entry />
       <safety-knowledge-entry />
       <notice-board />
       <home-ads />
       <view class="home-brand-footer">着安电工服务平台</view>
     </view>
+    <home-ads wx:else />
   </scroll-view>
 </view>

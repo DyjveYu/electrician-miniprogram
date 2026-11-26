@@ -1,4 +1,13 @@
-<view class="card">
+<view wx:if="{{ownerActions && role === 'enterprise'}}" class="owner-actions">
+  <block wx:if="{{order.project_billing.pricingMode !== 'fixed_price' && order.project_billing.allDelivered && !order.project_billing.paid && order.status !== 'cancelled'}}">
+    <input class="owner-fee" type="digit" placeholder="输入整单约定工费（元）" bindinput="edit" data-key="amount"/>
+    <button class="main-action-btn primary" bindtap="submit" data-action="fee" disabled="{{busy}}">确认工费并付款</button>
+  </block>
+  <button wx:if="{{order.project_billing.feePending}}" class="service-btn" data-action="close-payment" data-type="repair" bindtap="submit" disabled="{{busy}}">关闭原工费支付</button>
+  <button wx:if="{{order.project_billing.depositPending}}" class="service-btn" data-action="close-payment" data-type="prepay" bindtap="submit" disabled="{{busy}}">关闭原预付款</button>
+  <button wx:if="{{!order.project_billing.members.length && (order.status === 'pending_payment' || order.status === 'recruiting')}}" class="service-btn" data-action="cancel" bindtap="submit" disabled="{{busy}}">取消工程</button>
+</view>
+<view wx:else class="card">
   <view class="head">多人不上门工程</view>
   <view wx:if="{{role === 'enterprise' && order.project_billing.pricingMode !== 'fixed_price'}}">订单押金 ¥{{order.project_billing.deposit}} · {{order.project_billing.refund === 'success' ? '已原路退回' : order.project_billing.refund === 'not_due' ? '工费另付后退回' : order.project_billing.refund === 'failed' ? '退款失败，请联系客服' : order.project_billing.refund === 'unknown' ? '退款结果待核对' : '退款处理中'}}</view>
   <view wx:if="{{order.project_billing.pricingMode === 'fixed_price'}}">
@@ -8,18 +17,11 @@
     <view wx:if="{{role === 'electrician' && order.status === 'recruiting'}}">每人预计 ¥{{order.project_billing.estimateMin}}{{order.project_billing.estimateMax > order.project_billing.estimateMin ? '–' + order.project_billing.estimateMax : ''}}</view>
   </view>
   <view wx:elif="{{order.project_billing.fee}}">整单工费 ¥{{order.project_billing.fee}} · {{order.project_billing.paid ? '已支付' : '待支付'}}</view>
-  <view wx:for="{{order.project_billing.members}}" wx:key="worker">电工 {{item.worker}} · {{item.note || '待交付'}} <text wx:if="{{item.share != null}}">¥{{item.share}} {{item.settled ? '已结算' : item.status === 'completed_unsettle' ? '已完成不结算' : '未入账'}}</text></view>
+  <view wx:for="{{order.project_billing.members}}" wx:key="worker">电工 {{item.worker}} · {{item.note || '待交付'}} <text wx:if="{{role === 'electrician' && item.share != null}}">¥{{item.share}} {{item.settled ? '已结算' : item.status === 'completed_unsettle' ? '已完成不结算' : '未入账'}}</text></view>
   <view wx:if="{{order.project_billing.hold}}">客服处理中</view>
   <block wx:elif="{{role === 'electrician' && order.project_billing.members.length && !order.project_billing.members[0].note && order.status !== 'recruiting' && order.status !== 'cancelled'}}">
     <textarea placeholder="填写已完成的服务内容" maxlength="1000" data-key="note" bindinput="edit"/>
     <button bindtap="proof" disabled="{{busy || images.length >= 9}}">添加交付凭证（{{images.length}}）</button>
     <button bindtap="submit" data-action="deliver" disabled="{{busy}}">提交交付</button>
   </block>
-  <block wx:elif="{{role === 'enterprise' && order.project_billing.pricingMode !== 'fixed_price' && order.project_billing.allDelivered && !order.project_billing.paid && order.status !== 'cancelled'}}">
-    <input type="digit" placeholder="输入整单约定工费（元）" bindinput="edit" data-key="amount"/>
-    <button bindtap="submit" data-action="fee" disabled="{{busy}}">确认工费并付款</button>
-  </block>
-  <button wx:if="{{role === 'enterprise' && order.project_billing.feePending}}" data-action="close-payment" data-type="repair" bindtap="submit" disabled="{{busy}}">核对并关闭原工费付款</button>
-  <button wx:if="{{role === 'enterprise' && order.project_billing.depositPending}}" data-action="close-payment" data-type="prepay" bindtap="submit" disabled="{{busy}}">核对并关闭原预付款</button>
-  <button wx:if="{{role === 'enterprise' && !order.project_billing.members.length && (order.status === 'pending_payment' || order.status === 'recruiting')}}" data-action="cancel" bindtap="submit" disabled="{{busy}}">取消工程</button>
 </view>

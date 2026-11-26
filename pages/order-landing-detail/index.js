@@ -212,7 +212,8 @@ require('../../utils/visitCapture').register(Page, {
 
   computeActionFlags(order, role) {
     const st = order.status;
-    const canCancel = !order.project_billing && (st === 'pending' || st === 'pending_payment');
+    const isProjectWaiting = st === 'recruiting' && order.dispatch_wait && !order.dispatch_wait.finishedReason;
+    const canCancel = !order.project_billing && (st === 'pending' || st === 'pending_payment' || isProjectWaiting);
     const canAccept = role === 'electrician' && (st === 'pending' || st === 'recruiting') && !order.hasJoined;
     const canWithdraw = !order.project_billing && role === 'electrician' && (st === 'recruiting' || st === 'full') && order.hasJoined;
     const canComplete = role === 'electrician' && st === 'in_progress';
@@ -244,7 +245,7 @@ require('../../utils/visitCapture').register(Page, {
   // ── 取消订单 ──
   cancelOrder() {
     const order = this.data.order;
-    const isPaid = order.status === 'pending';
+    const isPaid = ['pending', 'recruiting'].includes(order.status);
     let content = '确定要取消这个订单吗？';
     if (isPaid) content = '取消订单后将原路退回预付款，是否继续？';
     wx.showModal({ confirmColor: '#16835c',
@@ -258,7 +259,7 @@ require('../../utils/visitCapture').register(Page, {
 
   performCancelOrder() {
     const order = this.data.order;
-    const isPaid = order.status === 'pending';
+    const isPaid = ['pending', 'recruiting'].includes(order.status);
     const cancelReason = isPaid ? '用户取消已支付订单' : '用户取消未支付订单';
 
     enterpriseSession.request({

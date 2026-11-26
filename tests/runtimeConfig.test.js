@@ -20,14 +20,14 @@ test('release/环境未知或检测失败始终使用正式配置，不受个人
   assert.deepEqual(resolve({}, local), production);
   assert.equal(resolve(wxEnv('release'), local).paymentMethod, 'wechat');
 });
-test('trial连接测试服务器，仅覆盖地址，支付和版本沿用正式默认', () => {
+test('trial连接测试服务器并使用模拟支付，版本沿用正式默认', () => {
   const before = JSON.stringify(production);
   for (const personal of [local, { ...local, enabled: false }, undefined]) {
     assert.deepEqual(resolve(wxEnv('trial'), personal), trial);
   }
   assert.equal(trial.baseUrl, 'https://api.mijutime.com/api');
   assert.equal(trial.imageBaseUrl, 'https://api.mijutime.com');
-  assert.equal(trial.paymentMethod, production.paymentMethod);
+  assert.equal(trial.paymentMethod, 'test');
   assert.equal(trial.version, production.version);
   assert.equal(JSON.stringify(production), before);
   const value = resolve(wxEnv('trial'), local);

@@ -1,12 +1,13 @@
-<view class="home-ads" wx:if="{{icons.length || banner || error}}">
-  <view class="ad-label" wx:if="{{icons.length || banner}}"></view>
+<view class="home-ads" wx:if="{{icons.length || banners.length || error}}">
   <view class="icons" wx:if="{{icons.length}}">
     <view class="icon-ad" wx:for="{{icons}}" wx:key="slot_key" data-slot="{{item.slot_key}}" bindtap="openAd">
       <image src="{{item.image}}" data-slot="{{item.slot_key}}" data-src="{{item.image}}" mode="aspectFit" binderror="imageError" aria-label="广告" />
     </view>
   </view>
-  <view class="banner" wx:if="{{banner}}" data-slot="{{banner.slot_key}}" bindtap="openAd">
-    <image src="{{banner.image}}" data-slot="{{banner.slot_key}}" data-src="{{banner.image}}" mode="widthFix" binderror="imageError" aria-label="广告" />
-  </view>
+  <swiper wx:if="{{banners.length}}" class="banner" indicator-dots="{{banners.length > 1}}" circular="{{banners.length > 1}}" autoplay="{{banners.length > 1}}">
+    <swiper-item wx:for="{{banners}}" wx:key="key" data-id="{{item.id}}" data-slot="{{item.slot_key}}" bindtap="openAd">
+      <image src="{{item.image}}" data-src="{{item.image}}" mode="aspectFit" binderror="imageError" aria-label="轮播广告" />
+    </swiper-item>
+  </swiper>
   <view wx:if="{{error}}" class="error" bindtap="loadAds">{{error}}</view>
 </view>

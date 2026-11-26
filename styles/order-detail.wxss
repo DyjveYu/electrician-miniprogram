@@ -328,13 +328,14 @@
 }
 
 .amount-input {
-  flex: 1;
+  box-sizing: border-box;
+  width: 100%;
+  height: 96rpx;
   padding: 15rpx 20rpx;
   border: 2rpx solid #e9efeb;
   border-radius: 22rpx;
   font-size: 28rpx;
   background-color: #f5f7f5;
-  margin-right: 10rpx;
 }
 
 .amount-unit {
@@ -731,6 +732,7 @@
 /* UI1.1：共用详情卡片与底部操作，业务模板分别保留。 */
 .container { padding: 0 0 calc(220rpx + env(safe-area-inset-bottom)); }
 .content-wrapper { padding: 32rpx 44rpx 16rpx; }
+.container.with-project-billing-actions { padding-bottom: calc(280rpx + env(safe-area-inset-bottom)); }
 .card, .section { padding: 28rpx 24rpx; border: 2rpx solid #e9efeb; border-radius: 24rpx; margin: 0 0 24rpx; box-shadow: none; }
 .status-section { background: #eff7f1; border-color: #eff7f1; }
 .status-title { font-size: 36rpx; color: #172d25; }
@@ -751,7 +753,6 @@
 .main-action-btn.primary, .main-action-btn.pay { background: #16835c; color: #fff; }
 .main-action-btn.danger { background: #faf0ed; color: #b74434; border: 2rpx solid #e7b9af; }
 .main-action-btn.disabled { background: #16835c !important; color: #fff !important; opacity: .5; }
-.amount-input { min-width: 0; width: 0; }
 .refresh-btn { flex-shrink: 0; padding: 16rpx 20rpx; border-radius: 22rpx; font-size: 26rpx; }
 .recruiting-hint { margin: 0 0 24rpx; background: #faf4e9; border-color: #956321; }
 .hint-text { color: #956321; }

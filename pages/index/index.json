@@ -5,6 +5,7 @@
     "electrician-home-entry": "/components/electrician-home-entry/index",
     "safety-knowledge-entry": "/components/safety-knowledge-entry/index"
   },
+  "navigationStyle": "custom",
   "navigationBarTitleText": "找电工 上着安",
   "enablePullDownRefresh": false,
   "backgroundTextStyle": "dark",

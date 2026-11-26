@@ -124,6 +124,76 @@ test('home paginates national records, retries a failed page and stops at the la
   p.viewNationalOrder({currentTarget:{dataset:{id:100}}});
   assert.match(h.calls.navigate.at(-1).url,/detail\?id=100$/);
 });
+test('UI1.4: only the offsite tab paginates and cards show the administrative area and the matching fees', async () => {
+  const h = harness();
+  h.login('electrician');
+  h.app.globalData.currentRole = 'electrician';
+  const page = h.page('pages/index/index.js');
+  page.setData({ currentRole: 'electrician' });
+  const work = page.loadNationalOrders();
+  h.respond(0, { list: [
+    order({ id: 1, service_address: '不展示此地址',
+      service_region: { province: '江苏省', city: '苏州市', district: '相城区' },
+      accept_expires_at: '2026-11-27T10:20:00+08:00' }),
+    order({ id: 2, pricing_mode: 'fixed_price', prepay_amount: '360.50', accept_expires_at: '2026-11-27T11:00:00+08:00' }),
+    order({ id: 3, order_type: 'enterprise_project', proj_required_count: 3 })
+  ], pages: 2 });
+  await work;
+  const [deposit, fixedPrice, project] = page.data.nationalOrders;
+  assert.equal(deposit.cardFeeLabel, '订单押金');
+  assert.equal(deposit.cardFee, '200.00');
+  assert.equal(deposit.cardAddress, '江苏省苏州市相城区');
+  assert.match(deposit.cardDeadline, /^2026-11-27 /);
+  assert.equal(deposit.cardImage, page.data.defaultOrderImage);
+  assert.equal(fixedPrice.cardFeeLabel, '一口价');
+  assert.equal(fixedPrice.cardFee, '360.50');
+  assert.match(fixedPrice.cardDeadline, /^2026-11-27 /);
+  assert.equal(fixedPrice.cardAddress, '');
+  assert.equal(project.cardFee, '600.00');
+  await page.onOrderScrollLower();
+  assert.equal(h.calls.request.length, 1);
+  page.selectOrderTab({ currentTarget: { dataset: { tab: 'offsite' } } });
+  const next = page.onOrderScrollLower();
+  assert.equal(h.calls.request.length, 2);
+  h.respond(1, { list: [], pages: 2 });
+  await next;
+});
+test('UI1.4: onsite cards deduplicate only the administrative prefix and keep the server deadline', async () => {
+  const h = harness();
+  h.login('electrician');
+  h.app.globalData.currentRole = 'electrician';
+  const page = h.page('pages/index/index.js');
+  const region = '江苏省苏州市相城区';
+  const detail = '相城区大道88号';
+  const address = { province: '江苏省', city: '苏州市', district: '相城区', detail_address: region + detail };
+  const onsite = { service_mode: 'on_site', status: 'pending' };
+  const work = page.loadNearbyOrders();
+  h.respond(0, { list: [
+    { ...onsite, id: 1, address, service_address: region + region + detail, accept_expires_at: '2026-11-27T10:20:00+08:00' },
+    { ...onsite, id: 2, address },
+    { ...onsite, id: 3, service_address: region + region + detail },
+    { ...onsite, id: 4, service_address: region + detail }
+  ] });
+  await work;
+  assert.equal(page.data.nearbyOrders.length, 4);
+  for (const card of page.data.nearbyOrders) assert.equal(card.cardAddress, region + detail);
+  assert.match(page.data.nearbyOrders[0].cardDeadline, /^2026-11-27 /);
+  assert.equal(page.data.nearbyOrders[1].cardDeadline, '');
+});
+test('UI1.4: the home title reserves the WeChat capsule and status bar space', () => {
+  const h = harness();
+  const page = h.page('pages/index/index.js');
+  h.wx.getWindowInfo = () => ({ statusBarHeight: 42, windowWidth: 375 });
+  h.wx.getMenuButtonBoundingClientRect = () => ({ width: 88, left: 280, height: 32, top: 48 });
+  page.measureHomeNavigation();
+  assert.equal(page.data.navTop, 42);
+  assert.equal(page.data.navHeight, 44);
+  assert.equal(page.data.navInset, 99);
+  h.wx.getMenuButtonBoundingClientRect = () => ({ width: 0, height: 0, top: 0 });
+  page.onResize();
+  assert.equal(page.data.navHeight, 44);
+  assert.equal(page.data.navInset, 96);
+});
 test('national malformed or failed response is visible error, not empty success',async()=>{
   const h=harness();h.login();const p=h.page('pages/order/nationwide/nationwide.js');p.onLoad();
   h.respond(0,{unexpected:true});await flush();assert.match(p.data.error,/响应未确认/);assert.equal(p.data.orders.length,0);

@@ -5,6 +5,63 @@ const app = getApp();
 const { SystemAPI, OrderAPI, AuthAPI } = require('../../utils/api');
 const { formatTime, formatDistance, getOrderStatusText } = require('../../utils/util');
 
+const defaultOrderImage = '/images/content-ui/clipboard.svg';
+function addressRegionParts(address) {
+  const { province, city, district } = address || {};
+  return [province, city, district].map(value => value?.trim()).filter(Boolean);
+}
+
+function displayServiceAddress(order) {
+  const parts = addressRegionParts(order.address);
+  const originalPrefix = parts.join('');
+  const region = parts.filter((part, index) => part !== parts[index - 1]).join('');
+  const snapshot = order.service_address?.trim();
+  let address = snapshot || order.address?.detail_address?.trim() || '';
+  // 老订单的详细地址和快照都可能已带省市区，行政区只补一次。
+  if (region) {
+    const prefixes = [originalPrefix, region];
+    let prefix = prefixes.find(part => address.startsWith(part));
+    if (prefix || !snapshot) {
+      while (prefix) {
+        address = address.slice(prefix.length).trimStart();
+        prefix = prefixes.find(part => address.startsWith(part));
+      }
+      return region + address;
+    }
+  }
+  // 地址簿记录已删除时，只去掉快照开头完全相同的重复行政区。
+  return address.replace(/^([\u3400-\u9fff]{1,20}(?:省|自治区|市)[\u3400-\u9fff]{1,24}(?:市|州|区|县|旗))(?:\s*\1)+/, '$1');
+}
+
+function orderCard(order, imageBaseUrl) {
+  const path = Array.isArray(order.images) ? order.images.find(image => typeof image === 'string' && image.trim())?.trim() : '';
+  let image = defaultOrderImage;
+  if (/^https?:\/\//i.test(path || '')) image = path;
+  else if (/^\/?uploads\//.test(path || '')) {
+    image = `${(imageBaseUrl || '').replace(/\/$/, '')}/${path.replace(/^\//, '')}`;
+  }
+  const project = order.order_type === 'enterprise_project';
+  const offsite = order.service_mode === 'off_site';
+  let feeLabel = project ? '工程总费用' : '上门费';
+  let amount = project ? order.proj_total_amount ?? order.prepay_amount : order.prepay_amount;
+  if (offsite) {
+    const fixedPrice = order.pricing_mode === 'fixed_price';
+    feeLabel = fixedPrice ? '一口价' : '订单押金';
+    amount = fixedPrice ? order.prepay_amount : (project ? 200 * Number(order.proj_required_count) : 200);
+  }
+  return {
+    cardImage: image,
+    cardDescription: order.description || order.title || '电工服务',
+    cardAddress: offsite
+      ? addressRegionParts(order.service_region).filter((part, index, parts) => part !== parts[index - 1]).join('')
+      : displayServiceAddress(order),
+    cardDeadline: order.accept_expires_at && Number.isFinite(Date.parse(order.accept_expires_at))
+      ? formatTime(order.accept_expires_at, 'YYYY-MM-DD HH:mm') : '',
+    cardFeeLabel: feeLabel,
+    cardFee: amount != null && Number.isFinite(Number(amount)) ? Number(amount).toFixed(2) : ''
+  };
+}
+
 require('../../utils/visitCapture').register(Page, {
   data: {
     nationalOrders: [], nationalLoading: false, nationalError: '', nationalHasMore: true, nationalPage: 0,
@@ -15,7 +72,8 @@ require('../../utils/visitCapture').register(Page, {
     locationText: '北京市朝阳区',
     latitude: null,
     longitude: null,
-    nearbyOrders: [],
+    nearbyOrders: [], nearbyError: '', orderTab: 'onsite', defaultOrderImage,
+    navTop: 24, navHeight: 44, navInset: 96,
     loading: false
   },
 
@@ -43,6 +101,7 @@ require('../../utils/visitCapture').register(Page, {
 
   onLoad(options) {
     console.log('首页加载 options=', options);
+    this.measureHomeNavigation();
 
     const referrerId = this._getReferrerId(options);
     this._tryReferrerRedirect(referrerId);
@@ -62,6 +121,8 @@ require('../../utils/visitCapture').register(Page, {
     }
 
     const currentRole = app.globalData.currentRole || 'user';
+    this.measureHomeNavigation();
+    this.setHomeTabBar(currentRole === 'electrician');
     if (currentRole === 'electrician' && !this._orderPollCurrent?.()) {
       this.stopOrderPolling();
       if (!this._orderListOwner?.()) {
@@ -77,6 +138,9 @@ require('../../utils/visitCapture').register(Page, {
   },
 
   onHide() {
+    if (this.data.currentRole === 'electrician') this.setHomeTabBar(false);
+    this._nationalObserver?.disconnect();
+    this._nationalObserver = null;
     orderSubscription.hide(this);
     this._homeHidden = true;
     this.stopOrderPolling();
@@ -84,10 +148,35 @@ require('../../utils/visitCapture').register(Page, {
     this.setData({ homeRefreshing: false });
   },
   onUnload() { this.onHide(); },
+  onResize() { this.measureHomeNavigation(); },
+
+  measureHomeNavigation() {
+    let windowInfo;
+    let capsule;
+    try { windowInfo = wx.getWindowInfo?.() || wx.getSystemInfoSync?.(); } catch (_) {}
+    try { capsule = wx.getMenuButtonBoundingClientRect?.(); } catch (_) {}
+    const navTop = Math.max(windowInfo?.statusBarHeight || 0, windowInfo?.safeArea?.top || 0) || 24;
+    const hasCapsule = capsule?.width > 0 && capsule?.height > 0 && capsule.top >= navTop;
+    const capsuleLeft = capsule?.left;
+    const width = windowInfo?.windowWidth;
+    this.setData({
+      navTop,
+      navHeight: hasCapsule ? capsule.height + (capsule.top - navTop) * 2 : 44,
+      navInset: hasCapsule && capsuleLeft > 0 && width > capsuleLeft ? width - capsuleLeft + 4 : 96
+    });
+  },
+
+  setHomeTabBar(electrician) {
+    wx.setTabBarStyle?.({
+      color: electrician ? '#666666' : '#687a71',
+      selectedColor: electrician ? '#009988' : '#16835c'
+    });
+  },
 
   clearOrderLists() {
     this.setData({
-      nearbyOrders: [], nationalOrders: [], nationalPage: 0, nationalHasMore: true, nationalError: ''
+      nearbyOrders: [], nearbyError: '', nationalOrders: [], nationalPage: 0, nationalHasMore: true,
+      nationalError: '', orderTab: 'onsite'
     });
   },
 
@@ -338,11 +427,44 @@ require('../../utils/visitCapture').register(Page, {
     if (error) wx.showToast({ title: error, icon: 'none' });
   },
 
-  async loadMoreNationalOrders() {
+  selectOrderTab(event) {
+    const { tab } = event.currentTarget.dataset;
+    if (tab !== this.data.orderTab && (tab === 'onsite' || tab === 'offsite')) {
+      this.setData({ orderTab: tab }, () => this.observeNationalPagination());
+    }
+  },
+  observeNationalPagination() {
+    this._nationalObserver?.disconnect();
+    this._nationalObserver = null;
+    const { orderTab, nationalPage, nationalHasMore, nationalError } = this.data;
+    if (!this.createIntersectionObserver || this._homeHidden || orderTab !== 'offsite'
+      || !nationalPage || !nationalHasMore || nationalError) return;
+    const observer = this.createIntersectionObserver();
+    this._nationalObserver = observer;
+    observer.relativeTo('.home-scroll').observe('.national-pagination-sentinel', ({ intersectionRatio }) => {
+      if (this._nationalObserver !== observer || !intersectionRatio) return;
+      this.loadMoreNationalOrders('offsite');
+    });
+  },
+  onOrderScrollLower() {
+    if (!this._nationalObserver && this.data.currentRole === 'electrician' && this.data.orderTab === 'offsite') {
+      return this.loadMoreNationalOrders('offsite');
+    }
+  },
+  retryNearbyOrders() { return this.refreshAvailableOrders('resume'); },
+  onOrderImageError(event) {
+    const { index, tab, source } = event.currentTarget.dataset;
+    const list = tab === 'offsite' ? 'nationalOrders' : 'nearbyOrders';
+    if (source !== defaultOrderImage && this.data[list][index]?.cardImage === source) {
+      this.setData({ [`${list}[${index}].cardImage`]: defaultOrderImage });
+    }
+  },
+
+  async loadMoreNationalOrders(tab) {
     const current = this.captureOrderView();
     const work = this._orderWork;
     if (work?.refresh) await work.promise;
-    if (!current()) return;
+    if (!current() || (tab && this.data.orderTab !== tab)) return;
     if (!this.data.nationalError && this.data.nationalPage > 0 && this.data.nationalHasMore) {
       return this.runNationalPaging(false);
     }
@@ -380,7 +502,7 @@ require('../../utils/visitCapture').register(Page, {
           if (!order.id || orders.has(String(order.id))) continue;
           const presentation = require('../../utils/personalOrder').labels(order);
           orders.set(String(order.id), {
-            ...order, ...presentation, statusText: presentation.offsiteStatusName,
+            ...order, ...presentation, ...orderCard(order, app.globalData.imageBaseUrl), statusText: presentation.offsiteStatusName,
             createdTime: order.created_at ? formatTime(order.created_at) : '未记录'
           });
         }
@@ -388,7 +510,7 @@ require('../../utils/visitCapture').register(Page, {
         if (page >= pages) break;
       }
       this.setData({ nationalOrders: [...orders.values()], nationalPage: loadedPage,
-        nationalHasMore: loadedPage < pages, nationalError: '' });
+        nationalHasMore: loadedPage < pages, nationalError: '' }, () => this.observeNationalPagination());
     } catch (error) {
       if (!current()) return;
       const message = error.message || '全国订单读取失败';
@@ -408,7 +530,7 @@ require('../../utils/visitCapture').register(Page, {
     if (!viewCurrent()) return;
     const version = this._nearbyRequestVersion = (this._nearbyRequestVersion || 0) + 1;
     const current = () => viewCurrent() && version === this._nearbyRequestVersion;
-    if (!silent) this.setData({ loading: true });
+    if (!silent) this.setData({ loading: true, nearbyError: '' });
     try {
       const response = await OrderAPI.getOrderList({ page: 1, limit: 20, my_orders: false }, { showError: false });
       if (!current()) return;
@@ -422,10 +544,11 @@ require('../../utils/visitCapture').register(Page, {
         enterprise_quick: '企业快修订单',
         personal_quick: '个人快修订单'
       };
-      const nearbyOrders = orders.map(order => {
+      const nearbyOrders = orders.filter(order => order.service_mode !== 'off_site').map(order => {
         const status = order.status === 'confirmed' ? 'in_progress' : order.status;
         return {
           ...order,
+          ...orderCard(order, app.globalData.imageBaseUrl),
           title: truncate(order.title),
           description: truncate(order.description),
           orderTypeText: orderTypeMap[order.order_type] || order.order_type || '电工服务',
@@ -435,10 +558,11 @@ require('../../utils/visitCapture').register(Page, {
           distance: this.calculateDistance(order.latitude, order.longitude)
         };
       });
-      this.setData({ nearbyOrders });
+      this.setData({ nearbyOrders, nearbyError: '' });
     } catch (error) {
       if (!current()) return;
       const message = error.message || '加载订单失败';
+      if (!silent) this.setData({ nearbyError: message });
       if (!silent && reportError) wx.showToast({ title: '加载订单失败', icon: 'none' });
       return message;
     } finally {
@@ -613,10 +737,4 @@ require('../../utils/visitCapture').register(Page, {
 
 
 
-  /**
-   * 刷新订单列表
-   */
-  refreshOrders() {
-    return this.loadData('manual');
-  }
 });

@@ -1,11 +1,10 @@
 <wxs module="workNumber" src="../../../utils/workNo.wxs" />
 <order-subscription wx:if="{{!loading && order && (currentRole === 'user' || currentRole === 'enterprise') && order.order_type !== 'enterprise_project' && (order.status === 'pending' || order.status === 'pending_payment')}}" order-id="{{order.id}}" />
-<dispatch-wait wx:if="{{order.dispatch_wait}}" order="{{order}}" bind:refresh="loadOrderDetail" />
 <project-billing wx:if="{{order.project_billing}}" order="{{order}}" role="{{currentRole}}" bind:refresh="loadOrderDetail" />
 <block wx:if="{{!order.isOffsite}}">
 
 <!--pages/order/detail/detail.wxml-->
-<view class="container">
+<view class="container {{currentRole === 'enterprise' && order.project_billing ? 'with-project-billing-actions' : ''}}">
   <view wx:if="{{!loading && order}}" class="content-wrapper">
     <!-- 电工和用户双视角：订单状态 -->
     <view class="status-section card">
@@ -107,7 +106,7 @@
         <text class="label">工单总费用：</text>
         <text class="value amount">{{order.isNewProject ? order.projTotalAmount : ((currentRole === 'enterprise' || currentRole === 'electrician') ? order.projActualAmount : order.projTotalAmount)}}元</text>
       </view>
-      <view class="info-row" wx:if="{{order.projElectricianFee}}">
+      <view class="info-row" wx:if="{{order.projElectricianFee && (!order.project_billing || currentRole === 'electrician')}}">
         <text class="label">电工每人费用：</text>
         <text class="value amount">{{order.projElectricianFee}}元</text>
       </view>
@@ -364,6 +363,7 @@
       </view>
     </view>
 
+    <dispatch-wait wx:if="{{order.dispatch_wait}}" detail-card="{{true}}" order="{{order}}" />
   </view>
 
   <!-- 底部操作栏 -->
@@ -376,6 +376,7 @@
 
     <!-- 右侧操作按钮区域 -->
     <view class="action-area">
+      <project-billing wx:if="{{currentRole === 'enterprise' && order.project_billing}}" owner-actions="{{true}}" order="{{order}}" role="{{currentRole}}" bind:refresh="loadOrderDetail" />
       <!-- 待接单 / 招募中状态（电工视角） -->
       <block wx:if="{{order.status === 'pending' || order.status === 'recruiting' || order.status === 'full'}}">
         <!-- 电工可见：接单按钮 -->

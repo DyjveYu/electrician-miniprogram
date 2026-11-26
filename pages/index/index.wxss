@@ -1,5 +1,10 @@
 @import "../../styles/clean-page.wxss";
 .home-viewport { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #fff; }
+.home-navigation { flex: 0 0 auto; background: #fff; color: #000; }
+.home-navigation-electrician { background: #009988; color: #fff; }
+.home-navigation-body { box-sizing: border-box; display: flex; align-items: center; justify-content: center; }
+.home-navigation-title { flex-shrink: 0; font-size: 17px; line-height: 1.25; font-weight: 600; white-space: nowrap; }
+.home-navigation-electrician .home-navigation-title { font-size: 18px; }
 .home-fixed { flex: 0 0 auto; box-sizing: border-box; padding: 24rpx 44rpx 0; background: #fff; }
 .home-scroll { flex: 1 1 0; height: 0; min-height: 0; overflow: hidden; }
 .nearby-bounded { height: 26vh; }
@@ -24,15 +29,12 @@
 .service-scope { padding: 0 0 32rpx; margin-bottom: 32rpx; border-bottom: 2rpx solid var(--clean-line); }
 .scope-title { font-size: 28rpx; font-weight: 600; margin-bottom: 12rpx; }
 .scope-body { font-size: 26rpx; line-height: 1.9; color: var(--clean-muted); }
-.electrician-dashboard { display: flex; gap: 20rpx; margin-bottom: 40rpx; }
 .order-subscription { display: flex; align-items: center; gap: 20rpx; padding: 24rpx; margin-bottom: 32rpx; border: 2rpx solid var(--clean-line); border-radius: 22rpx; }
 .order-subscription-copy { flex: 1; min-width: 0; }
 .order-subscription-title { display: block; font-size: 28rpx; font-weight: 500; }
 .order-subscription-note { display: block; margin-top: 8rpx; font-size: 22rpx; color: var(--clean-muted); line-height: 1.6; }
 .order-subscription-button { flex-shrink: 0; margin: 0; padding: 0 20rpx; font-size: 24rpx; line-height: 2.8; color: var(--clean-green); background: var(--clean-mint); border-radius: 16rpx; }
 .order-subscription-button::after { border: none; }
-.dashboard-item { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 16rpx; padding: 28rpx 12rpx; border-radius: 22rpx; background: var(--clean-mint); color: var(--clean-green); }
-.dashboard-title { font-size: 28rpx; font-weight: 500; }
 .section { margin-bottom: 36rpx; }
 .section-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12rpx; margin-bottom: 24rpx; }
 .section-title { font-size: 32rpx; font-weight: 600; }
@@ -69,3 +71,43 @@
 .empty-desc { display: block; margin-top: 12rpx; font-size: 24rpx; }
 .home-public-content { background: #fff; }
 .home-brand-footer { color: var(--clean-muted); font-size: 22rpx; padding: 40rpx 32rpx; padding-bottom: calc(40rpx + env(safe-area-inset-bottom)); text-align: center; }
+.order-tabs {
+  box-sizing: border-box; display: flex; flex: 0 0 auto; gap: 6px;
+  padding: 5px 6px 0; background: #c7f8c7;
+}
+.order-tab {
+  position: relative; flex: 1; min-width: 0; margin: 0; padding: 10px 0 12px;
+  border-radius: 8px 8px 0 0; background: #c7f8c7; color: #666; font-size: 17px; line-height: 1.3;
+}
+.order-tab::after, .electrician-take-order::after { border: 0; }
+.order-tab-active { background: #fff; color: #222; font-weight: 600; }
+.order-tab-active::before {
+  position: absolute; bottom: 3px; left: 50%; width: 26px; height: 3px;
+  transform: translateX(-50%); border-radius: 2px; background: #ff7a00; content: '';
+}
+.electrician-orders { background: #edf0f3; padding: 10px 12px 12px; }
+.electrician-order-card {
+  padding: 10px; margin-bottom: 8px; background: #fff; border-radius: 8px;
+}
+.electrician-order-main { display: flex; align-items: flex-start; gap: 10px; }
+.electrician-order-image { width: 16vw; max-width: 72px; height: 16vw; max-height: 72px; flex: 0 0 auto; border-radius: 8px; background: #eff7f1; }
+.electrician-order-info { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.electrician-order-description, .electrician-order-address {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+  overflow: hidden; color: #222; line-height: 1.3;
+}
+.electrician-order-description { font-size: 17px; font-weight: 600; }
+.electrician-order-address { margin-top: 4px; font-size: 15px; }
+.electrician-order-deadline { display: flex; flex-wrap: wrap; margin-top: 6px; color: #666; font-size: 14px; line-height: 1.35; }
+.electrician-order-deadline-label { white-space: nowrap; }
+.electrician-order-deadline-value { min-width: 0; overflow-wrap: anywhere; }
+.electrician-order-action { flex: 0 0 auto; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; max-width: 31%; }
+.electrician-order-fee { color: #666; font-size: 15px; text-align: right; overflow-wrap: anywhere; }
+.electrician-order-fee text { color: #ff5500; font-size: 18px; font-weight: 600; }
+.electrician-take-order {
+  box-sizing: border-box; display: flex; align-items: center; justify-content: center;
+  width: 76px; height: 23px; min-height: 0; margin: 0; padding: 0; border: 0; color: #fff;
+  font-size: 16px; font-weight: 600; line-height: 1; background: #087958; border-radius: 5px;
+}
+.electrician-orders .national-end { color: #666; font-size: 13px; }
+.national-pagination-sentinel { height: 1px; }

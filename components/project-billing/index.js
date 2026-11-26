@@ -1,7 +1,7 @@
 const {request} = require('../../utils/offsiteOrder');
 const entry = require('../../utils/orderEntry');
 Component({
-  properties:{order:Object,role:String},
+  properties:{order:Object,role:String,ownerActions:{type:Boolean,value:false}},
   data:{note:'',amount:'',images:[],busy:false},
   methods:{
     edit(e) { this.setData({[e.currentTarget.dataset.key]:e.detail.value}); },

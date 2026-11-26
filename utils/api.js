@@ -562,8 +562,9 @@ class ContentAPI {
       if (options.onRequestTask) options.onRequestTask(task);
     });
   }
-  static getAds() { return this.request('/ads'); }
+  static getAds() { return this.request('/ads?carousel=1'); }
   static resolveTarget(slot) { return this.request(`/ads/${encodeURIComponent(slot)}/target`); }
+  static resolveBanner(id) { return this.request(`/ads/banners/${encodeURIComponent(id)}/target`); }
   static getNotice(id, options) { return this.request(`/notices/${encodeURIComponent(id)}`, options); }
   static getNotices({ page = 1, pageSize = 30 } = {}, options) {
     return this.request(`/notices?page=${encodeURIComponent(page)}&pageSize=${encodeURIComponent(pageSize)}`, options);

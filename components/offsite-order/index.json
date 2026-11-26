@@ -1,1 +1,6 @@
-{ "component": true }
+{
+  "component": true,
+  "usingComponents": {
+    "dispatch-wait": "/components/dispatch-wait/index"
+  }
+}

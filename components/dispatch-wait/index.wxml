@@ -1,13 +1,10 @@
-<view wx:if="{{order.dispatch_wait && (!order.dispatch_wait.finishedReason || reasonLabel || refundLabel)}}" class="wait-card" catchtap="noop">
-  <view wx:if="{{reasonLabel}}">{{reasonLabel}}</view>
+<view wx:if="{{order.dispatch_wait && (!order.dispatch_wait.finishedReason || reasonLabel || refundLabel)}}" class="{{detailCard ? 'card wait-detail-card' : 'wait-card'}}">
+  <view wx:if="{{detailCard}}" class="section-title">等待接单与退款</view>
+  <view wx:if="{{reasonLabel}}" class="wait-copy">{{reasonLabel}}</view>
   <block wx:else>
-    <view>当前推荐范围：{{order.dispatch_wait.region}}</view>
-    <view wx:if="{{order.dispatch_wait.choiceStage}}">已等待{{order.dispatch_wait.choiceStage}}分钟，暂未有电工接单。</view>
-    <view wx:if="{{deadline}}">若到 {{deadline}} 仍无人接单，系统将取消并发起原路退款。</view>
+    <view class="wait-copy">当前推荐范围：{{order.dispatch_wait.region}}</view>
+    <view wx:if="{{order.dispatch_wait.choiceStage}}" class="wait-copy">已等待{{order.dispatch_wait.choiceStage}}分钟，暂未有电工接单，系统会继续推荐。</view>
+    <view wx:if="{{deadline}}" class="wait-copy">若到 {{deadline}} 仍无人接单，系统将取消并发起原路退款。</view>
   </block>
-  <view wx:if="{{refundLabel}}">{{refundLabel}} · ¥{{order.dispatch_wait.amount}}</view>
-  <view class="wait-actions" wx:if="{{order.dispatch_wait.choiceStage}}">
-    <button size="mini" data-action="cancel" catchtap="choose" disabled="{{busy}}">取消订单</button>
-    <button size="mini" data-action="continue" catchtap="choose" disabled="{{busy}}">继续等待</button>
-  </view>
+  <view wx:if="{{refundLabel}}" class="wait-copy">{{refundLabel}} · ¥{{order.dispatch_wait.amount}}</view>
 </view>

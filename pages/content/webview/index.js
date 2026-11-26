@@ -1,11 +1,13 @@
 const { ContentAPI } = require('../../../utils/api');
 require('../../../utils/visitCapture').register(Page, {
   data: { url: '', error: '', loading: true },
-  onLoad(options) { this.slot = options.slot; this.loadTarget(); },
+  onLoad(options) { this.slot = options.slot; this.bannerId = options.bannerId; this.loadTarget(); },
   async loadTarget() {
     this.setData({ url: '', error: '', loading: true });
     try {
-      const { data } = await ContentAPI.resolveTarget(this.slot || '');
+      const { data } = await (this.bannerId
+        ? ContentAPI.resolveBanner(this.bannerId)
+        : ContentAPI.resolveTarget(this.slot || ''));
       if (data.type === 'notice') {
         wx.redirectTo({ url: `/pages/content/notice-detail/index?id=${encodeURIComponent(data.noticeId)}`,
           fail: () => this.setData({ error: '内容不可用', loading: false }) });

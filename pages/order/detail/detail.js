@@ -258,7 +258,8 @@ require('../../../utils/visitCapture').register(Page, {
     const st = order.status;
     const hasReview = !!(order.has_review || order.reviewed_at);
     // 基础权限
-    const canCancel = !order.project_billing && (st === 'pending' || st === 'pending_payment');
+    const isProjectWaiting = st === 'recruiting' && order.dispatch_wait && !order.dispatch_wait.finishedReason;
+    const canCancel = !order.project_billing && (st === 'pending' || st === 'pending_payment' || isProjectWaiting);
     const canAccept = role === 'electrician' && (st === 'pending' || st === 'recruiting') && !order.hasJoined;
     const canWithdraw = !order.project_billing && role === 'electrician' && (st === 'recruiting' || st === 'full') && order.hasJoined;
     const canComplete = role === 'electrician' && st === 'in_progress';
@@ -300,7 +301,7 @@ require('../../../utils/visitCapture').register(Page, {
   cancelOrder() {
     const that = this;
     const order = this.data.order;
-    const isPaid = order.status === 'pending'; // 已付款待接单状态
+    const isPaid = ['pending', 'recruiting'].includes(order.status);
 
     // 根据订单状态显示不同提示
     let content = '确定要取消这个订单吗？';
@@ -323,7 +324,7 @@ require('../../../utils/visitCapture').register(Page, {
   performCancelOrder() {
     const app = getApp();
     const order = this.data.order;
-    const isPaid = order.status === 'pending';
+    const isPaid = ['pending', 'recruiting'].includes(order.status);
 
     // 根据是否已付款设置取消原因
     const cancelReason = isPaid ? '用户取消已支付订单' : '用户取消未支付订单';
