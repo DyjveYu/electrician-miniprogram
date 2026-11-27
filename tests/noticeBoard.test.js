@@ -140,9 +140,9 @@ test('V4/V5/V8: ContentAPI分页不附JWT；三首页共用组件且安全知识
     assert.equal(config.usingComponents['notice-board'], '/components/notice-board/index');
     const source = fs.readFileSync(path.join(root, `pages/${page}.wxml`), 'utf8');
     if (page === 'login/login') {
-      assert.match(source, /<safety-knowledge-entry compact="\{\{true\}\}"\s*\/>\s*<\/view>\s*<scroll-view class="public-content"[^>]*>\s*<notice-board\s*\/>/);
+      assert.match(source, /<view class="login-content-entries">\s*<electrician-home-entry compact="\{\{true\}\}"\s*\/>\s*<safety-knowledge-entry compact="\{\{true\}\}"\s*\/>\s*<\/view>\s*<\/view>\s*<scroll-view class="public-content"[^>]*>\s*<notice-board large-text="\{\{true\}\}"\s*\/>/);
     } else {
-      assert.match(source, /<safety-knowledge-entry\s*\/>\s*<notice-board\s*\/>/);
+      assert.match(source, /<safety-knowledge-entry in-order-card="[^"]+"\s*\/>\s*<notice-board\s*\/>/);
     }
   }
 });

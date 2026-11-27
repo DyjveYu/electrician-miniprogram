@@ -27,7 +27,7 @@ function openCertification(h, profile = savedProfile) {
   return page;
 }
 
-function setUpLogin(h, result) {
+async function setUpLogin(h, result) {
   const page = h.page('pages/login/login.js');
   h.wx.login = async () => ({ code: 'test-wechat-code' });
   const { AuthAPI } = h.load('utils/api.js');
@@ -38,15 +38,15 @@ function setUpLogin(h, result) {
   page.openLoginForm(role('user'));
   page.selectRole(role('enterprise'));
   page.setData({ phone: enterprise.phone, code: '123456', canLogin: true });
-  page.login();
+  await page.login();
+  assert.equal(page.data.showWelcomeModal, false);
   return page;
 }
 
 test('M2.7 企业短信登录只建立内存认证会话，直达业务入口会退出回访客', async () => {
   const h = harness(), writes = [];
   h.wx.setStorageSync = (key, value) => writes.push([key, value]);
-  const login = setUpLogin(h, restrictedResponse());
-  await login.onAgree();
+  const login = await setUpLogin(h, restrictedResponse());
   assert.equal(h.app.globalData.token, null);
   assert.equal(h.app.globalData.userInfo, null);
   assert.equal(h.app.globalData.isLogin, false);
@@ -69,8 +69,7 @@ test('M2.7 企业短信登录只建立内存认证会话，直达业务入口会
 
 test('M2.7 登录页留在认证前的页面栈，系统返回离开认证即回访客', async () => {
   const h = harness();
-  const login = setUpLogin(h, restrictedResponse());
-  await login.onAgree();
+  const login = await setUpLogin(h, restrictedResponse());
   assert.deepEqual(h.calls.navigate.map(call => call.url), ['/' + certificationRoute]);
   assert.equal(h.calls.relaunch.length, 0);
   assert.equal(h.pages[0], login);
@@ -92,8 +91,7 @@ test('M2.7 旧后端返回普通企业未认证凭据时拒绝建立会话，短
   assert.equal(h.calls.request[0].header['X-Miniapp-Certification-Session'], '1');
   h.respond(0, { user: enterprise, token: 'old-ordinary-token' });
   await pending;
-  const login = setUpLogin(h, { user: enterprise, token: 'old-ordinary-token', enterpriseCertification: { certStatus: 'pending' } });
-  await login.onAgree();
+  const login = await setUpLogin(h, { user: enterprise, token: 'old-ordinary-token', enterpriseCertification: { certStatus: 'pending' } });
   assert.equal(h.app.globalData.token, null);
   assert.equal(h.calls.relaunch.length, 0);
   assert.match(h.calls.toast.at(-1).title, /暂不支持企业认证/);

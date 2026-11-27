@@ -7,12 +7,12 @@ const { harness } = require('./helpers/contentHarness');
 const flush = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
 const address = { id: 2, province: '测试省', city: '测试市', district: '测试区', detail_address: '测试路1号', contact_name: '测试用户', contact_phone: '13900000111' };
 const order = extra => ({ id: 10, order_type: 'personal_quick', service_mode: 'on_site', required_cert_type: 'construction', electricity_type: 'industrial', status: 'pending_payment', prepay_amount: '28.50', ...extra });
-async function create() {
+async function create(requiredCertType = 'construction') {
   const h = harness(); h.login('user');
   const p = h.page('pages/order/create/create.js'); p.onLoad({ referrerId: '9' }); p.onShow();
   h.respond(h.calls.request.findIndex(r => r.url.includes('/addresses?page=')), { addresses: [address], pagination: { total: 1, pages: 1 } });
   h.respond(h.calls.request.findIndex(r => r.url.endsWith('/addresses/default')), { address });
-  await flush(); p.setData({ description: '测试内容', requiredCertType: 'construction' }); p.updateSubmitEnable();
+  await flush(); p.setData({ description: '测试内容', ...(requiredCertType ? { requiredCertType } : {}) }); p.updateSubmitEnable();
   return { h, p };
 }
 function payment(extra = {}, options = {}) {
@@ -28,8 +28,9 @@ function payment(extra = {}, options = {}) {
   return { h, p, api, posts: () => posts };
 }
 
-test('personal generation needs explicit qualification, not pre-generation agreement', async () => {
-  const { h, p } = await create();
+test('personal generation defaults to low voltage and still validates a missing qualification', async () => {
+  const { h, p } = await create(null);
+  assert.equal(p.data.requiredCertType, 'low_voltage');
   assert.equal(p.data.agreePrepayTerms, false); assert.equal(p.data.hasOpenedAgreement, false); assert.equal(p.data.canSubmit, true);
   p.setData({ requiredCertType: '' }); p.updateSubmitEnable(); assert.equal(p.data.canSubmit, false);
   await p.submitOrder(); assert.equal(h.calls.request.filter(r => r.url.endsWith('/orders')).length, 0);
@@ -103,6 +104,13 @@ test('component requires opening plus active checking and emits confirmation onl
   c.read(); assert.equal(c.data.agreed, false); c.closeReader(); c.confirm(); assert.equal(events.length, 0);
   c.changeAgreement({ detail: { value: ['agree'] } }); c.confirm(); c.confirm(); assert.deepEqual(events, ['confirm']);
   definition.properties.visible.observer.call(c, true); assert.equal(c.data.agreed, false); assert.equal(c.data.opened, false);
+  c.setData({ sharedLayout: true });
+  c.closeFromBackdrop();
+  assert.deepEqual(events, ['confirm', 'close']);
+  c.changeAgreement({ detail: { value: ['agree'] } });
+  c.confirm();
+  c.closeFromBackdrop();
+  assert.deepEqual(events, ['confirm', 'close', 'confirm']);
 });
 
 test('new personal payment waits for the modal and backend state after test confirmation', async () => {
@@ -113,6 +121,16 @@ test('new personal payment waits for the modal and backend state after test conf
   assert.equal(h.calls.redirect.length, 0); // 确认接口返回成功也必须核实原单状态。
   h.respond(1, { order: order({ status: 'pending', has_paid_prepay: true }) });
   assert.match(h.calls.redirect.at(-1).url, /status=success/);
+});
+
+test('pending personal offsite payment opens prepay with the saved pricing mode and amount', () => {
+  const { p, posts } = payment({ service_mode: 'off_site', pricing_mode: 'fixed_price', prepay_amount: '350.50' }, { type: 'prepay' });
+  assert.equal(p.data.showPrepay, true);
+  assert.equal(p.data.personalPrepay, true);
+  assert.equal(p.data.offsitePayment, true);
+  assert.equal(p.data.order.pricing_mode, 'fixed_price');
+  assert.equal(p.data.prepayDisplayAmount, '350.50');
+  assert.equal(posts(), 0);
 });
 
 test('a stale prepayment entry cannot silently start a later repair charge', () => {

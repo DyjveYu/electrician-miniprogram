@@ -168,8 +168,8 @@ require('../../utils/visitCapture').register(Page, {
 
   setHomeTabBar(electrician) {
     wx.setTabBarStyle?.({
-      color: electrician ? '#666666' : '#687a71',
-      selectedColor: electrician ? '#009988' : '#16835c'
+      color: electrician ? '#666666' : '#7A7E83',
+      selectedColor: electrician ? '#009988' : '#0F9D58'
     });
   },
 
@@ -322,7 +322,7 @@ require('../../utils/visitCapture').register(Page, {
 
         const data = res.data.data || res.data;
         if (data.hasPending && data.orderId) {
-          wx.showModal({ confirmColor: '#16835c',
+          wx.showModal({
             title: '工单已结束',
             content: '工单已结束，请完成评价',
             confirmText: '去评价',
@@ -701,7 +701,7 @@ require('../../utils/visitCapture').register(Page, {
         if (res.data.code === 200) {
           const data = res.data.data || {};
           if (data.status !== 'paid') {
-            wx.showModal({ confirmColor: '#16835c',
+            wx.showModal({
               title: '提示',
               content: '需要缴纳押金后才能接单，是否前往缴纳？',
               confirmText: '去缴纳',

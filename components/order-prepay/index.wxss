@@ -16,3 +16,62 @@ button { margin-top: 24rpx; font-size: 30rpx; border-radius: 18rpx; }
 .enterprise-onsite .amount, .enterprise-onsite .agreement-choice { color: #000000; }
 .enterprise-onsite .hint, .enterprise-onsite .secondary { color: #6A6A6A; }
 .enterprise-onsite .agreement-link { color: #E21515; }
+
+.prepay-sheet {
+  padding: 0 0 env(safe-area-inset-bottom);
+  color: #151515;
+}
+.prepay-title {
+  padding: 24rpx 20rpx 18rpx;
+  text-align: center;
+  font-size: 34rpx;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.prepay-agreement-panel { padding: 22rpx 16rpx 46rpx; background: #f6f6f6; }
+.prepay-agreement-card { padding: 24rpx 20rpx; background: #fff; border-radius: 16rpx; }
+.prepay-agreement-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4rpx;
+  color: #676767;
+  font-size: 27rpx;
+  line-height: 1.5;
+}
+.prepay-agreement-choice { display: flex; align-items: center; gap: 16rpx; }
+.prepay-agreement-choice checkbox { flex-shrink: 0; transform: scale(.95); }
+.prepay-agreement-link { color: #b64c21; font-weight: 500; }
+.prepay-agreement-hint { margin: 8rpx 0 0 52rpx; font-size: 25rpx; line-height: 1.5; color: #777; }
+.prepay-payment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+  padding: 22rpx 36rpx 44rpx;
+  background: #fff;
+}
+.prepay-payment-amount { font-size: 33rpx; font-weight: 600; color: #0b8751; overflow-wrap: anywhere; }
+.prepay-price-options { flex: 1; min-width: 0; color: #0b8751; font-size: 31rpx; }
+.prepay-price-option { display: flex; align-items: center; margin: 8rpx 0; white-space: nowrap; line-height: 1.65; }
+.prepay-price-option.selected { font-weight: 600; }
+.prepay-price-input { flex: 1; width: 0; min-width: 0; height: 42rpx; padding: 0 6rpx; border: 2rpx solid #d5d5d5; color: #333; font-size: 25rpx; font-weight: 400; }
+.prepay-price-option.selected .prepay-price-input { border-color: #0b8751; }
+.prepay-price-note { padding-top: 12rpx; color: #687a70; font-size: 24rpx; line-height: 1.5; }
+.prepay-payment-button {
+  flex: 0 0 42%;
+  min-width: 0;
+  min-height: 88rpx;
+  margin: 0;
+  padding: 12rpx 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 24rpx;
+  background: #085b38;
+  font-size: 46rpx;
+  line-height: 1.3;
+}
+.prepay-payment-button::after { border: 0; }
+.prepay-payment-button[disabled] { background: #396b53; color: #fff; }
+.prepay-payment-options { padding: 0 36rpx 8rpx; border-top: 12rpx solid #f6f6f6; }

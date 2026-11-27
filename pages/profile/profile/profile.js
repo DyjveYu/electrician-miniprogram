@@ -316,7 +316,7 @@ loadUserInfo() {
   // 加载钱包信息
   loadWalletInfo() {
     const app = getApp();
-    
+
     enterpriseSession.request({
       url: `${app.globalData.baseUrl}/electricians/income`,
       method: 'GET',
@@ -354,7 +354,7 @@ loadUserInfo() {
   // 点击菜单项
   onMenuItemTap(e) {
     const item = e.currentTarget.dataset.item;
-    
+
     if (item.id === 'certification') {
       // 电工认证特殊处理
       this.handleCertification();
@@ -390,7 +390,7 @@ loadUserInfo() {
 
   // 退出登录
   logout() {
-    wx.showModal({ confirmColor: '#16835c',
+    wx.showModal({
       title: '确认退出',
       content: '确定要退出登录吗？',
       success: (res) => {
@@ -405,7 +405,7 @@ loadUserInfo() {
   // 过滤菜单项
   getFilteredMenuItems() {
     const currentRole = this.data.currentRole;
-    return this.data.menuItems.filter(item => 
+    return this.data.menuItems.filter(item =>
       item.showForRole.includes(currentRole)
     );
   },
@@ -414,7 +414,7 @@ loadUserInfo() {
   getCertificationStatusText() {
     if (!this.data.userInfo) return '未认证';
     if (this.data.userInfo.certificationStatusText) return this.data.userInfo.certificationStatusText;
-    
+
     if (this.data.userInfo.isElectrician) {
       return '已认证';
     } else if (this.data.userInfo.certificationStatus === 'pending') {

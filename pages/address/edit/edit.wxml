@@ -57,9 +57,9 @@
         <text class="label">设为默认地址</text>
         <switch
           checked="{{formData.isDefault}}"
-
+          color="#1976d2"
           catchtap="toggleDefault"
-         color="#16835c"/>
+        />
       </view>
     </view>
   </view>

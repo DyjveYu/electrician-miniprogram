@@ -4,13 +4,16 @@ const { harness } = require('./helpers/contentHarness');
 const flush = async () => { for (let i = 0; i < 12; i++) await Promise.resolve(); };
 const address = { id: 2, province: '省', city: '市', district: '其他区', detail_address: '测试路1号', contact_name: '企业联系人', contact_phone: '13900000111' };
 const order = extra => ({ id: 10, is_order_owner: true, order_type: 'enterprise_quick', service_mode: 'on_site', required_cert_type: 'construction', electricity_type: null, status: 'pending_payment', prepay_amount: '28.50', ...extra });
-async function create() {
+async function create(requiredCertType = 'construction') {
   const h = harness(); h.login('enterprise');
   const p = h.page('pages/order/create/create.js'); p.onLoad({ referrerId: '9' }); p.onShow();
   h.respond(0, { certStatus: 'approved', district: '认证区' });
   h.respond(h.calls.request.findIndex(r => r.url.includes('/addresses?page=')), { addresses: [address], pagination: { total: 1, pages: 1 } });
   h.respond(h.calls.request.findIndex(r => r.url.endsWith('/addresses/default')), { address });
-  await flush(); p.setData({ description: '企业服务内容', requiredCertType: 'construction' }); p.updateSubmitEnable();
+  await flush();
+  p.setData({ description: '企业服务内容' });
+  if (requiredCertType) p.onEnterpriseCertChange({ detail: { value: [requiredCertType] } });
+  p.updateSubmitEnable();
   return { h, p };
 }
 function pay(extra = {}, choice) {
@@ -27,7 +30,9 @@ function pay(extra = {}, choice) {
 }
 
 test('enterprise defaults to single onsite without pre-generation agreement, and accepts an address outside its certification district', async () => {
-  const { p } = await create();
+  const { p } = await create(null);
+  assert.equal(p.data.requiredCertType, 'low_voltage');
+  assert.equal(p.data.enterpriseLowChecked, true);
   assert.equal(p.data.orderMode, 'quick'); assert.equal(p.data.serviceMode, 'on_site'); assert.equal(p.data.canSubmit, true);
   assert.notEqual(p.data.selectedAddress.district, p.data.enterpriseCertDistrict);
   assert.equal(p.data.hasOpenedAgreement, false); assert.equal(p.data.agreePrepayTerms, false);
@@ -102,12 +107,12 @@ test('M5.5: amount mismatch requires new consent and other accounts cannot enter
   assert.match(other.h.calls.redirect[0].url, /detail\?id=10/);
 });
 
-test('M5.5: enterprise direct checkbox and reader explicit consent both gate the payment event', async () => {
+test('enterprise onsite shared sheet requires checking the agreement and submits only once', async () => {
   const h = harness();
   const events = [];
   const sheet = {
     ...h.component('components/order-prepay/index.js'),
-    data: { enterpriseOnsite: true, agreed: false, reading: false, opened: false, confirming: false },
+    data: { enterpriseOnsite: true, sharedLayout: true, agreed: false, reading: false, opened: false, confirming: false },
     setData(next) { Object.assign(this.data, next); },
     triggerEvent(name) { events.push(name); }
   };
@@ -115,11 +120,6 @@ test('M5.5: enterprise direct checkbox and reader explicit consent both gate the
   sheet.read();
   sheet.closeReader();
   assert.equal(sheet.data.agreed, false);
-  sheet.read();
-  sheet.acceptReader();
-  assert.equal(sheet.data.agreed, true);
-  assert.deepEqual(events, []);
-  sheet.changeAgreement({ detail: { value: [] } });
   await sheet.confirm();
   assert.deepEqual(events, []);
   sheet.changeAgreement({ detail: { value: ['agree'] } });

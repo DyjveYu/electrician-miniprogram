@@ -85,7 +85,7 @@
       class="menu-item"
       bindtap="navigateToCreateOrder"
     >
-      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/clipboard.svg" mode="aspectFit" aria-hidden="true" /></view>
+      <view class="menu-icon">📋</view>
       <view class="menu-content">
         <text class="menu-title">我要下单</text>
         <text class="menu-desc">单日快修，快速下单</text>
@@ -100,7 +100,7 @@
       data-item="{{menuItems[0]}}"
       bindtap="onMenuItemTap"
     >
-      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/map-pin.svg" mode="aspectFit" aria-hidden="true" /></view>
+      <view class="menu-icon">📍</view>
       <view class="menu-content">
         <text class="menu-title">地址管理</text>
         <text class="menu-desc">管理常用地址</text>
@@ -114,7 +114,7 @@
       class="menu-item"
       bindtap="navigateToWallet"
     >
-      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/wallet.svg" mode="aspectFit" aria-hidden="true" /></view>
+      <view class="menu-icon">💰</view>
       <view class="menu-content">
         <text class="menu-title">收入金额</text>
         <text class="menu-desc">可提现: ¥{{wallet.available_balance || '0.00'}}</text>
@@ -128,7 +128,7 @@
       class="menu-item"
       bindtap="navigateToReferrer"
     >
-      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/megaphone.svg" mode="aspectFit" aria-hidden="true" /></view>
+      <view class="menu-icon">📢</view>
       <view class="menu-content">
         <text class="menu-title">推荐达人</text>
         <text class="menu-desc">分享链接赚取佣金</text>
@@ -142,7 +142,7 @@
       class="menu-item"
       bindtap="navigateToIncome"
     >
-      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/wallet.svg" mode="aspectFit" aria-hidden="true" /></view>
+      <view class="menu-icon">💰</view>
       <view class="menu-content">
         <text class="menu-title">佣金收入</text>
         <text class="menu-desc">查看佣金明细与提现</text>
@@ -156,7 +156,7 @@
       class="menu-item"
       bindtap="handleCertification"
     >
-      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/shield-check.svg" mode="aspectFit" aria-hidden="true" /></view>
+      <view class="menu-icon">🔧</view>
       <view class="menu-content">
         <text class="menu-title">电工认证</text>
         <text class="menu-desc">{{userInfo.isElectrician ? '查看认证信息' : '申请成为电工'}}</text>
@@ -174,7 +174,7 @@
       class="menu-item"
       bindtap="navigateToDeposit"
     >
-      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/wallet.svg" mode="aspectFit" aria-hidden="true" /></view>
+      <view class="menu-icon">💵</view>
       <view class="menu-content">
         <text class="menu-title">押金管理</text>
         <text class="menu-desc">{{depositStatus === 'paid' ? '已缴纳押金' : (depositStatus === 'refunded' ? '已退款' : '未缴纳')}}</text>
@@ -194,7 +194,7 @@
       class="menu-item"
       bindtap="navigateToAbout"
     >
-      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/info.svg" mode="aspectFit" aria-hidden="true" /></view>
+      <view class="menu-icon">ℹ️</view>
       <view class="menu-content">
         <text class="menu-title">关于我们</text>
         <text class="menu-desc">版本信息、联系方式</text>
@@ -208,7 +208,7 @@
       class="menu-item"
       bindtap="handleEnterpriseCertification"
     >
-      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/building.svg" mode="aspectFit" aria-hidden="true" /></view>
+      <view class="menu-icon">🏢</view>
       <view class="menu-content">
         <text class="menu-title">企业认证</text>
         <text class="menu-desc">{{enterpriseCertStatusText || '申请企业认证'}}</text>
@@ -225,7 +225,7 @@
       class="menu-item partner-entry"
       bindtap="navigateToPartner"
     >
-      <view class="menu-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/handshake.svg" mode="aspectFit" aria-hidden="true" /></view>
+      <view class="menu-icon">🤝</view>
       <view class="menu-content">
         <text class="menu-title">合作伙伴</text>
         <text class="menu-desc">查看区域数据统计</text>

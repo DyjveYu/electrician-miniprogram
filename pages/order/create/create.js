@@ -112,7 +112,12 @@ require('../../../utils/visitCapture').register(Page, {
       wx.reLaunch({ url: '/pages/index/index' });
       return;
     }
-    this.setData({ userType, minProjectDate: projectOrder.today() });
+    this.setData({
+      userType,
+      requiredCertType: 'low_voltage',
+      enterpriseLowChecked: userType === 'enterprise',
+      minProjectDate: projectOrder.today()
+    });
     if (userType === 'enterprise' && wx.setNavigationBarTitle) wx.setNavigationBarTitle({ title: '创建企业订单' });
     this.setData({ descriptionTitle: '订单服务内容文字描述', selectedServiceTypeId: SERVICE_TYPES[0].id, selectedServiceType: SERVICE_TYPES[0] });
     // 企业用户加载认证信息（用于区校验）
@@ -244,7 +249,7 @@ require('../../../utils/visitCapture').register(Page, {
         manager.start({ duration: 60000, lang: 'zh_CN' });
       },
       fail: () => {
-        wx.showModal({ confirmColor: '#16835c',
+        wx.showModal({
           title: '需要麦克风权限',
           content: '请在右上角菜单 → 设置 中开启麦克风权限',
           showCancel: false

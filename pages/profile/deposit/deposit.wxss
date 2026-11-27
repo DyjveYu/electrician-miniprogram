@@ -1,19 +1,16 @@
-@import "../../../styles/clean-surfaces.wxss";
 /* pages/profile/deposit/deposit.wxss */
 .container {
-  background-color: #fff;
+  background-color: #f5f5f5;
   min-height: 100vh;
-  padding: 32rpx 44rpx 48rpx;
+  padding: 20rpx;
 }
 
 .deposit-card {
-  background: #eff7f1;
-  border-radius: 22rpx;
+  background: linear-gradient(135deg, #0F9D58 0%, #A5D6A7 100%);
+  border-radius: 16rpx;
   padding: 40rpx 30rpx;
   color: #fff;
   margin-bottom: 20rpx;
-  color: #172d25;
-  color: #172d25;
 }
 
 .deposit-header {
@@ -29,7 +26,7 @@
 
 .deposit-amount {
   font-size: 48rpx;
-  font-weight: 600;
+  font-weight: bold;
 }
 
 .deposit-status {
@@ -70,7 +67,7 @@
 
 .info-card {
   background-color: #fff;
-  border-radius: 22rpx;
+  border-radius: 12rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
 }
@@ -78,7 +75,7 @@
 .info-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #172d25;
+  color: #333;
   margin-bottom: 20rpx;
 }
 
@@ -89,14 +86,14 @@
 
 .info-item {
   font-size: 28rpx;
-  color: #687a71;
+  color: #666;
   line-height: 1.6;
   margin-bottom: 10rpx;
 }
 
 .detail-card {
   background-color: #fff;
-  border-radius: 22rpx;
+  border-radius: 12rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
 }
@@ -104,7 +101,7 @@
 .detail-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #172d25;
+  color: #333;
   margin-bottom: 20rpx;
 }
 
@@ -113,7 +110,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 15rpx 0;
-  border-bottom: 1rpx solid #e9efeb;
+  border-bottom: 1rpx solid #f0f0f0;
 }
 
 .detail-row:last-child {
@@ -122,19 +119,19 @@
 
 .detail-label {
   font-size: 28rpx;
-  color: #687a71;
+  color: #999;
 }
 
 .detail-value {
   font-size: 28rpx;
-  color: #172d25;
+  color: #333;
   max-width: 400rpx;
   word-break: break-all;
 }
 
 .transaction-id {
   font-size: 24rpx;
-  color: #687a71;
+  color: #666;
 }
 
 .action-section {
@@ -144,9 +141,9 @@
 
 .btn {
   width: 100%;
-  height: auto;
-  border-radius: 22rpx;
-  font-size: 30rpx;
+  height: 88rpx;
+  border-radius: 44rpx;
+  font-size: 32rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -158,7 +155,7 @@
 }
 
 .pay-btn {
-  background: #16835c;
+  background: linear-gradient(135deg, #0F9D58 0%, #4caf50 100%);
   color: #fff;
 }
 
@@ -168,12 +165,12 @@
 
 .refund-btn {
   background-color: #fff;
-  color: #956321;
-  border: 2rpx solid #956321;
+  color: #ff9800;
+  border: 2rpx solid #ff9800;
 }
 
 .refund-btn:active {
-  background-color: #faf4e9;
+  background-color: #fff3e0;
 }
 
 .tips-section {
@@ -184,10 +181,6 @@
 
 .tips-text {
   font-size: 24rpx;
-  color: #687a71;
+  color: #999;
   line-height: 1.6;
 }
-
-
-/* UI1.1：页面布局及状态精调。 */
-.deposit-card { background: #eff7f1; color: #172d25; } .deposit-header { flex-wrap: wrap; gap: 16rpx; } .deposit-amount { color: #16835c; font-size: 48rpx; } .status-badge { border-radius: 12rpx; background: #fff; } .status-text { color: inherit; } .status-badge.paid { background: #fff; color: #16835c; } .status-badge.pending, .status-badge.refunding { background: #faf4e9; color: #956321; } .status-badge.refunded { background: #fff; color: #687a71; } .status-badge.expired { background: #faf0ed; color: #b74434; } .detail-row { align-items: flex-start; gap: 20rpx; } .detail-value { flex: 1; min-width: 0; text-align: right; } .action-section { padding: 0; } .refund-btn { color: #16835c; background: #eff7f1; border-color: #16835c; }

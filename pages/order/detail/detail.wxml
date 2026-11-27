@@ -1,6 +1,5 @@
 <wxs module="workNumber" src="../../../utils/workNo.wxs" />
 <order-subscription wx:if="{{!loading && order && (currentRole === 'user' || currentRole === 'enterprise') && order.order_type !== 'enterprise_project' && (order.status === 'pending' || order.status === 'pending_payment')}}" order-id="{{order.id}}" />
-<project-billing wx:if="{{order.project_billing}}" order="{{order}}" role="{{currentRole}}" bind:refresh="loadOrderDetail" />
 <block wx:if="{{!order.isOffsite}}">
 
 <!--pages/order/detail/detail.wxml-->
@@ -116,6 +115,8 @@
       </view>
     </view>
 
+    <project-billing wx:if="{{order.project_billing}}" order="{{order}}" role="{{currentRole}}" bind:refresh="loadOrderDetail" />
+
     <!-- 已招募电工列表（企业端） -->
     <view class="section card" wx:if="{{currentRole === 'enterprise' && order.electricians && order.electricians.length > 0}}">
       <view class="section-title">已招募电工（{{order.electricians.length}}人）</view>
@@ -125,7 +126,7 @@
           <text class="electrician-workno">工号：{{workNumber.display(item.workNo)}}</text>
         </view>
         <view class="electrician-phone-icon" wx:if="{{item.phone}}" data-phone="{{item.phone}}" bindtap="makePhoneCall">
-          <image class="phone-icon ui-icon" src="/images/content-ui/phone.svg" mode="aspectFit" aria-hidden="true" />
+          <text class="phone-icon">📞</text>
         </view>
       </view>
     </view>
@@ -367,7 +368,7 @@
   </view>
 
   <!-- 底部操作栏 -->
-  <view class="bottom-bar" wx:if="{{!loading && order}}">
+  <view class="bottom-bar {{order.status === 'pending_payment' || (order.status === 'pending' && order.order_type === 'personal_quick') || (currentRole === 'electrician' && (order.status === 'pending' || order.status === 'recruiting' || order.status === 'full')) ? 'unified-actions' : (order.status === 'pending' ? 'rounded-actions' : '')}}" wx:if="{{!loading && order}}">
   <view class="bottom-content">
     <!-- 左侧客服按钮 -->
     <button class="service-btn" open-type="contact">
@@ -404,7 +405,7 @@
           class="service-btn"
           bindtap="cancelOrder"
         >
-          <text class="service-text">取消订单</text>
+          <text class="service-text cancel-order-label">取消订单</text>
         </button>
       </block>
 
@@ -449,7 +450,7 @@
           class="service-btn"
           bindtap="cancelOrder"
         >
-           <text class="service-text">取消订单</text>
+           取消订单
         </button>
 
 
@@ -459,7 +460,7 @@
           class="main-action-btn pay"
           bindtap="goToPay"
         >
-          去支付¥{{order.amount || '30.00'}}
+          去支付
         </button>
 
       </block>
@@ -544,7 +545,7 @@
 
   <!-- 订单不存在 -->
   <view wx:if="{{!loading && !order}}" class="empty-state">
-    <image class="empty-icon ui-icon" src="/images/content-ui/clipboard.svg" mode="aspectFit" aria-hidden="true" />
+    <text class="empty-icon">📋</text>
     <text class="empty-text">订单不存在</text>
   </view>
 

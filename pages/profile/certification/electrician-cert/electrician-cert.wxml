@@ -32,7 +32,7 @@
       </block>
       <block wx:else>
         <view class="placeholder-content">
-          <image class="camera-icon" src="/images/content-ui/camera.svg" mode="aspectFit"></image>
+          <image class="camera-icon" src="/images/icons/camera.png" mode="aspectFit"></image>
           <text>点击上传电工证照片</text>
         </view>
         <image class="card-bg" src="/images/bg/certificate-bg.png" mode="aspectFit"></image>

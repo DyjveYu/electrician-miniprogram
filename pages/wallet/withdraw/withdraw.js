@@ -54,7 +54,7 @@ require('../../../utils/visitCapture').register(Page, {
         value = parseFloat(value).toFixed(2);
       }
     }
-    
+
     const amount = parseFloat(value);
     const balance = this.data.wallet.available_balance;
     const isValid = !isNaN(amount) && amount >= 0.1 && amount <= 200 && amount <= balance && this.canWithdrawToday();
@@ -84,7 +84,7 @@ require('../../../utils/visitCapture').register(Page, {
     if (this.data.submitting) return;
 
     if (!this.canWithdrawToday()) {
-      wx.showModal({ confirmColor: '#16835c',
+      wx.showModal({
         title: '提示',
         content: '今日提现次数已达上限（10次），请明天再试',
         showCancel: false
@@ -97,7 +97,7 @@ require('../../../utils/visitCapture').register(Page, {
     const amount = parseFloat(this.data.withdrawAmount);
 
     if (amount + (this.data.todayWithdrawnAmount || 0) > 2000) {
-      wx.showModal({ confirmColor: '#16835c',
+      wx.showModal({
         title: '提示',
         content: '今日累计提现金额已达上限¥2,000，请明天再试',
         showCancel: false
@@ -105,7 +105,7 @@ require('../../../utils/visitCapture').register(Page, {
       return;
     }
 
-    wx.showModal({ confirmColor: '#16835c',
+    wx.showModal({
       title: '确认提现',
       content: `确认提现 ¥${amount.toFixed(2)} 到微信零钱？`,
       success: (res) => {
@@ -124,17 +124,17 @@ require('../../../utils/visitCapture').register(Page, {
     wx.request({
       url: `${app.globalData.baseUrl}/electricians/withdraw`,
       method: 'POST',
-      header: { 
+      header: {
         'Authorization': `Bearer ${app.globalData.token}`,
         'Content-Type': 'application/json'
       },
       data: { amount },
       success: (res) => {
         console.log('✅ 提现接口返回:', res.data);
-        
+
         if (res.data.success) {
           const { state, package_info, out_batch_no } = res.data.data;
-          
+
           if (state === 'WAIT_USER_CONFIRM' && package_info) {
             console.log('✅ 需要用户确认，准备拉起确认页');
             this.requestMerchantTransfer(package_info, out_batch_no);
@@ -150,7 +150,7 @@ require('../../../utils/visitCapture').register(Page, {
             }, 1500);
           }
         } else {
-          wx.showModal({ confirmColor: '#16835c',
+          wx.showModal({
             title: '提现失败',
             content: res.data.message || '未知错误',
             showCancel: false
@@ -159,7 +159,7 @@ require('../../../utils/visitCapture').register(Page, {
       },
       fail: (err) => {
         console.error('❌ 提现请求失败:', err);
-        wx.showModal({ confirmColor: '#16835c',
+        wx.showModal({
           title: '请求失败',
           content: '网络错误，请稍后重试',
           showCancel: false
@@ -179,7 +179,7 @@ require('../../../utils/visitCapture').register(Page, {
     console.log('📦 out_batch_no:', outBatchNo);
 
     if (!wx.canIUse('requestMerchantTransfer')) {
-      wx.showModal({ confirmColor: '#16835c',
+      wx.showModal({
         title: '提示',
         content: '你的微信版本过低，请更新至最新版本后重试',
         showCancel: false
@@ -190,31 +190,31 @@ require('../../../utils/visitCapture').register(Page, {
     const app = getApp();
     const savedToken = app.globalData.token;
     const savedBaseUrl = app.globalData.baseUrl;
-    
+
     const mchId = app.globalData.mchId || '1103388382';
     const appId = wx.getAccountInfoSync().miniProgram.appId;
-    
+
     console.log('📦 调用参数:', { mchId, appId });
-    
+
     wx.requestMerchantTransfer({
       mchId: mchId,
       appId: appId,
       package: packageInfo,
-      
+
       success: (res) => {
         console.log('✅ 用户确认收款成功:', res);
-        
+
         wx.showLoading({
           title: '确认中...',
           mask: true
         });
-        
+
         // 延迟3秒后查询状态（给微信处理时间）
         setTimeout(() => {
           this.queryStatusWithRetry(outBatchNo, savedToken, savedBaseUrl, 0, false);
         }, 3000);
       },
-      
+
       fail: (err) => {
         console.error('❌ 收款确认失败或用户取消:', err);
 
@@ -243,7 +243,7 @@ require('../../../utils/visitCapture').register(Page, {
 
               if (res.data && res.data.success) {
                 // 撤销受理成功，本地视为已取消，提示用户结果并刷新钱包数据
-                wx.showModal({ confirmColor: '#16835c',
+                wx.showModal({
                   title: '已取消',
                   content: '您已取消本次提现',
                   showCancel: false,
@@ -253,7 +253,7 @@ require('../../../utils/visitCapture').register(Page, {
                 });
               } else {
                 // 撤销业务失败（例如参数错误、状态不允许撤销等）
-                wx.showModal({ confirmColor: '#16835c',
+                wx.showModal({
                   title: '撤销失败',
                   content: (res.data && res.data.message) || '撤销失败，请稍后重试',
                   showCancel: false,
@@ -268,7 +268,7 @@ require('../../../utils/visitCapture').register(Page, {
               console.error('❌ 撤销请求失败:', cancelErr);
               wx.hideLoading();
 
-              wx.showModal({ confirmColor: '#16835c',
+              wx.showModal({
                 title: '网络错误',
                 content: '撤销请求失败，请稍后在提现记录中确认结果',
                 showCancel: false,
@@ -281,7 +281,7 @@ require('../../../utils/visitCapture').register(Page, {
         } else {
           // 非取消场景：例如接口异常或其他错误，按通用错误提示处理
           wx.hideLoading();
-          wx.showModal({ confirmColor: '#16835c',
+          wx.showModal({
             title: '提示',
             content: err.errMsg || '操作失败，请稍后重试',
             showCancel: false,
@@ -305,11 +305,11 @@ require('../../../utils/visitCapture').register(Page, {
    */
   queryStatusWithRetry(outBatchNo, token, baseUrl, retryCount = 0, userCancelled = false, maxRetries = 5) {
     console.log(`🔍 [重试${retryCount}/${maxRetries}] 查询状态: ${outBatchNo}`);
-    
+
     if (!token) {
       console.error('❌ token 为空');
       wx.hideLoading();
-      wx.showModal({ confirmColor: '#16835c',
+      wx.showModal({
         title: '提示',
         content: '登录状态失效，请重新登录',
         showCancel: false,
@@ -319,27 +319,27 @@ require('../../../utils/visitCapture').register(Page, {
       });
       return;
     }
-    
+
     const requestUrl = `${baseUrl}/electricians/withdrawals/${outBatchNo}/status`;
-    
+
     wx.request({
       url: requestUrl,
       method: 'GET',
-      header: { 
+      header: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
       success: (res) => {
         console.log('✅ 查询返回:', res.data);
-        
+
         if (res.data.success) {
           const { status, fail_reason, wechat_state } = res.data.data;
-          
+
           console.log('📊 状态:', status, '微信状态:', wechat_state);
-          
+
           // ✅ 检查是否是终态
           const isFinalState = ['success', 'failed', 'cancelled'].includes(status);
-          
+
           if (isFinalState) {
             // 已经是终态，处理结果
             wx.hideLoading();
@@ -347,17 +347,17 @@ require('../../../utils/visitCapture').register(Page, {
           } else if (retryCount < maxRetries) {
             // ✅ 仍在处理中且未达到最大重试次数，继续重试
             console.log(`⏰ 仍在处理中，${2}秒后重试...`);
-            
+
             setTimeout(() => {
               this.queryStatusWithRetry(outBatchNo, token, baseUrl, retryCount + 1, userCancelled, maxRetries);
             }, 2000);  // 每2秒重试一次
-            
+
           } else {
             // 达到最大重试次数，停止重试
             console.log('⚠️ 达到最大重试次数');
             wx.hideLoading();
-            
-            wx.showModal({ confirmColor: '#16835c',
+
+            wx.showModal({
               title: '提示',
               content: '转账正在处理中，请稍后在提现记录中查看结果',
               showCancel: false,
@@ -369,7 +369,7 @@ require('../../../utils/visitCapture').register(Page, {
           }
         } else {
           wx.hideLoading();
-          wx.showModal({ confirmColor: '#16835c',
+          wx.showModal({
             title: '查询失败',
             content: res.data.message || '状态查询失败',
             showCancel: false
@@ -379,8 +379,8 @@ require('../../../utils/visitCapture').register(Page, {
       fail: (err) => {
         console.error('❌ 查询失败:', err);
         wx.hideLoading();
-        
-        wx.showModal({ confirmColor: '#16835c',
+
+        wx.showModal({
           title: '网络错误',
           content: '状态查询失败，请稍后在提现记录中查看',
           showCancel: false
@@ -394,7 +394,7 @@ require('../../../utils/visitCapture').register(Page, {
    */
   handleFinalStatus(status, failReason, userCancelled) {
     console.log('🎯 处理最终状态:', status);
-    
+
     if (status === 'success') {
       // ✅ 转账成功
       wx.showToast({
@@ -402,18 +402,18 @@ require('../../../utils/visitCapture').register(Page, {
         icon: 'success',
         duration: 2000
       });
-      
+
       setTimeout(() => {
         this.loadWalletInfo();
-        this.setData({ 
-          withdrawAmount: '', 
-          canWithdraw: false 
+        this.setData({
+          withdrawAmount: '',
+          canWithdraw: false
         });
       }, 2000);
-      
+
     } else if (status === 'cancelled') {
       // ✅ 已取消
-      wx.showModal({ confirmColor: '#16835c',
+      wx.showModal({
         title: '已取消',
         content: userCancelled ? '您已取消本次提现' : '转账已撤销',
         showCancel: false,
@@ -421,10 +421,10 @@ require('../../../utils/visitCapture').register(Page, {
           this.loadWalletInfo();
         }
       });
-      
+
     } else if (status === 'failed') {
       // ❌ 转账失败
-      wx.showModal({ confirmColor: '#16835c',
+      wx.showModal({
         title: '提现失败',
         content: failReason || '转账失败，请稍后重试',
         showCancel: false,

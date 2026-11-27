@@ -76,11 +76,11 @@ require('../../../utils/visitCapture').register(Page, {
   // 加载订单列表
   loadOrders() {
     if (this.data.loading) return;
-    
+
     this.setData({ loading: true });
-    
+
     const app = getApp();
-    
+
     enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders`,
       method: 'GET',
@@ -100,7 +100,7 @@ require('../../../utils/visitCapture').register(Page, {
       success: (res) => {
         wx.stopPullDownRefresh();
         this.setData({ loading: false });
-        
+
         if (res.data.code === 0 || res.data.code === 200) {
           const newOrders = res.data.data.list || [];
           const normalizedOrders = newOrders.map(o => {
@@ -141,15 +141,15 @@ require('../../../utils/visitCapture').register(Page, {
               ...this.computeActionFlags(o)
             };
           });
-      
+
           // 获取更新时间的辅助函数
           const getUpdateTime = (item) => {
             const time = item.updatedAt || item.updated_at || item.updateTime || item.createTime || item.created_at;
             return time ? new Date(time).getTime() : 0;
           };
-      
+
           let finalOrders = [];
-          
+
           if (this.data.page === 1) {
             // 第一页：按更新时间倒序排序
             finalOrders = normalizedOrders.sort((a, b) => {
@@ -159,12 +159,12 @@ require('../../../utils/visitCapture').register(Page, {
             // 后续页：直接追加，保持原有顺序
             finalOrders = this.data.orders.concat(normalizedOrders);
           }
-      
+
           this.setData({
             orders: finalOrders,
             hasMore: normalizedOrders.length === this.data.pageSize
           });
-      
+
           // 调试日志
           console.log(`第${this.data.page}页加载完成，共${finalOrders.length}条订单`);
           if (finalOrders.length > 0) {
@@ -200,8 +200,8 @@ require('../../../utils/visitCapture').register(Page, {
   cancelOrder(e) {
     const orderId = e.currentTarget.dataset.id;
     const that = this;
-    
-    wx.showModal({ confirmColor: '#16835c',
+
+    wx.showModal({
       title: '确认取消',
       content: '确定要取消这个订单吗？',
       success(res) {
@@ -215,7 +215,7 @@ require('../../../utils/visitCapture').register(Page, {
   // 执行取消订单
   performCancelOrder(orderId) {
     const app = getApp();
-    
+
     enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${orderId}/cancel`,
       method: 'POST',
@@ -243,7 +243,7 @@ require('../../../utils/visitCapture').register(Page, {
     this._takingOrders = this._takingOrders || new Set();
     if (this._takingOrders.has(orderId)) return;
     this._takingOrders.add(orderId);
-    
+
     enterpriseSession.request({
       url: `${app.globalData.baseUrl}/orders/${orderId}/take`,
       method: 'POST',
@@ -313,7 +313,7 @@ require('../../../utils/visitCapture').register(Page, {
     const app = getApp();
     const currentRole = app.globalData.currentRole || 'user';
     const status = order.status;
-    
+
     return {
       canCancel: (currentRole === 'user' && (status === 'pending' || status === 'in_progress')),
       canAccept: (currentRole === 'electrician' && status === 'pending'),
@@ -333,7 +333,7 @@ require('../../../utils/visitCapture').register(Page, {
     const date = new Date(timestamp);
     const now = new Date();
     const diff = now - date;
-    
+
     if (diff < 60000) {
       return '刚刚';
     } else if (diff < 3600000) {

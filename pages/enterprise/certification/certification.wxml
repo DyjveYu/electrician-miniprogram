@@ -62,7 +62,7 @@
       <view class="upload-title">营业执照副本 <text class="required">*</text></view>
       <view class="license-upload" bindtap="chooseLicenseImage" wx:if="{{!licenseImagePath}}">
         <view class="upload-placeholder">
-          <image class="upload-icon ui-icon" src="/images/content-ui/camera.svg" mode="aspectFit" aria-hidden="true" />
+          <text class="upload-icon">📷</text>
           <text class="upload-text">点击上传营业执照副本</text>
         </view>
       </view>

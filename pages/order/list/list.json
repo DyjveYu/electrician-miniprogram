@@ -1,11 +1,9 @@
 {
   "navigationBarTitleText": "我的订单",
   "enablePullDownRefresh": true,
-  "backgroundColor": "#ffffff",
+  "backgroundColor": "#f5f5f5",
   "backgroundTextStyle": "dark",
-  "backgroundColorTop": "#ffffff",
-  "backgroundColorBottom": "#ffffff",
-  "navigationBarBackgroundColor": "#ffffff",
-  "navigationBarTextStyle": "black",
-  "usingComponents": {"dispatch-wait":"/components/dispatch-wait/index"}
+  "usingComponents": {
+    "dispatch-wait": "/components/dispatch-wait/index"
+  }
 }

@@ -298,7 +298,7 @@ require('../../../utils/visitCapture').register(Page, {
   handleRefund() {
     if (this.data.refunding) return;
 
-    wx.showModal({ confirmColor: '#16835c',
+    wx.showModal({
       title: '申请退款',
       content: this.data.isTestPayment ? '本记录为测试模拟押金，审核通过后模拟退回，不发生真实退款。确定申请吗？' : '确定要申请退回押金吗？审核通过后将在1-3个工作日内原路退回。',
       success: (res) => {

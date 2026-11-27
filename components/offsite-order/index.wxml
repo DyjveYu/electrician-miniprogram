@@ -48,6 +48,7 @@
         <view wx:if="{{order.offsite_finance.feePaymentReview}}" class="offsite-notice warning">原支付已收¥{{order.offsite_finance.feeActualPaidAmount}}，当前版本或状态需平台核对，请勿再次支付。</view>
         <view wx:if="{{order.offsite_finance.depositReviewRequired}}" class="offsite-notice warning">订单押金已收，订单状态需平台核对，请勿再次支付。</view>
         <view wx:if="{{order.status === 'pending_deposit_refund'}}" class="offsite-notice">五星评价已记录，待押金真实退回并满足五星后24小时等待条件后可结算。</view>
+        <button wx:if="{{(role === 'user' || role === 'enterprise') && order.status === 'pending_payment' && order.offsite_finance.upfrontPending}}" class="offsite-button secondary" bindtap="closeFee" disabled="{{busy}}">关闭原支付</button>
         <button wx:if="{{role === 'electrician' && order.electrician_id}}" class="offsite-button secondary {{busy ? 'is-disabled' : ''}}" bindtap="refreshFunds" loading="{{busy}}" disabled="{{busy}}">核对原支付／退款进度</button>
       </view>
 
@@ -85,7 +86,7 @@
 
     <dispatch-wait wx:if="{{order.dispatch_wait}}" detail-card="{{true}}" order="{{order}}" />
   </view>
-  <view class="bottom-bar">
+  <view class="bottom-bar unified-actions">
     <view class="bottom-content">
       <button class="service-btn {{busy ? 'disabled' : ''}}" open-type="contact" disabled="{{busy}}"><text class="service-text">客服</text></button>
       <view class="action-area" wx:if="{{role === 'electrician' && order.status === 'pending' && order.offsite_finance}}">
@@ -93,8 +94,7 @@
       </view>
       <view class="action-area" wx:if="{{(role === 'user' || role === 'enterprise') && order.offsite_finance}}">
         <button wx:if="{{order.status === 'pending_payment' || order.status === 'pending'}}" class="service-btn" bindtap="cancel" disabled="{{busy}}">取消订单</button>
-        <button wx:if="{{order.status === 'pending_payment' && order.offsite_finance.upfrontPending}}" class="service-btn" bindtap="closeFee" disabled="{{busy}}">关闭原支付</button>
-        <button wx:if="{{order.status === 'pending_payment' && !order.offsite_finance.depositPaid && !order.offsite_finance.feePaymentReview}}" class="main-action-btn primary" bindtap="payDeposit" disabled="{{busy}}">确认协议并付款</button>
+        <button wx:if="{{order.status === 'pending_payment' && !order.offsite_finance.depositPaid && !order.offsite_finance.feePaymentReview}}" class="main-action-btn primary" bindtap="payDeposit" disabled="{{busy}}">去支付</button>
         <button wx:if="{{order.status === 'pending_repair_payment' && order.offsite_finance.feePaymentPending}}" class="service-btn" bindtap="closeFee" disabled="{{busy}}">关闭原工费支付</button>
         <button wx:if="{{order.status === 'pending_repair_payment' && !order.offsite_finance.feePaymentReview}}" class="main-action-btn primary" bindtap="payFee" loading="{{busy}}" disabled="{{busy}}">确认工费并付款</button>
         <button wx:if="{{order.status === 'fixed_price_delivered'}}" class="main-action-btn primary" bindtap="delivery" disabled="{{busy}}">确认完成</button>

@@ -1,7 +1,6 @@
-@import "../../../styles/clean-surfaces.wxss";
 /* pages/payment/payment/payment.wxss */
 .container {
-  background-color: #fff;
+  background-color: #f5f5f5;
   min-height: 100vh;
   padding-bottom: 120rpx;
 }
@@ -9,7 +8,7 @@
 .section-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #172d25;
+  color: #333;
   margin-bottom: 20rpx;
 }
 
@@ -18,11 +17,11 @@
   background-color: #fff;
   margin: 20rpx;
   padding: 30rpx;
-  border-radius: 22rpx;
+  border-radius: 12rpx;
 }
 
 .order-info {
-  border-top: 2rpx solid #e9efeb;
+  border-top: 2rpx solid #f0f0f0;
   padding-top: 20rpx;
 }
 
@@ -37,12 +36,12 @@
 }
 
 .label {
-  color: #687a71;
+  color: #666;
   width: 160rpx;
 }
 
 .value {
-  color: #172d25;
+  color: #333;
   flex: 1;
 }
 
@@ -51,20 +50,20 @@
   background-color: #fff;
   margin: 20rpx;
   padding: 40rpx 30rpx;
-  border-radius: 22rpx;
+  border-radius: 12rpx;
   text-align: center;
 }
 
 .amount-label {
   font-size: 28rpx;
-  color: #687a71;
+  color: #666;
   margin-bottom: 15rpx;
 }
 
 .amount-value {
   font-size: 48rpx;
   font-weight: 600;
-  color: #16835c;
+  color: #0F9D58;
 }
 
 /* 支付方式 */
@@ -72,11 +71,11 @@
   background-color: #fff;
   margin: 20rpx;
   padding: 30rpx;
-  border-radius: 22rpx;
+  border-radius: 12rpx;
 }
 
 .payment-methods {
-  border-top: 2rpx solid #e9efeb;
+  border-top: 2rpx solid #f0f0f0;
   padding-top: 20rpx;
 }
 
@@ -84,7 +83,7 @@
   display: flex;
   align-items: center;
   padding: 25rpx 0;
-  border-bottom: 2rpx solid #f5f7f5;
+  border-bottom: 2rpx solid #f8f8f8;
   transition: background-color 0.3s;
 }
 
@@ -93,7 +92,7 @@
 }
 
 .payment-method.selected {
-  background-color: #eff7f1;
+  background-color: #f0f8ff;
 }
 
 .method-icon {
@@ -112,14 +111,14 @@
 
 .method-name {
   font-size: 28rpx;
-  color: #172d25;
+  color: #333;
   font-weight: 500;
   margin-bottom: 6rpx;
 }
 
 .method-desc {
   font-size: 24rpx;
-  color: #687a71;
+  color: #999;
 }
 
 .method-radio {
@@ -133,14 +132,14 @@
 .radio {
   width: 20rpx;
   height: 20rpx;
-  border: 2rpx solid #e9efeb;
+  border: 2rpx solid #ccc;
   border-radius: 50%;
   transition: all 0.3s;
 }
 
 .radio.checked {
-  border-color: #16835c;
-  background-color: #16835c;
+  border-color: #1976d2;
+  background-color: #1976d2;
   position: relative;
 }
 
@@ -164,17 +163,17 @@
   right: 0;
   padding: 30rpx;
   background-color: #fff;
-  border-top: 2rpx solid #e9efeb;
+  border-top: 2rpx solid #f0f0f0;
 }
 
 .pay-btn {
   width: 100%;
-  height: auto;
-  background: #16835c;
+  height: 88rpx;
+  background: linear-gradient(90deg, #0F9D58 0%, #81C784 100%);
   color: #fff;
-  font-size: 30rpx;
+  font-size: 32rpx;
   font-weight: 600;
-  border-radius: 22rpx;
+  border-radius: 8rpx;
   border: none;
   display: flex;
   align-items: center;
@@ -183,7 +182,7 @@
 
 .pay-btn.disabled {
   background-color: #bdbdbd;
-  color: #687a71;
+  color: #999;
 }
 
 .pay-btn::after {
@@ -194,11 +193,8 @@
 .auto-tip {
   margin-top: 10rpx;
   font-size: 26rpx;
-  color: #687a71;
+  color: #666;
 }
-
-/* UI1.1：页面布局及状态精调。 */
-.amount-section { background: #eff7f1; border-radius: 26rpx; padding: 48rpx 24rpx; margin-bottom: 28rpx; } .amount-value { color: #16835c; word-break: break-all; } .payment-section, .order-section { margin: 0 0 24rpx; padding: 28rpx 24rpx; } .auto-tip { color: #687a71; line-height: 1.9; } .pay-section { padding: 20rpx 0; } .pay-btn { width: 100%; height: auto; border-radius: 22rpx; line-height: 1.6; padding: 20rpx 24rpx; background: #16835c; color: #fff; }
 
 .enterprise-onsite-payment .section-title { color: #222222; }
 .enterprise-onsite-payment .amount-label, .enterprise-onsite-payment .amount-value { color: #000000; }

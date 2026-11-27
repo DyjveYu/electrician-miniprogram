@@ -1,10 +1,8 @@
-@import "../../../styles/clean-surfaces.wxss";
-
 /* pages/referrer/apply/apply.wxss */
 
 .page-container {
   min-height: 100vh;
-  background-color: #fff;
+  background-color: #f8f8f8;
   padding: 0 32rpx;
   padding-bottom: 60rpx;
 }
@@ -17,21 +15,21 @@
 
 .header-title {
   font-size: 40rpx;
-  font-weight: 600;
-  color: #172d25;
+  font-weight: 700;
+  color: #1a1a1a;
   margin-bottom: 16rpx;
 }
 
 .header-desc {
   font-size: 26rpx;
-  color: #687a71;
+  color: #999;
   line-height: 1.6;
 }
 
 /* ─── 表单 ─── */
 .apply-form {
   background: #fff;
-  border-radius: 22rpx;
+  border-radius: 16rpx;
   padding: 40rpx 32rpx;
 }
 
@@ -41,19 +39,19 @@
 
 .form-label {
   font-size: 28rpx;
-  color: #172d25;
+  color: #333;
   font-weight: 600;
   margin-bottom: 12rpx;
 }
 
 .form-input {
   width: 100%;
-  height: 96rpx;
+  height: 88rpx;
   padding: 0 24rpx;
-  background: #f5f7f5;
-  border-radius: 22rpx;
+  background: #f5f7fa;
+  border-radius: 12rpx;
   font-size: 28rpx;
-  color: #172d25;
+  color: #333;
   box-sizing: border-box;
 }
 
@@ -70,13 +68,13 @@
 
 .send-code-btn {
   width: 200rpx;
-  height: auto;
-  line-height: 1.6;
-  padding: 20rpx 24rpx;
-  background: #16835c;
+  height: 88rpx;
+  line-height: 88rpx;
+  padding: 0;
+  background: #0F9D58;
   color: #fff;
-  font-size: 30rpx;
-  border-radius: 22rpx;
+  font-size: 26rpx;
+  border-radius: 12rpx;
   border: none;
   text-align: center;
   flex-shrink: 0;
@@ -84,7 +82,7 @@
 
 .send-code-btn.disabled {
   background: #ccc;
-  color: #687a71;
+  color: #999;
 }
 
 .send-code-btn::after {
@@ -94,15 +92,15 @@
 /* 提交按钮 */
 .submit-btn {
   width: 100%;
-  height: auto;
-  line-height: 1.6;
-  padding: 20rpx 24rpx;
+  height: 92rpx;
+  line-height: 92rpx;
+  padding: 0;
   margin-top: 20rpx;
-  background: #16835c;
+  background: linear-gradient(90deg, #0F9D58 0%, #81C784 100%);
   color: #fff;
-  font-size: 30rpx;
+  font-size: 32rpx;
   font-weight: 600;
-  border-radius: 22rpx;
+  border-radius: 46rpx;
   border: none;
 }
 
@@ -121,7 +119,7 @@
 }
 
 .error-msg {
-  color: #b74434;
+  color: #e74c3c;
   font-size: 26rpx;
 }
 
@@ -129,7 +127,7 @@
 .modal-mask {
   position: fixed;
   left: 0; right: 0; top: 0; bottom: 0;
-  background: rgba(7,29,23,.65);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -139,7 +137,7 @@
 .modal-dialog {
   width: 560rpx;
   background: #fff;
-  border-radius: 40rpx;
+  border-radius: 24rpx;
   padding: 60rpx 40rpx 40rpx;
   text-align: center;
 }
@@ -151,34 +149,30 @@
 
 .modal-title {
   font-size: 34rpx;
-  font-weight: 600;
-  color: #172d25;
+  font-weight: 700;
+  color: #1a1a1a;
   margin-bottom: 16rpx;
 }
 
 .modal-desc {
   font-size: 28rpx;
-  color: #687a71;
+  color: #666;
   line-height: 1.6;
   margin-bottom: 40rpx;
 }
 
 .modal-btn {
   width: 100%;
-  height: auto;
-  line-height: 1.6;
-  padding: 20rpx 24rpx;
-  background: #16835c;
+  height: 88rpx;
+  line-height: 88rpx;
+  padding: 0;
+  background: #0F9D58;
   color: #fff;
   font-size: 30rpx;
-  border-radius: 22rpx;
+  border-radius: 44rpx;
   border: none;
 }
 
 .modal-btn::after {
   border: none;
 }
-
-
-/* UI1.1：页面布局及状态精调。 */
-.page-container { padding: 32rpx 44rpx; } .header { padding: 0; text-align: left; margin-bottom: 32rpx; } .apply-form { padding: 0; border: none; background: #fff; } .form-input { height: 96rpx; padding: 20rpx 24rpx; } .send-code-btn, .submit-btn, .modal-btn { height: auto; min-height: 88rpx; padding: 20rpx 24rpx; line-height: 1.6; border-radius: 22rpx; } .code-row .send-code-btn { min-width: 200rpx; flex-shrink: 0; background: #eff7f1; color: #16835c; border: 2rpx solid #16835c; } .modal-dialog { box-sizing: border-box; width: calc(100% - 64rpx); padding: 40rpx 32rpx; border-radius: 40rpx; max-height: 80vh; overflow-y: auto; }

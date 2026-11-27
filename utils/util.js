@@ -232,6 +232,9 @@ const mapOrderToDisplayStatus = (order) => {
     return { code: 'unknown', text: '未知状态' };
   }
   if (order.service_mode === 'off_site' || order.pricing_mode != null) {
+    if (order.order_type === 'enterprise_project' && ['recruiting', 'full', 'reviewing', 'cancel_pending'].includes(order.status)) {
+      return { code: order.status, text: getOrderStatusText(order.status) };
+    }
     const stages = {
       fixed_price_delivered: ['fixed_price_delivered', '待下单人确认完成'],
       offsite_wait: ['offsite_wait', '五星结算等待期'], offsite_hold: ['offsite_hold', '争议处理中'],

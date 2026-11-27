@@ -14,6 +14,23 @@ async function create() {
   return { h, p, title };
 }
 function count(p, value) { p.onEnterpriseCountChange({ detail: { value: value - 1 } }); }
+
+test('enterprise offsite projects show their actual status in My Orders', () => {
+  const cases = [
+    ['recruiting', '招募中'], ['full', '名额已满'], ['reviewing', '评价中'],
+    ['cancel_pending', '取消处理中'], ['unexpected_status', '待平台核对']
+  ];
+  for (const pricing_mode of ['fixed_price', 'fixed_deposit']) {
+    const h = harness();
+    h.login('enterprise');
+    const page = h.page('pages/order/list/list.js');
+    page.loadOrders();
+    h.respond(0, { list: cases.map(([status], index) => ({
+      id: index + 1, order_type: 'enterprise_project', service_mode: 'off_site', pricing_mode, status
+    })) });
+    assert.deepEqual(Array.from(page.data.orders, order => order.statusText), cases.map(([, label]) => label));
+  }
+});
 function dates(p, start = '2090-01-01', end = '2090-01-02') {
   p.openProjectDates(); p.onProjectDraftDate({ currentTarget: { dataset: { field: 'draftStartDate' } }, detail: { value: start } });
   p.onProjectDraftDate({ currentTarget: { dataset: { field: 'draftEndDate' } }, detail: { value: end } }); p.confirmProjectDates();
@@ -128,15 +145,18 @@ test('enterprise project prepayment binds the chosen amount and confirmed versio
   const events = [];
   const widget = {
     ...h.component('components/order-prepay/index.js'),
-    data:{orderId:10, offsite:true, project:true, projectPrice:{deposit:'600.00',priceRevision:0}, opened:true, agreed:true},
+    data:{orderId:10, offsite:true, project:true, sharedLayout:true, projectPrice:{deposit:'600.00',priceRevision:0}, opened:false, agreed:false},
     setData(value) { Object.assign(this.data,value); },
     triggerEvent(name,detail) { events.push({name,detail}); }
   };
-  widget.chooseMode({detail:{value:'fixed_price'}});
-  widget.inputPrice({detail:{value:'100.00'}});
   await widget.confirm();
   assert.equal(h.calls.request.length,0);
   widget.changeAgreement({detail:{value:['agree']}});
+  widget.inputSharedPrice({detail:{value:'100.00'}});
+  widget.inputSharedPrice({detail:{value:''}});
+  assert.equal(widget.data.mode, 'fixed_deposit');
+  widget.inputSharedPrice({detail:{value:'100.00'}});
+  assert.equal(widget.data.agreed, true);
   const work = widget.confirm();
   const selection = h.calls.request[0];
   assert.match(selection.url,/orders\/10\/project-billing\/price$/);

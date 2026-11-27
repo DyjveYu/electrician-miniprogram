@@ -1,5 +1,6 @@
 const { ContentAPI } = require('../../utils/api');
 Component({
+  properties: { largeText: { type: Boolean, value: false } },
   data: { group: [], nextGroup: [], transitioning: false, loading: false, error: '' },
   lifetimes: {
     attached() { this.showBoard(); },

@@ -10,7 +10,7 @@
       bindtap="selectServiceType"
     >
       <view class="service-header">
-        <view class="service-icon"><image class="ui-icon" src="/images/content-ui/zap.svg" mode="aspectFit" aria-hidden="true" /></view>
+        <view class="service-icon">{{item.icon}}</view>
         <view class="service-info">
           <view class="service-name">{{item.name}}</view>
           <view class="service-price">{{item.price}}</view>

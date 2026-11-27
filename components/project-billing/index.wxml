@@ -3,12 +3,16 @@
     <input class="owner-fee" type="digit" placeholder="输入整单约定工费（元）" bindinput="edit" data-key="amount"/>
     <button class="main-action-btn primary" bindtap="submit" data-action="fee" disabled="{{busy}}">确认工费并付款</button>
   </block>
-  <button wx:if="{{order.project_billing.feePending}}" class="service-btn" data-action="close-payment" data-type="repair" bindtap="submit" disabled="{{busy}}">关闭原工费支付</button>
-  <button wx:if="{{order.project_billing.depositPending}}" class="service-btn" data-action="close-payment" data-type="prepay" bindtap="submit" disabled="{{busy}}">关闭原预付款</button>
-  <button wx:if="{{!order.project_billing.members.length && (order.status === 'pending_payment' || order.status === 'recruiting')}}" class="service-btn" data-action="cancel" bindtap="submit" disabled="{{busy}}">取消工程</button>
+  <button wx:if="{{order.status !== 'pending_payment' && order.project_billing.feePending}}" class="service-btn" data-action="close-payment" data-type="repair" bindtap="submit" disabled="{{busy}}">关闭原工费支付</button>
+  <button wx:if="{{order.status !== 'pending_payment' && order.project_billing.depositPending}}" class="service-btn" data-action="close-payment" data-type="prepay" bindtap="submit" disabled="{{busy}}">关闭原预付款</button>
+  <button wx:if="{{!order.project_billing.members.length && (order.status === 'pending_payment' || order.status === 'recruiting')}}" class="service-btn" data-action="cancel" bindtap="submit" disabled="{{busy}}">{{order.status === 'pending_payment' ? '取消订单' : '取消工程'}}</button>
 </view>
 <view wx:else class="card">
-  <view class="head">多人不上门工程</view>
+  <view class="head">工程费用与履约</view>
+  <block wx:if="{{role === 'enterprise' && order.status === 'pending_payment'}}">
+    <button wx:if="{{order.project_billing.feePending}}" data-action="close-payment" data-type="repair" bindtap="submit" disabled="{{busy}}">关闭原工费支付</button>
+    <button wx:if="{{order.project_billing.depositPending}}" data-action="close-payment" data-type="prepay" bindtap="submit" disabled="{{busy}}">关闭原预付款</button>
+  </block>
   <view wx:if="{{role === 'enterprise' && order.project_billing.pricingMode !== 'fixed_price'}}">订单押金 ¥{{order.project_billing.deposit}} · {{order.project_billing.refund === 'success' ? '已原路退回' : order.project_billing.refund === 'not_due' ? '工费另付后退回' : order.project_billing.refund === 'failed' ? '退款失败，请联系客服' : order.project_billing.refund === 'unknown' ? '退款结果待核对' : '退款处理中'}}</view>
   <view wx:if="{{order.project_billing.pricingMode === 'fixed_price'}}">
     <view>一口价 ¥{{order.project_billing.fee}} · {{order.project_billing.paid ? '已付清' : (order.project_billing.refund === 'success' ? '原路退款成功' : (order.status === 'cancelled' ? '已取消' : '待支付'))}}</view>

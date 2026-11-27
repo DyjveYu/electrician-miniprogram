@@ -1,9 +1,4 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "推荐达人申请",
-  "backgroundColor": "#ffffff",
-  "backgroundColorTop": "#ffffff",
-  "backgroundColorBottom": "#ffffff",
-  "navigationBarBackgroundColor": "#ffffff",
-  "navigationBarTextStyle": "black"
+  "navigationBarTitleText": "推荐达人申请"
 }

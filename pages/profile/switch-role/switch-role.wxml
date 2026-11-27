@@ -18,7 +18,7 @@
       bindtap="selectRole"
     >
       <view class="role-header">
-        <view class="role-icon"><image class="ui-icon" src="/images/content-ui/{{item.id === 'electrician' ? 'helmet' : 'user-round'}}.svg" mode="aspectFit" aria-hidden="true" /></view>
+        <view class="role-icon">{{item.icon}}</view>
         <view class="role-info">
           <view class="role-title">
             <text class="role-name">{{item.name}}</text>
@@ -45,7 +45,7 @@
       <!-- 认证要求 -->
       <view class="certification-requirement" wx:if="{{item.requireCertification}}">
         <view class="requirement-text">
-          <image class="requirement-icon ui-icon" src="/images/content-ui/lock.svg" mode="aspectFit" aria-hidden="true" />
+          <text class="requirement-icon">🔒</text>
           <text>需要电工认证</text>
         </view>
 
@@ -56,7 +56,7 @@
             <text class="status-text">已认证</text>
           </view>
           <view wx:else class="status uncertified">
-            <image class="status-icon ui-icon" src="/images/content-ui/alert-circle.svg" mode="aspectFit" aria-hidden="true" />
+            <text class="status-icon">⚠</text>
             <text class="status-text">未认证</text>
             <text class="go-certification" bindtap="goToCertification" catchtap="goToCertification">
               去认证 >

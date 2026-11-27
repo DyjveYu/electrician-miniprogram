@@ -309,7 +309,7 @@ require('../../../utils/visitCapture').register(Page, {
       content = '取消订单后将原路退回预付款，是否继续？';
     }
 
-    wx.showModal({ confirmColor: '#16835c',
+    wx.showModal({
       title: '确认取消',
       content: content,
       success(res) {
@@ -376,7 +376,7 @@ require('../../../utils/visitCapture').register(Page, {
     // 夜间接单安全提示（22:00-次日05:00）
     const hour = new Date().getHours();
     if (hour >= 22 || hour < 5) {
-      wx.showModal({ confirmColor: '#16835c',
+      wx.showModal({
         title: '安全提示',
         content: '涉及夜间工作，如遇到危险，请随时报警处理。',
         showCancel: false,
@@ -384,7 +384,7 @@ require('../../../utils/visitCapture').register(Page, {
       });
     }
 
-    wx.showModal({ confirmColor: '#16835c',
+    wx.showModal({
       title: '确认接单',
       content: '确认接下此订单？',
       confirmText: '接单',
@@ -449,7 +449,7 @@ require('../../../utils/visitCapture').register(Page, {
   withdrawOrder() {
     const app = getApp();
 
-    wx.showModal({ confirmColor: '#b74434',
+    wx.showModal({
       title: '确认退单',
       content: '确认退出此多日工程订单？',
       confirmText: '退单',
@@ -743,14 +743,14 @@ require('../../../utils/visitCapture').register(Page, {
       const app = getApp();
       const isDev = /localhost|127\.0\.0\.1|:3000/.test(app.globalData.baseUrl || '');
       const method = app.globalData.paymentMethod || (isDev ? 'test' : 'wechat');
-      
+
       console.log('[详情页-支付] 开始支付流程');
       console.log('[详情页-支付] isDev:', isDev);
       console.log('[详情页-支付] baseUrl:', app.globalData.baseUrl);
       console.log('[详情页-支付] paymentMethod 配置:', app.globalData.paymentMethod);
       console.log('[详情页-支付] 最终使用的 method:', method);
       console.log('[详情页-支付] 支付类型 type:', type);
-      
+
       const openid = method === 'wechat' ? await this.resolveOpenId() : undefined;
       console.log('[详情页-支付] OpenID:', openid);
 
@@ -768,12 +768,12 @@ require('../../../utils/visitCapture').register(Page, {
 
       const payload = result.data || result;
       console.log('[详情页-支付] 解析后的 payload:', payload);
-      
+
       if (payload && (payload.success || payload.pay_params)) {
         const payParams = payload.pay_params || payload;
         console.log('[详情页-支付] 支付参数:', payParams);
         console.log('[详情页-支付] 判断：method =', method);
-        
+
         if (method === 'wechat') {
           console.log('[详情页-支付] 调用 processPayment 拉起微信支付');
           this.processPayment(payParams);
@@ -808,7 +808,7 @@ require('../../../utils/visitCapture').register(Page, {
     console.log('[详情页-支付] package:', payParams.package);
     console.log('[详情页-支付] signType:', payParams.signType);
     console.log('[详情页-支付] paySign:', payParams.paySign);
-    
+
     wx.requestPayment({
       timeStamp: String(payParams.timeStamp),
       nonceStr: payParams.nonceStr,
@@ -865,7 +865,7 @@ require('../../../utils/visitCapture').register(Page, {
     return new Promise((resolve, reject) => {
       const app = getApp();
       console.log('[详情页] 开始获取 OpenID');
-      
+
       // 1. 优先使用全局缓存
       if (app.globalData.openid) {
         console.log('[详情页] 使用全局缓存的 OpenID:', app.globalData.openid);
@@ -883,8 +883,8 @@ require('../../../utils/visitCapture').register(Page, {
       // 3. 开发环境 Mock 逻辑
       const isDev = /localhost|127\.0\.0\.1|:3000/.test(app.globalData.baseUrl || '');
       console.log('[详情页] isDev:', isDev, 'baseUrl:', app.globalData.baseUrl);
-      
-      if (isDev && !app.globalData.useRealOpenId) { 
+
+      if (isDev && !app.globalData.useRealOpenId) {
         const mock = `MOCK_OPENID_${Math.floor(Math.random() * 100000)}`;
         console.log('[详情页] 使用 Mock OpenID:', mock);
         wx.setStorageSync('openid', mock);
@@ -1019,7 +1019,7 @@ require('../../../utils/visitCapture').register(Page, {
       const res = await ReferrerAPI.getQualification();
       const data = res?.data;
       if (data && data.is_qualified && !data.is_referrer) {
-        wx.showModal({ confirmColor: '#16835c',
+        wx.showModal({
           title: '成为推荐达人',
           content: '恭喜您已达到推荐达人条件！分享给好友下单可获得 3% 的佣金奖励。立即开通？',
           confirmText: '立即开通',

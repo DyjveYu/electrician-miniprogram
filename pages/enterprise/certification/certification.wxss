@@ -1,8 +1,7 @@
-@import "../../../styles/clean-surfaces.wxss";
 /* pages/enterprise/certification/certification.wxss */
 .container {
-  padding: 32rpx 44rpx 48rpx;
-  background-color: #fff;
+  padding: 30rpx;
+  background-color: #f5f5f5;
   min-height: 100vh;
 }
 
@@ -12,24 +11,42 @@
   text-align: center;
 }
 
-.certification-result .pending-title {
-  color: #16835c;
-  margin-bottom: 0;
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 10rpx;
 }
 
 .application-tip {
   margin-bottom: 32rpx;
   font-size: 28rpx;
-  color: #687a71;
-  text-align: center;
+  color: #666;
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 6rpx 20rpx;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  color: #fff;
+}
+
+.status-tag.approved {
+  background-color: #07c160;
+}
+
+.status-tag.pending {
+  background-color: #ffc300;
+  color: #333;
 }
 
 .form-container {
   background-color: #fff;
-  border-radius: 22rpx;
+  border-radius: 12rpx;
   padding: 30rpx;
   margin-bottom: 30rpx;
-  box-shadow: none;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
 }
 
 .form-group {
@@ -38,28 +55,28 @@
 
 .form-label {
   font-size: 28rpx;
-  color: #172d25;
+  color: #333;
   margin-bottom: 10rpx;
   font-weight: 500;
 }
 
 .required {
-  color: #b74434;
+  color: #fa5151;
 }
 
 .form-input {
   width: 100%;
-  height: 96rpx;
-  background-color: #f5f7f5;
-  border-radius: 22rpx;
+  height: 80rpx;
+  background-color: #f5f7fa;
+  border-radius: 8rpx;
   padding: 0 20rpx;
   font-size: 28rpx;
-  color: #172d25;
+  color: #333;
   box-sizing: border-box;
 }
 
 .placeholder {
-  color: #687a71;
+  color: #999;
 }
 
 .region-input {
@@ -74,7 +91,7 @@
 
 .upload-title {
   font-size: 28rpx;
-  color: #172d25;
+  color: #333;
   margin-bottom: 15rpx;
   font-weight: 500;
 }
@@ -82,9 +99,9 @@
 .license-upload {
   width: 100%;
   height: 200rpx;
-  background-color: #f5f7f5;
-  border: 2rpx dashed #e9efeb;
-  border-radius: 22rpx;
+  background-color: #f5f7fa;
+  border: 2rpx dashed #ccc;
+  border-radius: 12rpx;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -103,16 +120,16 @@
 
 .upload-text {
   font-size: 26rpx;
-  color: #687a71;
+  color: #999;
 }
 
 .license-preview {
   width: 100%;
   height: 300rpx;
-  border-radius: 22rpx;
+  border-radius: 12rpx;
   overflow: hidden;
   position: relative;
-  background-color: #f5f7f5;
+  background-color: #f5f7fa;
 }
 
 .license-img {
@@ -134,22 +151,22 @@
 
 /* 表单提示与信息保护指引 */
 .tips {
-  background-color: #eff7f1;
+  background-color: #f0f9ff;
   padding: 20rpx;
-  border-radius: 22rpx;
+  border-radius: 8rpx;
   margin-bottom: 40rpx;
 }
 
 .tips-title {
   font-size: 28rpx;
-  color: #16835c;
+  color: #1890ff;
   margin-bottom: 10rpx;
   font-weight: 500;
 }
 
 .tips-content {
   font-size: 24rpx;
-  color: #687a71;
+  color: #666;
 }
 
 .tips-content text {
@@ -164,11 +181,11 @@
 /* 提交按钮 */
 .submit-btn {
   width: 100%;
-  height: auto;
-  background: #16835c;
+  height: 90rpx;
+  background: linear-gradient(to right, #1890ff, #0076e4);
   color: #fff;
-  font-size: 30rpx;
-  border-radius: 22rpx;
+  font-size: 32rpx;
+  border-radius: 45rpx;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -177,17 +194,16 @@
 }
 
 .submit-btn.disabled {
-  background: #16835c;
+  background: linear-gradient(to right, #ccc, #999);
   color: #fff;
-  opacity: .5;
 }
 
 /* 状态展示容器 */
 .pending-container {
   background-color: #fff;
-  border-radius: 22rpx;
+  border-radius: 12rpx;
   padding: 60rpx 30rpx;
-  box-shadow: none;
+  box-shadow: 0 2rpx 10rpx rgba(0, 0, 0, 0.05);
   text-align: center;
 }
 
@@ -198,35 +214,38 @@
 
 .pending-title {
   font-size: 36rpx;
-  font-weight: 600;
-  color: #172d25;
+  font-weight: bold;
+  color: #333;
   margin-bottom: 20rpx;
 }
 
 .pending-desc {
   font-size: 28rpx;
-  color: #687a71;
+  color: #666;
   margin-bottom: 30rpx;
 }
 
+.continuation-panel { padding: 24rpx; margin: 24rpx; background: #f5f7f5; border-radius: 16rpx; }
+.continuation-panel button { margin-top: 16rpx; }
 
-/* UI1.1：页面布局及状态精调。 */
-.container { padding: 32rpx 44rpx 48rpx; } .form-container, .reject-reason { border: none; padding: 0; box-shadow: none; } .form-group { margin-bottom: 28rpx; } .header { text-align: left; margin-bottom: 32rpx; } .region-input { height: auto; min-height: 96rpx; padding: 20rpx 24rpx; } .location-wrapper { align-items: stretch; gap: 16rpx; } .location-wrapper picker { flex: 1; min-width: 0; } .location-btn { width: 88rpx; min-height: 96rpx; height: auto; margin: 0; border-radius: 22rpx; background: #eff7f1; flex-shrink: 0; } .location-icon.ui-icon { width: 36rpx; height: 36rpx; } .checkbox-group, .cert-type-group { flex-wrap: wrap; gap: 16rpx 24rpx; } .cert-type-gap { display: none; } .cert-upload-item, .license-upload { box-sizing: border-box; border: 2rpx solid #e9efeb; border-radius: 22rpx; } .cert-info { flex-wrap: wrap; gap: 8rpx; min-width: 0; } .cert-name { margin: 0; font-size: 28rpx; } .tips { border-radius: 22rpx; background: #f5f7f5; } .tips-title { color: #172d25; } .submit-btn, .reapply-btn { height: auto; min-height: 96rpx; padding: 20rpx 24rpx; line-height: 1.6; font-size: 30rpx; border-radius: 22rpx; background: #16835c; color: #fff; } .submit-btn.disabled, .reapply-btn.disabled { background: #16835c; opacity: .5; } .upload-icon.ui-icon { width: 56rpx; height: 56rpx; margin: 0 auto 16rpx; }
-
-.continuation-panel { padding: 24rpx; margin-top: 24rpx; background: var(--clean-soft); border: 2rpx solid var(--clean-line); border-radius: 22rpx; color: var(--clean-muted); word-break: break-all; }
-.continuation-panel button { width: 100%; margin-top: 16rpx; white-space: normal; background: var(--clean-green); color: #fff; }
-.continuation-panel button:last-child { background: var(--clean-mint); color: var(--clean-green); border-color: var(--clean-green); }
-
+.certification-result .pending-title {
+  color: #16835c;
+  margin-bottom: 0;
+}
+.application-tip {
+  margin-bottom: 32rpx;
+  font-size: 28rpx;
+  color: #687a71;
+  text-align: center;
+}
 .certification-actions {
   padding-bottom: env(safe-area-inset-bottom);
 }
-
 .certification-status {
   margin-bottom: 16rpx;
   color: var(--clean-muted);
   font-size: 26rpx;
 }
-
 .cancel-certification-btn {
   width: 100%;
   min-height: 96rpx;
@@ -235,9 +254,7 @@
   background: var(--clean-mint);
   color: var(--clean-green);
 }
-
 .change-license-btn { margin: 16rpx 0 24rpx; width: 100%; background: var(--clean-mint); color: var(--clean-green); border: 2rpx solid var(--clean-line); border-radius: 22rpx; }
-
 .returned-notice { padding: 24rpx; margin-bottom: 32rpx; border-radius: 22rpx; background: #fff5eb; color: #75451e; font-size: 26rpx; line-height: 1.7; word-break: break-all; }
 .returned-title { font-size: 32rpx; font-weight: 600; margin-bottom: 12rpx; }
 .returned-reason { margin-bottom: 12rpx; white-space: pre-wrap; }

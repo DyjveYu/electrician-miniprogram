@@ -11,3 +11,6 @@
 .state { position: absolute; top: 0; left: 0; right: 0; padding: 24rpx; }
 .state, .error { color: #687a71; font-size: 26rpx; line-height: 1.6; }
 .error { padding: 16rpx 0 0; color: #b74434; }
+
+.large-text .heading { font-size: 32rpx; }
+.large-text .notice-title, .large-text .state, .large-text .error { font-size: 28rpx; }

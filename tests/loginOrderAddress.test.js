@@ -32,8 +32,9 @@ for (const role of ['user', 'enterprise']) test(`找电工 ${role} 登录直接�
   AuthAPI.login = async (...v) => { args = v; return { data: { user: { id: 10, phone: '13900000111', current_role: role }, token: 'isolated', enterpriseCertification: { certStatus: 'approved' } } }; };
   page.openLoginForm({ currentTarget: { dataset: { role: 'user' } } });
   page.selectRole({ currentTarget: { dataset: { role } } });
-  page.setData({ phone: '13900000111', code: '123456' });
-  await page.onAgree(); h.timers.forEach(fn => fn());
+  page.setData({ phone: '13900000111', code: '123456', canLogin: true });
+  await page.login(); h.timers.forEach(fn => fn());
+  assert.equal(page.data.showWelcomeModal, false);
   assert.equal(args[4], false);
   assert.equal(h.calls.relaunch.at(-1).url, '/pages/order/create/create');
   assert.equal(h.calls.request.filter(r => r.method === 'POST').length, 0);

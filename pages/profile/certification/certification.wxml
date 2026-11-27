@@ -226,7 +226,7 @@
     <view class="cert-notice-agreement" wx:if="{{mode === 'apply'}}">
       <checkbox-group bindchange="onNoticeAgreementChange">
         <label class="notice-label">
-          <checkbox value="agreed" checked="{{noticeAgreed}}"  color="#16835c"/>
+          <checkbox value="agreed" checked="{{noticeAgreed}}" />
           <text>我已阅读并同意</text>
           <text class="notice-link" bindtap="goToCertificationNotice">《认证须知》</text>
         </label>

@@ -1,15 +1,14 @@
-@import "../../../styles/clean-surfaces.wxss";
 /* pages/message/detail/detail.wxss */
 .container {
-  background-color: #fff;
+  background-color: #f5f5f5;
   min-height: 100vh;
-  padding: 32rpx 44rpx 48rpx;
+  padding: 20rpx;
 }
 
 /* 消息详情 */
 .message-detail {
   background-color: #fff;
-  border-radius: 22rpx;
+  border-radius: 12rpx;
   overflow: hidden;
 }
 
@@ -18,7 +17,7 @@
   display: flex;
   align-items: center;
   padding: 30rpx;
-  border-bottom: 2rpx solid #e9efeb;
+  border-bottom: 2rpx solid #f0f0f0;
 }
 
 .message-icon {
@@ -28,7 +27,7 @@
   align-items: center;
   justify-content: center;
   font-size: 36rpx;
-  background-color: #e9efeb;
+  background-color: #f0f0f0;
   border-radius: 50%;
   margin-right: 20rpx;
 }
@@ -40,13 +39,13 @@
 .message-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #172d25;
+  color: #333;
   margin-bottom: 10rpx;
 }
 
 .message-time {
   font-size: 24rpx;
-  color: #687a71;
+  color: #999;
 }
 
 /* 消息内容 */
@@ -56,27 +55,27 @@
 
 .content-text {
   font-size: 28rpx;
-  color: #172d25;
+  color: #333;
   line-height: 1.6;
 }
 
 /* 相关订单 */
 .related-order {
   padding: 30rpx;
-  border-top: 2rpx solid #e9efeb;
+  border-top: 2rpx solid #f0f0f0;
 }
 
 .section-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #172d25;
+  color: #333;
   margin-bottom: 20rpx;
 }
 
 .order-card {
-  background-color: #f5f7f5;
+  background-color: #f8f9fa;
   padding: 20rpx;
-  border-radius: 22rpx;
+  border-radius: 8rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -89,18 +88,18 @@
 .order-number {
   display: block;
   font-size: 26rpx;
-  color: #172d25;
+  color: #333;
   margin-bottom: 8rpx;
 }
 
 .order-status {
   font-size: 24rpx;
-  color: #687a71;
+  color: #666;
 }
 
 .view-order {
   font-size: 24rpx;
-  color: #16835c;
+  color: #1976d2;
 }
 
 /* 加载状态 */
@@ -110,7 +109,7 @@
   justify-content: center;
   padding: 100rpx 0;
   font-size: 28rpx;
-  color: #687a71;
+  color: #999;
 }
 
 /* 空状态 */
@@ -130,5 +129,5 @@
 
 .empty-text {
   font-size: 28rpx;
-  color: #687a71;
+  color: #999;
 }

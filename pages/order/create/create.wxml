@@ -1,25 +1,25 @@
 <wxs module="workNumber" src="../../../utils/workNo.wxs" />
-<view class="create-navigation" style="{{navigationTop > 0 ? 'padding-top:' + navigationTop + 'px;' : ''}}">
+<view class="create-navigation order-create-navigation" style="{{navigationTop > 0 ? 'padding-top:' + navigationTop + 'px;' : ''}}">
   <view class="create-navigation-row" style="{{navigationHeight > 0 ? 'height:' + navigationHeight + 'px;' : ''}}">
     <button wx:if="{{fromEnterpriseCertification || showCreateBack || showCreateHome}}" class="create-navigation-action" bindtap="goBack" aria-label="{{showCreateHome && !fromEnterpriseCertification ? '首页' : '返回'}}">
-      <text wx:if="{{fromEnterpriseCertification}}" decode="{{true}}">&lt; 返回</text>
+      <view wx:if="{{userType === 'user'}}" class="personal-create-back" aria-hidden="true"></view>
+      <text wx:elif="{{fromEnterpriseCertification}}" decode="{{true}}">&lt; 返回</text>
       <image wx:elif="{{showCreateHome}}" class="create-navigation-icon" src="/images/tab/home.png" mode="aspectFit" aria-hidden="true" />
       <image wx:else class="create-navigation-icon create-navigation-back" src="/images/content-ui/arrow-right.svg" mode="aspectFit" aria-hidden="true" />
     </button>
-    <text class="create-navigation-title">{{userType === 'enterprise' ? '创建企业订单' : '创建订单'}}</text>
+    <text class="create-navigation-title">{{userType === 'enterprise' ? '创建企业订单' : '创建个人订单'}}</text>
   </view>
 </view>
-<view class="page-container {{userType === 'enterprise' ? 'enterprise-create' : ''}}">
+<view class="page-container order-create-form">
   <view class="address-error" wx:if="{{submissionUncertain}}"><text>提交结果未确认，请先查看我的订单，避免重复下单</text><button bindtap="viewOrders">查看我的订单</button></view>
   <!-- 单日快修 / 个人用户表单 -->
 
-  <view class="form-section">
+  <view class="form-section service-type-section">
     <view class="section-title">选择服务类型</view>
     <radio-group class="enterprise-service-options" bindchange="onServiceModeChange">
-      <label class="enterprise-service-card {{serviceMode === 'on_site' ? 'selected' : ''}}"><radio class="service-radio" value="on_site" checked="{{serviceMode === 'on_site'}}" /><text>上门服务</text><text class="service-caption">维修维护与安装</text></label>
+      <label class="enterprise-service-card {{serviceMode === 'on_site' ? 'selected' : ''}}"><radio class="service-radio" value="on_site" checked="{{serviceMode === 'on_site'}}" /><text>上门服务</text><text class="service-caption">{{userType === 'user' ? '维护维修与安装' : '维修维护与安装'}}</text></label>
       <label class="enterprise-service-card {{serviceMode === 'off_site' ? 'selected' : ''}}"><radio class="service-radio" value="off_site" checked="{{serviceMode === 'off_site'}}" /><text>不上门服务</text><text class="service-caption">技术服务与加工</text></label>
     </radio-group>
-    <text class="fee-hint" wx:if="{{serviceMode === 'off_site'}}">{{orderMode === 'project' ? '付款时选择每人200元押金或整单一口价' : '付款时选择200元订单押金或一口价全额工费'}}</text>
   </view>
   <!-- 问题描述 -->
   <view class="form-section">
@@ -52,28 +52,28 @@
     <view class="section-title">用电类型 <text class="required">*</text></view>
     <radio-group class="electricity-type-group" bindchange="onElectricityTypeChange">
       <label class="electricity-type-item {{electricityType === 'residential' ? 'selected' : ''}}">
-        <radio value="residential" checked="{{electricityType === 'residential'}}"  color="#16835c"/>
+        <radio value="residential" checked="{{electricityType === 'residential'}}" color="#09bb07" />
         <text>居民用电</text>
       </label>
       <view class="electricity-type-gap"></view>
       <label class="electricity-type-item {{electricityType === 'industrial' ? 'selected' : ''}}">
-        <radio value="industrial" checked="{{electricityType === 'industrial'}}"  color="#16835c"/>
+        <radio value="industrial" checked="{{electricityType === 'industrial'}}" color="#09bb07" />
         <text>工商业用电</text>
       </label>
     </radio-group>
   </view>
 
   <view class="form-section">
-    <view class="section-title">{{userType === 'enterprise' ? '电工需要' : '所需资质'}} <text class="required">*</text></view>
+    <view class="section-title">{{userType === 'enterprise' ? '电工需要' : '所需资质'}} <text wx:if="{{userType !== 'enterprise'}}" class="required">*</text></view>
     <checkbox-group wx:if="{{userType === 'enterprise'}}" class="enterprise-cert-options" bindchange="onEnterpriseCertChange">
       <label class="cert-radio"><checkbox value="low_voltage" checked="{{enterpriseLowChecked}}" color="#16835c" />低压电工</label>
       <label class="cert-radio"><checkbox value="high_voltage" checked="{{enterpriseHighChecked}}" color="#16835c" />高压电工</label>
       <label class="cert-radio"><checkbox value="construction" checked="{{enterpriseConstructionChecked}}" color="#16835c" />建筑电工</label>
     </checkbox-group>
     <radio-group wx:else bindchange="onRequiredCertChange">
-      <label class="cert-radio"><radio value="low_voltage" checked="{{requiredCertType === 'low_voltage'}}" color="#16835c" />低压电工</label>
-      <label class="cert-radio"><radio value="high_voltage" checked="{{requiredCertType === 'high_voltage'}}" color="#16835c" />高压电工</label>
-      <label class="cert-radio"><radio value="construction" checked="{{requiredCertType === 'construction'}}" color="#16835c" />建筑电工</label>
+      <label class="cert-radio"><radio value="low_voltage" checked="{{requiredCertType === 'low_voltage'}}" color="#09bb07" />低压电工</label>
+      <label class="cert-radio"><radio value="high_voltage" checked="{{requiredCertType === 'high_voltage'}}" color="#09bb07" />高压电工</label>
+      <label class="cert-radio"><radio value="construction" checked="{{requiredCertType === 'construction'}}" color="#09bb07" />建筑电工</label>
     </radio-group>
   </view>
   <block wx:if="{{userType === 'enterprise'}}">
@@ -102,7 +102,7 @@
   </view>
 
   <!-- 底部提交预约条 -->
-  <view class="submit-bar">
+  <view class="submit-bar {{serviceMode === 'off_site' ? 'offsite-submit-bar' : ''}}">
     <button class="booking-btn" bindtap="submitOrder" loading="{{submitting}}" disabled="{{!canSubmit}}">
       {{submitting ? '正在创建订单' : '立即生成订单'}}
     </button>
@@ -147,13 +147,25 @@
       <view class="project-date-range">
         <view class="section-title">订单起止日期</view>
         <view class="project-date-columns">
-          <view><text>开始日期</text><picker mode="date" start="{{minProjectDate}}" value="{{draftStartDate}}" data-field="draftStartDate" bindchange="onProjectDraftDate"><view class="picker-display">{{draftStartLabel || '请选择日期'}}</view></picker></view>
-          <view><text>结束日期</text><picker mode="date" start="{{draftStartDate || minProjectDate}}" value="{{draftEndDate}}" data-field="draftEndDate" bindchange="onProjectDraftDate"><view class="picker-display">{{draftEndLabel || '请选择日期'}}</view></picker></view>
+          <view>
+            <text>开始日期</text>
+            <picker mode="date" start="{{minProjectDate}}" value="{{draftStartDate}}" data-field="draftStartDate" bindchange="onProjectDraftDate">
+              <view class="picker-display {{draftStartLabel ? '' : 'placeholder'}}">{{draftStartLabel || '请选择日期'}}</view>
+            </picker>
+          </view>
+          <view>
+            <text>结束日期</text>
+            <picker mode="date" start="{{draftStartDate || minProjectDate}}" value="{{draftEndDate}}" data-field="draftEndDate" bindchange="onProjectDraftDate">
+              <view class="picker-display {{draftEndLabel ? '' : 'placeholder'}}">{{draftEndLabel || '请选择日期'}}</view>
+            </picker>
+          </view>
         </view>
       </view>
-      <text class="fee-hint">包含开始和结束日，共2至29天</text>
       <text class="project-date-error" wx:if="{{projectDateError}}">{{projectDateError}}</text>
-      <view class="project-date-actions"><button bindtap="cancelProjectDates">取消</button><button class="confirm-dates" bindtap="confirmProjectDates">确定</button></view>
+      <view class="project-date-actions">
+        <button bindtap="cancelProjectDates">取消</button>
+        <button class="confirm-dates" bindtap="confirmProjectDates">确定</button>
+      </view>
     </view>
   </view>
 
@@ -192,4 +204,4 @@
 
 </view>
 
-<order-prepay enterprise-onsite="{{createdEnterpriseOnsite}}" pricing-mode="{{createdPricingMode}}" project-price="{{createdProjectPrice}}" visible="{{showPrepay}}" project="{{createdIsProject}}" order-id="{{createdOrderId}}" offsite="{{createdIsOffsite}}" amount="{{createdPrepayAmount}}" bind:confirm="confirmPersonalPrepay" bind:close="closePersonalPrepay" />
+<order-prepay shared-layout="{{true}}" enterprise-onsite="{{createdEnterpriseOnsite}}" pricing-mode="{{createdPricingMode}}" project-price="{{createdProjectPrice}}" visible="{{showPrepay}}" project="{{createdIsProject}}" order-id="{{createdOrderId}}" offsite="{{createdIsOffsite}}" amount="{{createdPrepayAmount}}" bind:confirm="confirmPersonalPrepay" bind:close="closePersonalPrepay" />

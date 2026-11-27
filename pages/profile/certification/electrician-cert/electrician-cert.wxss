@@ -1,9 +1,8 @@
-@import "../../../../styles/clean-surfaces.wxss";
 /* pages/profile/certification/electrician-cert/electrician-cert.wxss */
 .container {
   min-height: 100vh;
   background-color: #fff;
-  padding: 32rpx 44rpx 48rpx;
+  padding: 40rpx 30rpx;
   box-sizing: border-box;
 }
 
@@ -14,17 +13,17 @@
 .title {
   font-size: 36rpx;
   font-weight: 600;
-  color: #172d25;
+  color: #333;
   margin-bottom: 16rpx;
 }
 
 .highlight {
-  color: #16835c;
+  color: #ff8f00;
 }
 
 .subtitle {
   font-size: 26rpx;
-  color: #687a71;
+  color: #999;
 }
 
 .upload-section {
@@ -38,9 +37,9 @@
   position: relative;
   width: 100%;
   height: 400rpx; /* Taller for cert */
-  background-color: #f5f7f5;
-  border-radius: 22rpx;
-  border: 2rpx dashed #e9efeb;
+  background-color: #f8f9fc;
+  border-radius: 20rpx;
+  border: 2rpx dashed #e0e0e0;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -73,13 +72,13 @@
 .camera-icon:empty::before {
     content: '📷';
     font-size: 60rpx;
-    color: #687a71;
+    color: #666;
 }
 
 
 .placeholder-content text {
   font-size: 28rpx;
-  color: #687a71;
+  color: #666;
 }
 
 .preview-image {
@@ -93,7 +92,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: rgba(7,29,23,.65);
+  background-color: rgba(0, 0, 0, 0.5);
   padding: 10rpx 0;
   text-align: center;
 }
@@ -110,7 +109,7 @@
 
 .example-title {
   font-size: 30rpx;
-  color: #172d25;
+  color: #333;
   margin-bottom: 30rpx;
 }
 
@@ -124,27 +123,27 @@
   flex-direction: column;
   align-items: center;
   font-size: 24rpx;
-  color: #687a71;
+  color: #666;
   gap: 12rpx;
 }
 
 .example-box {
   width: 120rpx;
   height: 90rpx;
-  background-color: #f5f7f5;
+  background-color: #f5f5f5;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 22rpx;
-  border: 1rpx solid #e9efeb;
+  border-radius: 8rpx;
+  border: 1rpx solid #eee;
 }
 
 .example-box.correct text {
-    color: #16835c;
+    color: #0F9D58;
 }
 
 .example-box.error text {
-    color: #b74434;
+    color: #f44336;
 }
 
 
@@ -155,17 +154,17 @@
 
 .confirm-btn {
   width: 100%;
-  height: auto;
-  background: #16835c;
+  height: 90rpx;
+  background: linear-gradient(90deg, #0F9D58 0%, #81C784 100%);
   color: #fff;
-  font-size: 30rpx;
+  font-size: 32rpx;
   font-weight: 600;
-  border-radius: 22rpx;
+  border-radius: 45rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   border: none;
-  box-shadow: none;
+  box-shadow: 0 4rpx 12rpx rgba(15, 157, 88, 0.25);
 }
 
 .confirm-btn::after {
@@ -174,10 +173,6 @@
 
 .confirm-btn.disabled {
   background: #d1d5db;
-  color: #687a71;
+  color: #9ca3af;
   box-shadow: none;
 }
-
-
-/* UI1.1：页面布局及状态精调。 */
-.header { margin-bottom: 32rpx; } .upload-card { box-sizing: border-box; border-radius: 24rpx; background: #f5f7f5; } .camera-icon { opacity: 1; width: 64rpx; height: 64rpx; } .camera-icon:empty::before, .shield-icon:empty::before { content: none; } .security-tip text, .privacy-tip { color: #687a71; } .example-list { flex-wrap: wrap; gap: 20rpx; } .example-item { flex: 1; min-width: 120rpx; } .confirm-btn { height: auto; padding: 20rpx 24rpx; line-height: 1.6; background: #16835c; color: #fff; border-radius: 22rpx; } .confirm-btn.disabled { background: #16835c; color: #fff; opacity: .5; }

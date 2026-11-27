@@ -21,6 +21,7 @@ require('../../utils/visitCapture').register(Page, {
     testCode: '',
     selectedRole: 'user', // 默认选择"我要找电工"
     showLoginForm: false,
+    directElectricianRegistration: false,
     headerTop: 64,
 
     // V1.1.3 细化需求: 欢迎弹窗（点击登录按钮后弹出，进入页面时不弹）
@@ -97,7 +98,7 @@ require('../../utils/visitCapture').register(Page, {
     orderEntry.clear();
     this._contentEntry = true;
     app.globalData.contentLoginEntry = 'electrician-home';
-    this.setData({ selectedRole: 'electrician', showLoginForm: true });
+    this.setData({ selectedRole: 'electrician', showLoginForm: true, directElectricianRegistration: false });
   },
 
   onReady() {
@@ -113,7 +114,7 @@ require('../../utils/visitCapture').register(Page, {
     this._orderRequested = role === 'user';
     orderEntry.clear();
     this.selectRole(e);
-    this.setData({ showLoginForm: true, phoneError: '', codeError: '', code: '', canLogin: false });
+    this.setData({ showLoginForm: true, directElectricianRegistration: role === 'electrician', phoneError: '', codeError: '', code: '', canLogin: false });
   },
 
   closeLoginForm() {
@@ -335,18 +336,22 @@ require('../../utils/visitCapture').register(Page, {
   },
 
   /**
-   * 登录按钮点击（V1.1.3 细化需求: 点击登录按钮先弹出《隐私政策和用户协议》确认弹窗）
+   * 首页登录和注册直接提交，专用转换入口仍使用确认弹窗。
    */
   login() {
     if (!this.data.canLogin || this.data.isLogging) {
       return;
     }
     this._conversionConsent = null;
+    if (this.data.selectedRole !== 'electrician') {
+      return this.doLogin();
+    }
+    if (this.data.directElectricianRegistration) return this.onAgree();
     this.setData({ showWelcomeModal: true });
   },
 
   /**
-   * 执行登录（V1.1.3 细化需求: 弹窗「同意」后直接登录，逻辑由原 login() 迁移至此）
+   * 校验并执行登录。
    */
   async doLogin() {
     if (this.data.isLogging) {
@@ -396,8 +401,8 @@ require('../../utils/visitCapture').register(Page, {
       if (this._unloaded) return;
       const role = this.data.selectedRole;
       const consent = this._conversionConsent;
-      if (!consent || consent.phone !== phone || consent.role !== role) {
-        this.setData({ isLogging: false, loginButtonText: '登录', showWelcomeModal: true });
+      if (role === 'electrician' && (!consent || consent.phone !== phone || consent.role !== role)) {
+        this.setData({ isLogging: false, loginButtonText: '登录', showWelcomeModal: !this.data.directElectricianRegistration });
         return;
       }
       this._conversionConsent = null;

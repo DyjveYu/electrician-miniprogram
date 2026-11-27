@@ -1,9 +1,1 @@
-{
-  "navigationBarTitleText": "着安用电安全小知识",
-  "usingComponents": {},
-  "backgroundColor": "#ffffff",
-  "backgroundColorTop": "#ffffff",
-  "backgroundColorBottom": "#ffffff",
-  "navigationBarBackgroundColor": "#ffffff",
-  "navigationBarTextStyle": "black"
-}
+{ "navigationBarTitleText": "着安用电安全小知识", "usingComponents": {} }

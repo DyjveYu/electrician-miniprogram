@@ -1,9 +1,8 @@
-@import "../../styles/clean-surfaces.wxss";
 /* pages/service-types/service-types.wxss */
 .container {
-  background-color: #fff;
+  background-color: #f5f5f5;
   min-height: 100vh;
-  padding: 32rpx 44rpx 48rpx;
+  padding: 20rpx;
 }
 
 /* 服务列表 */
@@ -13,16 +12,16 @@
 
 .service-item {
   background-color: #fff;
-  border-radius: 22rpx;
+  border-radius: 12rpx;
   margin-bottom: 20rpx;
   padding: 30rpx;
-  box-shadow: none;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
   transition: all 0.3s;
 }
 
 .service-item:active {
   transform: scale(0.98);
-  box-shadow: none;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
 }
 
 .service-header {
@@ -38,7 +37,7 @@
   align-items: center;
   justify-content: center;
   font-size: 40rpx;
-  background-color: #e9efeb;
+  background-color: #f0f0f0;
   border-radius: 50%;
   margin-right: 20rpx;
 }
@@ -50,24 +49,24 @@
 .service-name {
   font-size: 32rpx;
   font-weight: 600;
-  color: #172d25;
+  color: #333;
   margin-bottom: 8rpx;
 }
 
 .service-price {
   font-size: 26rpx;
-  color: #16835c;
+  color: #f44336;
   font-weight: 500;
 }
 
 .arrow {
   font-size: 28rpx;
-  color: #687a71;
+  color: #ccc;
 }
 
 .service-desc {
   font-size: 26rpx;
-  color: #687a71;
+  color: #666;
   line-height: 1.5;
   margin-bottom: 20rpx;
 }
@@ -79,8 +78,8 @@
 }
 
 .feature-tag {
-  background-color: #eff7f1;
-  color: #16835c;
+  background-color: #e3f2fd;
+  color: #1976d2;
   font-size: 22rpx;
   padding: 6rpx 12rpx;
   border-radius: 12rpx;
@@ -91,17 +90,17 @@
 .tips-section {
   background-color: #fff;
   padding: 30rpx;
-  border-radius: 22rpx;
-  box-shadow: none;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
 }
 
 .tips-title {
   font-size: 28rpx;
   font-weight: 600;
-  color: #172d25;
+  color: #333;
   margin-bottom: 20rpx;
   padding-bottom: 15rpx;
-  border-bottom: 2rpx solid #e9efeb;
+  border-bottom: 2rpx solid #f0f0f0;
 }
 
 .tips-content {
@@ -111,7 +110,7 @@
 .tip-item {
   display: block;
   font-size: 24rpx;
-  color: #687a71;
+  color: #666;
   line-height: 1.6;
   margin-bottom: 12rpx;
 }
@@ -119,5 +118,3 @@
 .tip-item:last-child {
   margin-bottom: 0;
 }
-
-.service-list { padding: 0; } .service-item { border: 2rpx solid #e9efeb; border-radius: 24rpx; } .service-icon { display: flex; align-items: center; justify-content: center; width: 76rpx; height: 76rpx; flex-shrink: 0; background: #eff7f1; border-radius: 24rpx; } .service-info { min-width: 0; }

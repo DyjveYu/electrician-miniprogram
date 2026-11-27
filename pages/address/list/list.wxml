@@ -35,7 +35,7 @@
 
     <!-- 空状态 -->
     <view class="empty-state" wx:if="{{!loading && addresses.length === 0}}">
-      <image class="empty-icon ui-icon" src="/images/content-ui/map-pin.svg" mode="aspectFit" aria-hidden="true" />
+      <text class="empty-icon">📍</text>
       <text class="empty-text">暂无地址信息</text>
       <button class="add-first-btn" bindtap="addAddress">
         添加第一个地址

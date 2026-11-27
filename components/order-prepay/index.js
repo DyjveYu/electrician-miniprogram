@@ -10,6 +10,7 @@ Component({
     project: { type: Boolean, value: false },
     projectPrice: { type: Object, value: null },
     enterpriseOnsite: { type: Boolean, value: false },
+    sharedLayout: { type: Boolean, value: false },
     offsite: { type: Boolean, value: false }
   },
   data: { mode: 'fixed_deposit', price: '', paragraphs, opened: false, agreed: false, reading: false, confirming: false },
@@ -17,6 +18,11 @@ Component({
     noop() {},
     chooseMode(e) { if (!this.data.confirming) this.setData({ mode: e.detail.value, agreed: false }); },
     inputPrice(e) { this.setData({ price: e.detail.value, agreed: false }); },
+    inputSharedPrice(e) {
+      if (this.data.confirming) return;
+      const price = e.detail.value.trim();
+      this.setData({ price, mode: price ? 'fixed_price' : 'fixed_deposit' });
+    },
     read() { this.setData({ reading: true, opened: !this.data.enterpriseOnsite || this.data.opened }); },
     closeReader() { this.setData({ reading: false }); },
     acceptReader() {
@@ -26,8 +32,12 @@ Component({
     },
     changeAgreement(e) { this.setData({ agreed: e.detail.value.includes('agree') }); },
     close() { if (!this.data.confirming) this.triggerEvent('close'); },
+    closeFromBackdrop() {
+      if (this.data.sharedLayout && !this.data.reading) this.close();
+    },
     async confirm() {
-      if ((!this.data.opened && !this.data.enterpriseOnsite) || !this.data.agreed || this.data.confirming || this.data.reading) return;
+      const requiresOpened = !this.data.enterpriseOnsite && !this.data.sharedLayout;
+      if ((requiresOpened && !this.data.opened) || !this.data.agreed || this.data.confirming || this.data.reading) return;
       this.setData({ confirming: true });
       const project = this.data.project, contract = this.data.projectPrice;
       const selectable = project && contract?.priceRevision != null;

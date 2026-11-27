@@ -1,7 +1,6 @@
-@import "../../../styles/clean-surfaces.wxss";
 /* pages/profile/edit/edit.wxss */
 .container {
-  background-color: #fff;
+  background-color: #f5f5f5;
   min-height: 100vh;
   padding-bottom: 120rpx;
 }
@@ -15,7 +14,7 @@
 .section-title {
   font-size: 32rpx;
   font-weight: 600;
-  color: #172d25;
+  color: #333;
   margin-bottom: 20rpx;
 }
 
@@ -34,7 +33,7 @@
   width: 200rpx;
   height: 200rpx;
   border-radius: 50%;
-  border: 4rpx solid #e9efeb;
+  border: 4rpx solid #f0f0f0;
 }
 
 .avatar-overlay {
@@ -42,7 +41,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background-color: rgba(7,29,23,.65);
+  background-color: rgba(0, 0, 0, 0.6);
   color: #fff;
   text-align: center;
   padding: 10rpx 0;
@@ -58,7 +57,7 @@
   display: flex;
   align-items: center;
   padding: 30rpx 0;
-  border-bottom: 2rpx solid #e9efeb;
+  border-bottom: 2rpx solid #f0f0f0;
 }
 
 .form-item:last-child {
@@ -68,24 +67,24 @@
 .label {
   width: 160rpx;
   font-size: 28rpx;
-  color: #172d25;
+  color: #333;
   flex-shrink: 0;
 }
 
 .value {
   flex: 1;
   font-size: 28rpx;
-  color: #172d25;
+  color: #333;
 }
 
 .value.readonly {
-  color: #687a71;
+  color: #999;
 }
 
 .input {
   flex: 1;
   font-size: 28rpx;
-  color: #172d25;
+  color: #333;
 }
 
 /* 保存按钮 */
@@ -96,17 +95,17 @@
   right: 0;
   padding: 30rpx;
   background-color: #fff;
-  border-top: 2rpx solid #e9efeb;
+  border-top: 2rpx solid #f0f0f0;
 }
 
 .save-btn {
   width: 100%;
-  height: auto;
-  background: #16835c;
+  height: 88rpx;
+  background: linear-gradient(90deg, #0F9D58 0%, #81C784 100%);
   color: #fff;
-  font-size: 30rpx;
+  font-size: 32rpx;
   font-weight: 600;
-  border-radius: 22rpx;
+  border-radius: 8rpx;
   border: none;
   display: flex;
   align-items: center;
@@ -115,12 +114,9 @@
 
 .save-btn.disabled {
   background-color: #ccc;
-  color: #687a71;
+  color: #999;
 }
 
 .save-btn::after {
   border: none;
 }
-
-/* UI1.1：页面布局及状态精调。 */
-.section, .form-section { padding: 0; } .form-item { gap: 16rpx; align-items: flex-start; flex-wrap: wrap; } .form-item .label { width: 140rpx; padding-top: 20rpx; color: #687a71; } .form-item .input, .form-item .textarea, .form-item .value, .region-selector { flex: 1; min-width: 200rpx; box-sizing: border-box; } .save-section { padding: 24rpx 0; padding-bottom: calc(24rpx + env(safe-area-inset-bottom)); } .save-btn { width: 100%; } .switch-item { align-items: center; }

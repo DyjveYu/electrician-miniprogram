@@ -1,6 +1,34 @@
-<view wx:if="{{visible}}" class="overlay" catchtouchmove="noop">
-  <view class="sheet {{enterpriseOnsite ? 'enterprise-onsite' : ''}}" catchtap="noop">
-    <block wx:if="{{!reading}}">
+<view wx:if="{{visible}}" class="overlay" bindtap="closeFromBackdrop" catchtouchmove="noop">
+  <view class="sheet {{enterpriseOnsite && !sharedLayout ? 'enterprise-onsite' : ''}} {{sharedLayout && !reading ? 'prepay-sheet' : ''}}" catchtap="noop">
+    <block wx:if="{{sharedLayout && !reading}}">
+      <view class="prepay-title">{{offsite ? '订单预约服务不上门费预付款' : (project ? '工程总费用预付款' : '订单预约服务上门费预付款')}}</view>
+      <view class="prepay-agreement-panel">
+        <view class="prepay-agreement-card">
+          <checkbox-group class="prepay-agreement-row" bindchange="changeAgreement">
+            <label class="prepay-agreement-choice"><checkbox value="agree" checked="{{agreed}}" disabled="{{confirming}}" color="#09874f" />我已阅读并同意</label>
+            <text class="prepay-agreement-link" bindtap="read">《订单预约服务预付款协议》</text>
+          </checkbox-group>
+          <view class="prepay-agreement-hint" bindtap="read">点击阅读《订单预约服务预付款协议》。</view>
+        </view>
+      </view>
+      <view class="prepay-payment-row">
+        <view wx:if="{{offsite}}" class="prepay-price-options">
+          <view class="prepay-price-option {{mode !== 'fixed_price' ? 'selected' : ''}}">押金：¥{{project ? (projectPrice.deposit || amount) : '200.00'}}</view>
+          <view wx:if="{{!project || (projectPrice && projectPrice.priceRevision != null)}}" class="prepay-price-option {{mode === 'fixed_price' ? 'selected' : ''}}">
+            <text>一口价：¥</text>
+            <input class="prepay-price-input" type="digit" placeholder="请输入金额" value="{{price}}" bindinput="inputSharedPrice" disabled="{{confirming}}" />
+          </view>
+        </view>
+        <text wx:else class="prepay-payment-amount">{{project ? '工程总费用' : '上门费'}}：¥{{amount}}</text>
+        <button class="primary prepay-payment-button" bindtap="confirm" disabled="{{!agreed || confirming}}">{{confirming ? '正在前往支付' : '去支付'}}</button>
+      </view>
+      <view class="prepay-payment-options">
+        <view wx:if="{{offsite}}" class="prepay-price-note">{{mode === 'fixed_price' ? '总工费含15%平台费，下单时一次付清。' : '工费另付，工费支付成功后押金全额原路退回。'}}</view>
+        <view wx:elif="{{project}}" class="prepay-price-note">本次支付工程总费用（含15%平台使用费）。</view>
+        <order-subscription wx:if="{{!project && orderId > 0}}" order-id="{{orderId}}" />
+      </view>
+    </block>
+    <block wx:elif="{{!reading}}">
       <view class="heading">{{offsite ? '订单预约服务不上门费预付款' : (project ? '工程总费用预付款' : '订单预约服务上门费预付款')}}</view>
       <radio-group wx:if="{{offsite && (!project || (projectPrice && projectPrice.priceRevision != null))}}" class="hint" bindchange="chooseMode">
         <label><radio value="fixed_deposit" checked="{{mode !== 'fixed_price'}}" disabled="{{confirming}}" color="#16835c"/>押金{{project ? projectPrice.deposit : 200}}元</label>
@@ -28,8 +56,8 @@
       <scroll-view class="agreement-body" scroll-y="{{true}}">
         <text wx:for="{{paragraphs}}" wx:key="*this" class="paragraph" selectable="{{true}}">{{item}}</text>
       </scroll-view>
-      <button wx:if="{{enterpriseOnsite}}" class="primary" bindtap="acceptReader">阅读并同意</button>
-      <button class="{{enterpriseOnsite ? 'secondary' : 'primary'}}" bindtap="closeReader">关闭阅读</button>
+      <button wx:if="{{enterpriseOnsite && !sharedLayout}}" class="primary" bindtap="acceptReader">阅读并同意</button>
+      <button class="{{enterpriseOnsite && !sharedLayout ? 'secondary' : 'primary'}}" bindtap="closeReader">关闭阅读</button>
     </block>
   </view>
 </view>

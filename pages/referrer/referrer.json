@@ -1,9 +1,4 @@
 {
   "navigationBarTitleText": "推荐达人",
-  "usingComponents": {},
-  "backgroundColor": "#ffffff",
-  "backgroundColorTop": "#ffffff",
-  "backgroundColorBottom": "#ffffff",
-  "navigationBarBackgroundColor": "#ffffff",
-  "navigationBarTextStyle": "black"
+  "usingComponents": {}
 }

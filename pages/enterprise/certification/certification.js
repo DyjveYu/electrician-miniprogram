@@ -593,7 +593,7 @@ require('../../../utils/visitCapture').register(Page, {
       if (!this._visible) return;
       log.error('cert_submit_catch', { message: error.message });
       wx.hideLoading();
-      wx.showModal({ confirmColor: '#16835c',
+      wx.showModal({
         title: '提交失败',
         content: error.message || '请检查网络后重试',
         showCancel: true,

@@ -1,16 +1,14 @@
-@import "../../../styles/clean-surfaces.wxss";
-
 page {
-  background-color: #fff;
+  background-color: #f5f5f5;
 }
 
 .container {
-  padding: 32rpx 44rpx 48rpx;
+  padding: 20rpx;
 }
 
 .balance-info {
   background: #fff;
-  border-radius: 22rpx;
+  border-radius: 16rpx;
   padding: 30rpx;
   text-align: center;
   margin-bottom: 20rpx;
@@ -18,20 +16,20 @@ page {
 
 .label {
   font-size: 28rpx;
-  color: #687a71;
+  color: #999;
   display: block;
   margin-bottom: 10rpx;
 }
 
 .amount {
   font-size: 56rpx;
-  font-weight: 600;
-  color: #16835c;
+  font-weight: bold;
+  color: #0F9D58;
 }
 
 .withdraw-form {
   background: #fff;
-  border-radius: 22rpx;
+  border-radius: 16rpx;
   padding: 30rpx;
 }
 
@@ -41,7 +39,7 @@ page {
 
 .form-label {
   font-size: 30rpx;
-  color: #172d25;
+  color: #333;
   display: block;
   margin-bottom: 16rpx;
 }
@@ -49,15 +47,15 @@ page {
 .input-wrapper {
   display: flex;
   align-items: center;
-  border-bottom: 2rpx solid #e9efeb;
+  border-bottom: 2rpx solid #eee;
   padding-bottom: 16rpx;
 }
 
 .currency {
   font-size: 40rpx;
-  color: #172d25;
+  color: #333;
   margin-right: 10rpx;
-  font-weight: 600;
+  font-weight: bold;
 }
 
 .amount-input {
@@ -72,10 +70,10 @@ page {
 }
 
 .all-btn {
-  background: #eff7f1;
-  color: #16835c;
+  background: #E8F5E9;
+  color: #0F9D58;
   border: none;
-  border-radius: 22rpx;
+  border-radius: 8rpx;
   padding: 12rpx 30rpx;
   font-size: 26rpx;
   width: auto;
@@ -89,7 +87,7 @@ page {
 .tip-text {
   display: block;
   font-size: 24rpx;
-  color: #687a71;
+  color: #999;
   margin-bottom: 8rpx;
 }
 
@@ -97,18 +95,12 @@ page {
   background: #ccc;
   color: #fff;
   border: none;
-  border-radius: 22rpx;
-  padding: 20rpx 24rpx;
-  font-size: 30rpx;
+  border-radius: 40rpx;
+  padding: 24rpx;
+  font-size: 32rpx;
   width: 100%;
 }
 
 .submit-btn.active {
-  background: #16835c;
+  background: #0F9D58;
 }
-
-
-/* UI1.1：页面布局及状态精调。 */
-.balance-info { border-radius: 26rpx; padding: 32rpx 28rpx; background: #eff7f1; margin-bottom: 28rpx; } .balance-info .label { color: #687a71; } .balance-info .amount { font-size: 52rpx; color: #16835c; word-break: break-all; } .withdraw-form { padding: 28rpx 24rpx; } .input-wrapper { gap: 12rpx; } .amount-input { min-width: 0; width: 0; } .all-btn { background: #eff7f1; color: #16835c; border-radius: 18rpx; }
-
-.input-wrapper { box-sizing: border-box; padding: 20rpx; border: 2rpx solid #e9efeb; border-radius: 22rpx; background: #f5f7f5; } .amount-input { font-size: 32rpx; }

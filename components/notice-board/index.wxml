@@ -1,4 +1,4 @@
-<view class="notice-board">
+<view class="notice-board {{largeText ? 'large-text' : ''}}">
   <view class="heading"><image class="heading-icon" src="/images/content-ui/megaphone.svg" mode="aspectFit" aria-hidden="true" /><text>信息栏</text></view>
   <view class="notice-viewport">
     <view class="notice-track {{transitioning ? 'is-moving' : ''}}">

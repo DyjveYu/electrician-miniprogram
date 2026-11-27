@@ -453,7 +453,7 @@ App({
    */
   showModal(title, content) {
     return new Promise((resolve) => {
-      wx.showModal({ confirmColor: '#16835c',
+      wx.showModal({
         title: title,
         content: content,
         success: (res) => {
@@ -547,7 +547,7 @@ App({
     }
     return false;
   },
-  
+
   /**
    * 更新全局用户状态（用于同步最新的冻结状态）
    */

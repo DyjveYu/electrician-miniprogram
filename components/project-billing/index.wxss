@@ -1,5 +1,5 @@
 @import "../../styles/order-detail-cards.wxss";
-.card { margin: 24rpx; padding: 28rpx; background: white; border-radius: 18rpx; line-height: 1.7; }
+.card { margin: 0 0 20rpx; padding: 28rpx; background: white; border-radius: 18rpx; line-height: 1.7; }
 .head { font-size: 32rpx; font-weight: 600; }
 textarea, input { margin: 18rpx 0; padding: 12rpx; background: #f5f7f6; }
 button { margin-top: 16rpx; color: #16835c; }

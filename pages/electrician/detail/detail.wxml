@@ -92,7 +92,7 @@
 
   <!-- 电工不存在 -->
   <view class="empty-state" wx:if="{{!loading && !electrician}}">
-    <image class="empty-icon ui-icon" src="/images/content-ui/shield-check.svg" mode="aspectFit" aria-hidden="true" />
+    <text class="empty-icon">🔧</text>
     <text class="empty-text">电工信息不存在</text>
   </view>
 </view>

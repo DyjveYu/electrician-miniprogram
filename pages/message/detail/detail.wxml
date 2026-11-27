@@ -4,9 +4,9 @@
     <!-- 消息头部 -->
     <view class="message-header">
       <view class="message-icon">
-        <image wx:if="{{message.type === 'order'}}" class="ui-icon" src="/images/content-ui/clipboard.svg" mode="aspectFit" aria-hidden="true" />
-        <image wx:elif="{{message.type === 'system'}}" class="ui-icon" src="/images/content-ui/megaphone.svg" mode="aspectFit" aria-hidden="true" />
-        <image wx:else class="ui-icon" src="/images/content-ui/message-circle.svg" mode="aspectFit" aria-hidden="true" />
+        <text wx:if="{{message.type === 'order'}}">📋</text>
+        <text wx:elif="{{message.type === 'system'}}">📢</text>
+        <text wx:else>💬</text>
       </view>
       <view class="message-info">
         <view class="message-title">{{message.title}}</view>
@@ -38,7 +38,7 @@
 
   <!-- 消息不存在 -->
   <view class="empty-state" wx:if="{{!loading && !message}}">
-    <image class="empty-icon ui-icon" src="/images/content-ui/message-circle.svg" mode="aspectFit" aria-hidden="true" />
+    <text class="empty-icon">💬</text>
     <text class="empty-text">消息不存在</text>
   </view>
 </view>

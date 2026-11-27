@@ -2,10 +2,10 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { harness } = require('./helpers/contentHarness');
 const event = role => ({ currentTarget: { dataset: { role } } });
-function setup() {
+function setup(options = {}) {
   const h = harness();
   const page = h.page('pages/login/login.js');
-  page.onLoad({});
+  page.onLoad(options);
   return { h, page };
 }
 
@@ -75,8 +75,7 @@ test('R6: 提交期间关闭、切换入口、角色和内容来源均不改变�
 });
 
 test('R6: 协议详情可开关且不关闭登录表单；确认取消后保留表单', () => {
-  const { page } = setup();
-  page.openLoginForm(event('electrician'));
+  const { page } = setup({ entry: 'identity-conversion' });
   page.showPrivacyPolicy();
   page.closeLoginForm();
   assert.equal(page.data.showModal, true);
@@ -135,7 +134,7 @@ test('R6: 短信请求发出后卸载，迟到成功不创建新倒计时或写�
   assert.equal(h.calls.toast.length, 0);
 });
 
-test('R6: 原登录提交仍传递所选个人／企业／电工角色并保存会话', async () => {
+test('R6: 首页各角色直接提交，并按所选角色保存会话', async () => {
   for (const role of ['user', 'enterprise', 'electrician']) {
     const { h, page } = setup();
     const { AuthAPI } = h.load('utils/api.js');
@@ -153,9 +152,8 @@ test('R6: 原登录提交仍传递所选个人／企业／电工角色并保存�
     page.openLoginForm(event(role === 'electrician' ? role : 'user'));
     page.selectRole(event(role));
     page.setData({ phone: '13800000000', code: '123456', canLogin: true });
-    page.login();
-    assert.equal(page.data.showWelcomeModal, true);
-    await page.onAgree();
+    await page.login();
+    assert.equal(page.data.showWelcomeModal, false);
     assert.deepEqual(received, ['13800000000', '123456', role, 'isolated-openid', role === 'electrician']);
     assert.equal(h.app.globalData.token, 'new-test-token');
     assert.equal(h.app.globalData.userInfo.current_role, role);
@@ -167,14 +165,14 @@ test('R6: 登录失败保留弹层且解除提交锁，可取消后重新选择�
   const { AuthAPI } = h.load('utils/api.js');
   h.wx.login = async () => ({});
   AuthAPI.login = async () => { throw new Error('验证码错误'); };
-  page.openLoginForm(event('electrician'));
+  page.openLoginForm(event('user'));
   page.setData({ phone: '13800000000', code: '123456', canLogin: true });
-  page.login();
-  await page.onAgree();
+  await page.login();
+  assert.equal(page.data.showWelcomeModal, false);
   assert.equal(page.data.isLogging, false);
   assert.equal(page.data.showLoginForm, true);
   assert.equal(h.calls.toast.at(-1).title, '验证码错误');
   page.closeLoginForm();
-  page.openLoginForm(event('user'));
-  assert.equal(page.data.selectedRole, 'user');
+  page.openLoginForm(event('electrician'));
+  assert.equal(page.data.selectedRole, 'electrician');
 });

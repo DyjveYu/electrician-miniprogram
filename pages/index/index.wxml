@@ -1,5 +1,5 @@
 <view class="home-viewport">
-  <view class="home-navigation {{currentRole === 'electrician' ? 'home-navigation-electrician' : ''}}" style="padding-top: {{navTop}}px;">
+  <view class="home-navigation {{currentRole === 'electrician' ? 'home-navigation-electrician' : (currentRole === 'user' || currentRole === 'enterprise' ? 'home-navigation-order' : '')}}" style="padding-top: {{navTop}}px;">
     <view class="home-navigation-body" style="height: {{navHeight}}px; padding: 0 {{navInset}}px;">
       <text class="home-navigation-title">找电工 上着安</text>
     </view>
@@ -7,10 +7,10 @@
   <view class="home-fixed" wx:if="{{currentRole === 'user' || currentRole === 'enterprise'}}">
     <!-- 主要服务卡片 -->
     <view class="service-card" bindtap="createOrder">
-      <view class="service-icon ui-icon-tile"><image class="ui-icon" src="/images/content-ui/zap.svg" mode="aspectFit" aria-hidden="true" /></view>
+      <image class="service-icon" src="/images/content-ui/zap.svg" mode="aspectFit" aria-hidden="true" />
       <view class="service-info">
         <text class="service-title">立即下单</text>
-        <text class="service-desc">专业电工上门服务</text>
+        <text class="service-desc">持证电工为您服务</text>
       </view>
       <view class="service-arrow">></view>
     </view>
@@ -26,13 +26,11 @@
     <button class="order-tab {{orderTab === 'onsite' ? 'order-tab-active' : ''}}" data-tab="onsite" bindtap="selectOrderTab">上门订单</button>
     <button class="order-tab {{orderTab === 'offsite' ? 'order-tab-active' : ''}}" data-tab="offsite" bindtap="selectOrderTab">不上门订单</button>
   </view>
-  <scroll-view class="home-scroll" scroll-y refresher-enabled refresher-triggered="{{homeRefreshing}}"
+  <scroll-view class="home-scroll {{currentRole === 'user' || currentRole === 'enterprise' ? 'home-scroll-order' : ''}}" scroll-y refresher-enabled refresher-triggered="{{homeRefreshing}}"
     bindrefresherrefresh="onPullDownRefresh" bindscrolltolower="onOrderScrollLower">
-    <view class="container" wx:if="{{currentRole === 'user' || currentRole === 'enterprise'}}">
-      <view class="section-header">
-        <text class="section-title">我的订单</text>
-        <text class="section-more" bindtap="viewAllOrders">查看全部</text>
-      </view>
+    <view class="home-order-heading" wx:if="{{currentRole === 'user' || currentRole === 'enterprise'}}">
+      <text class="section-title">我的订单</text>
+      <text class="section-more" bindtap="viewAllOrders">查看全部</text>
     </view>
     <view class="electrician-orders" wx:elif="{{currentRole === 'electrician'}}">
       <view class="electrician-order-card" wx:for="{{orderTab === 'onsite' ? nearbyOrders : nationalOrders}}" wx:key="id">
@@ -75,8 +73,8 @@
       </view>
     </view>
     <view class="home-public-content" wx:if="{{currentRole !== 'electrician'}}">
-      <electrician-home-entry />
-      <safety-knowledge-entry />
+      <electrician-home-entry in-order-card="{{currentRole === 'user' || currentRole === 'enterprise'}}" />
+      <safety-knowledge-entry in-order-card="{{currentRole === 'user' || currentRole === 'enterprise'}}" />
       <notice-board />
       <home-ads />
       <view class="home-brand-footer">着安电工服务平台</view>

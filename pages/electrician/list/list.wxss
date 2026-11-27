@@ -1,7 +1,6 @@
-@import "../../../styles/clean-surfaces.wxss";
 /* pages/electrician/list/list.wxss */
 .container {
-  background-color: #fff;
+  background-color: #f5f5f5;
   min-height: 100vh;
 }
 
@@ -12,17 +11,17 @@
 
 .electrician-item {
   background-color: #fff;
-  border-radius: 22rpx;
+  border-radius: 12rpx;
   margin-bottom: 20rpx;
   padding: 30rpx;
   display: flex;
   align-items: center;
-  box-shadow: none;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
   transition: background-color 0.3s;
 }
 
 .electrician-item:active {
-  background-color: #f5f7f5;
+  background-color: #f5f5f5;
 }
 
 .electrician-avatar {
@@ -53,15 +52,15 @@
 .electrician-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #172d25;
+  color: #333;
 }
 
 .electrician-rating {
-  background-color: #faf4e9;
-  color: #956321;
+  background-color: #fff3e0;
+  color: #f57c00;
   padding: 4rpx 8rpx;
-  border-radius: 22rpx;
-  font-size: 22rpx;
+  border-radius: 8rpx;
+  font-size: 20rpx;
 }
 
 .rating-text {
@@ -75,7 +74,7 @@
 
 .detail-item {
   font-size: 24rpx;
-  color: #687a71;
+  color: #666;
   margin-right: 30rpx;
 }
 
@@ -87,8 +86,8 @@
 }
 
 .skill-tag {
-  background-color: #eff7f1;
-  color: #16835c;
+  background-color: #e3f2fd;
+  color: #1976d2;
   font-size: 22rpx;
   padding: 4rpx 8rpx;
   border-radius: 8rpx;
@@ -96,7 +95,7 @@
 
 .electrician-location {
   font-size: 24rpx;
-  color: #687a71;
+  color: #999;
 }
 
 .location-text {
@@ -110,9 +109,9 @@
 }
 
 .action-btn {
-  padding: 20rpx 24rpx;
-  border-radius: 22rpx;
-  font-size: 30rpx;
+  padding: 16rpx 24rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
   border: none;
   min-width: 80rpx;
 }
@@ -122,7 +121,7 @@
 }
 
 .contact-btn {
-  background-color: #16835c;
+  background-color: #1976d2;
   color: #fff;
 }
 
@@ -143,7 +142,7 @@
 
 .empty-text {
   font-size: 28rpx;
-  color: #687a71;
+  color: #999;
 }
 
 /* 加载状态 */
@@ -151,7 +150,7 @@
   text-align: center;
   padding: 40rpx 0;
   font-size: 28rpx;
-  color: #687a71;
+  color: #999;
 }
 
 /* 没有更多 */
@@ -159,8 +158,5 @@
   text-align: center;
   padding: 40rpx 0;
   font-size: 24rpx;
-  color: #687a71;
+  color: #ccc;
 }
-
-/* UI1.1：页面布局及状态精调。 */
-.electrician-list { padding: 0; } .electrician-item { padding: 28rpx 24rpx; border: 2rpx solid #e9efeb; border-radius: 24rpx; flex-wrap: wrap; gap: 16rpx; } .electrician-avatar { margin-right: 0; } .electrician-info { min-width: 200rpx; } .electrician-header, .electrician-details { flex-wrap: wrap; gap: 8rpx 16rpx; } .electrician-actions { width: 100%; } .contact-btn { box-sizing: border-box; min-height: 88rpx; padding: 20rpx; }

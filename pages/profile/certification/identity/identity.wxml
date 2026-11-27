@@ -25,7 +25,7 @@
       </block>
       <block wx:else>
         <view class="placeholder-content">
-          <image class="camera-icon" src="/images/content-ui/camera.svg" mode="aspectFit"></image>
+          <image class="camera-icon" src="/images/icons/camera.png" mode="aspectFit"></image>
           <text>点击上传人像面</text>
         </view>
         <image class="card-bg" src="/images/bg/id-card-front-bg.png" mode="aspectFit"></image>
@@ -42,7 +42,7 @@
       </block>
       <block wx:else>
         <view class="placeholder-content">
-          <image class="camera-icon" src="/images/content-ui/camera.svg" mode="aspectFit"></image>
+          <image class="camera-icon" src="/images/icons/camera.png" mode="aspectFit"></image>
           <text>点击上传国徽面</text>
         </view>
         <image class="card-bg" src="/images/bg/id-card-back-bg.png" mode="aspectFit"></image>

@@ -246,22 +246,26 @@ test('optional service proof upload reaches the quoted original order and can be
   p.removeImage({currentTarget:{dataset:{index:0}}});assert.equal(p.data.images.length,0);
 });
 
-test('fixed price popup clears agreement on edits and persists the exact original order choice before confirmation', async () => {
+for (const [price, mode, amount] of [['', 'fixed_deposit', '200.00'], ['350.50', 'fixed_price', '350.50']]) test(`personal prepay keeps consent while editing and submits ${mode} on the original order`, async () => {
   const h = harness(); h.login('user');
   const events = [];
-  const p = { ...h.component('components/order-prepay/index.js'), data: { orderId:10, offsite:true, opened:true, agreed:true },
+  const p = { ...h.component('components/order-prepay/index.js'), data: { orderId:10, offsite:true, sharedLayout:true, opened:false, agreed:false, mode:'fixed_deposit' },
     setData(value) { Object.assign(this.data,value); }, triggerEvent(name,choice) { events.push({name,choice}); } };
-  p.chooseMode({detail:{value:'fixed_price'}});
-  p.inputPrice({detail:{value:'200.00'}});
   await p.confirm();
   assert.equal(h.calls.request.length,0);
   p.changeAgreement({detail:{value:['agree']}});
+  p.inputSharedPrice({detail:{value:'310.20'}});
+  assert.equal(p.data.agreed, true);
+  p.inputSharedPrice({detail:{value:price}});
+  assert.equal(p.data.mode, mode);
+  assert.equal(p.data.agreed, true);
   const work = p.confirm();
   assert.ok(h.calls.request[0].url.endsWith('/orders/10/offsite/price'));
-  assert.equal(h.calls.request[0].data.amount,'200.00');
+  assert.equal(h.calls.request[0].data.pricing_mode, mode);
+  assert.equal(h.calls.request[0].data.amount, amount);
   assert.equal(events.length,0);
   h.respond(0,{}); await work;
-  assert.equal(events[0].choice.mode,'fixed_price');
+  assert.equal(events[0].choice.mode, mode);
 });
 test('fixed price electrician submits delivery without another quote', async () => {
   const {h,p} = widget('electrician',{pricing_mode:'fixed_price',status:'in_progress'});

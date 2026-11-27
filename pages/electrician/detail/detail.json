@@ -1,8 +1,4 @@
 {
   "navigationBarTitleText": "电工详情",
-  "backgroundColor": "#ffffff",
-  "backgroundColorTop": "#ffffff",
-  "backgroundColorBottom": "#ffffff",
-  "navigationBarBackgroundColor": "#ffffff",
-  "navigationBarTextStyle": "black"
+  "backgroundColor": "#F5F5F5"
 }
